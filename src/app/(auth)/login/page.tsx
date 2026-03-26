@@ -38,9 +38,9 @@ export default function LoginPage() {
   return (
     <section className="min-h-screen">
       {/* Container */}
-      <div className="container mx-auto flex min-h-screen flex-col px-6 pt-32 pb-12 md:px-10 md:pt-36 md:pb-10 lg:px-16 lg:pt-40 lg:pb-11">
+      <div className="container mx-auto flex min-h-screen flex-col px-6 py-[clamp(1rem,3vh,3rem)] md:px-10 lg:px-16 lg:py-[clamp(1.5rem,4vh,3.5rem)]">
         {/* Center Content */}
-        <div className="flex flex-1 items-start justify-center pt-8 md:pt-12 lg:pt-16">
+        <div className="flex flex-1 items-start justify-center pt-[clamp(2rem,12vh,8rem)] pb-[clamp(1.5rem,5vh,3rem)] md:pt-[clamp(2.5rem,13vh,8.5rem)] md:pb-[clamp(2rem,6vh,3.5rem)] lg:pt-[clamp(3rem,14vh,9rem)] lg:pb-[clamp(2.5rem,7vh,4rem)]">
           <div className="flex w-full max-w-md flex-col items-center gap-8 md:gap-9 lg:gap-10">
             {/* Brand Block */}
             <div className="flex w-full flex-col items-center gap-3.5 text-center md:gap-5 lg:gap-6">
