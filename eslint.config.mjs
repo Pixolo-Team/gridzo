@@ -8,7 +8,6 @@ import { defineConfig, globalIgnores } from "eslint/config";
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
-  prettier,
   {
     rules: {
       "react-hooks/set-state-in-effect": "off",

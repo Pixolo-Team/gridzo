@@ -1,4 +1,3 @@
-// LIBRARIES //
 // REACT //
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
@@ -18,7 +17,7 @@ const buttonVariants = cva(
         secondary:
           "border border-n-400 bg-n-50 text-n-950 hover:bg-n-100 active:bg-n-50",
         success:
-          "bg-[#0CCE4A] text-n-50 shadow-sm hover:bg-[#08B840] active:bg-[#0CCE4A]/95",
+          "bg-success-500 text-n-50 shadow-sm hover:bg-success-600 active:bg-success-500/95",
         ghost: "bg-transparent text-n-950 hover:bg-n-200",
       },
       size: {

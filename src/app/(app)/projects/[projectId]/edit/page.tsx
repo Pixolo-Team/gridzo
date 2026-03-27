@@ -1,6 +1,6 @@
 interface EditProjectPagePropsData {
   params: Promise<{
-    "project-id": string;
+    projectId: string;
   }>;
 }
 
@@ -10,10 +10,10 @@ interface EditProjectPagePropsData {
 export default async function EditProjectPage({
   params,
 }: Readonly<EditProjectPagePropsData>) {
-  const { "project-id": projectId } = await params;
+  const { projectId } = await params;
 
   return (
-    <main className="flex min-h-screen flex-col gap-4 px-5 py-10">
+    <section className="flex flex-col gap-4 px-5 py-10">
       <p className="text-sm font-medium uppercase tracking-[0.2em] text-black/50">
         Projects
       </p>
@@ -21,6 +21,6 @@ export default async function EditProjectPage({
       <p className="max-w-2xl text-sm text-black/60">
         This dynamic route is reserved for editing project {projectId}.
       </p>
-    </main>
+    </section>
   );
 }
