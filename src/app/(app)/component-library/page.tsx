@@ -58,7 +58,7 @@ export default function ComponentLibraryPage() {
   // Use Effects
 
   return (
-    <main className="min-h-screen px-5 py-10 md:px-8 lg:px-10">
+    <section className="px-5 py-10 md:px-8 lg:px-10">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
         <header className="flex flex-col gap-2">
           <p className="text-sm font-medium uppercase tracking-[0.18em] text-n-500">
@@ -204,6 +204,6 @@ export default function ComponentLibraryPage() {
           </div>
         </section>
       </div>
-    </main>
+    </section>
   );
 }

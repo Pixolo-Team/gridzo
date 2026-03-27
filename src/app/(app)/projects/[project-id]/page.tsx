@@ -10,10 +10,22 @@ interface ProjectPagePropsData {
 export default async function ProjectPage({
   params,
 }: Readonly<ProjectPagePropsData>) {
+  // Define Navigation
+
+  // Define Context
+
+  // Define Refs
+
+  // Define States
+
+  // Helper Functions
+
   const { "project-id": projectId } = await params;
 
+  // Use Effects
+
   return (
-    <main className="flex min-h-screen flex-col gap-4 px-5 py-10">
+    <section className="flex flex-col gap-4 px-5 py-10">
       <p className="text-sm font-medium uppercase tracking-[0.2em] text-black/50">
         Projects
       </p>
@@ -22,6 +34,6 @@ export default async function ProjectPage({
         This route is the project destination after selecting a project from the
         dashboard list.
       </p>
-    </main>
+    </section>
   );
 }

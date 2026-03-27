@@ -1,4 +1,3 @@
-// LIBRARIES //
 // REACT //
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
@@ -9,7 +8,7 @@ import { cn } from "@/lib/utils";
 
 // Variants
 const buttonVariants = cva(
-  "inline-flex cursor-pointer items-center justify-center gap-3 whitespace-nowrap rounded-[24px] text-base font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-n-400 focus-visible:ring-offset-2 focus-visible:ring-offset-n-50 disabled:pointer-events-none disabled:bg-n-200 disabled:text-n-400 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-5",
+  "inline-flex cursor-pointer items-center justify-center gap-3 whitespace-nowrap rounded-xl text-base font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-n-400 focus-visible:ring-offset-2 focus-visible:ring-offset-n-50 disabled:pointer-events-none disabled:bg-n-200 disabled:text-n-400 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-5",
   {
     variants: {
       variant: {
@@ -50,7 +49,19 @@ export function Button({
   asChild = false,
   ...props
 }: ButtonPropsData): React.ReactElement {
+  // Define Navigation
+
+  // Define Context
+
+  // Define Refs
+
+  // Define States
+
+  // Helper Functions
+
   const Component = asChild ? Slot : "button";
+
+  // Use Effects
 
   return (
     <Component
