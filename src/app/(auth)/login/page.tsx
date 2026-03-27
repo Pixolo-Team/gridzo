@@ -26,7 +26,7 @@ export default function LoginPage() {
       {/* Container */}
       <div className="container mx-auto flex min-h-screen flex-col px-6 py-4 md:px-10 md:py-6 lg:px-16 lg:py-8">
         {/* Center Content */}
-        <div className="flex flex-1 items-start justify-center pt-8 pb-6 md:pt-10 md:pb-8 lg:pt-12 lg:pb-10">
+        <div className="flex flex-1 items-center justify-center pt-8 pb-6 md:pt-10 md:pb-8">
           <div className="flex w-full max-w-md flex-col items-center gap-8 md:gap-9 lg:gap-10">
             {/* Brand Block */}
             <div className="flex w-full flex-col items-center gap-3.5 text-center md:gap-5 lg:gap-6">
