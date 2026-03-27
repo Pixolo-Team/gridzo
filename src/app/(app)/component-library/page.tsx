@@ -45,18 +45,6 @@ const buttonSizeItems = [
  * Renders a component library page to preview shared UI building blocks
  */
 export default function ComponentLibraryPage() {
-  // Define Navigation
-
-  // Define Context
-
-  // Define Refs
-
-  // Define States
-
-  // Helper Functions
-
-  // Use Effects
-
   return (
     <section className="px-5 py-10 md:px-8 lg:px-10">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">

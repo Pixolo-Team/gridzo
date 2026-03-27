@@ -12,6 +12,8 @@
   --color-n-800: #1d283d;
   --color-n-900: #0e172b;
   --color-n-950: #020617;
+  --color-success-500: #0cce4a;
+  --color-success-600: #08b840;
   --background: #ffffff;
   --foreground: #171717;
 }
@@ -31,6 +33,8 @@
   --color-n-800: var(--color-n-800);
   --color-n-900: var(--color-n-900);
   --color-n-950: var(--color-n-950);
+  --color-success-500: var(--color-success-500);
+  --color-success-600: var(--color-success-600);
   --color-primary: var(--primary);
   --color-secondary: var(--secondary);
 }

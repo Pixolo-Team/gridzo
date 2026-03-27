@@ -1,6 +1,6 @@
 interface EditProjectPagePropsData {
   params: Promise<{
-    "project-id": string;
+    projectId: string;
   }>;
 }
 
@@ -11,18 +11,7 @@ export default async function EditProjectPage({
   params,
 }: Readonly<EditProjectPagePropsData>) {
   // Define Navigation
-
-  // Define Context
-
-  // Define Refs
-
-  // Define States
-
-  // Helper Functions
-
-  const { "project-id": projectId } = await params;
-
-  // Use Effects
+  const { projectId } = await params;
 
   return (
     <section className="flex flex-col gap-4 px-5 py-10">

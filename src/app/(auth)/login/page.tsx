@@ -9,18 +9,6 @@ import { footerLinkItems } from "@/app/data/footer-links";
 
 /** Login page */
 export default function LoginPage() {
-  // Define Navigation
-
-  // Define Context
-
-  // Define Refs
-
-  // Define States
-
-  // Helper Functions
-
-  // Use Effects
-
   return (
     <section className="min-h-screen">
       {/* Container */}

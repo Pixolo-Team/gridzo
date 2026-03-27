@@ -5,9 +5,9 @@ export const ROUTES = {
     DASHBOARD: "/",
     PROJECTS: {
       DETAIL: (projectId: string): string => `/projects/${projectId}`,
-      DETAIL_PATTERN: "/projects/[project-id]",
+      DETAIL_PATTERN: "/projects/[projectId]",
       EDIT: (projectId: string): string => `/projects/${projectId}/edit`,
-      EDIT_PATTERN: "/projects/[project-id]/edit",
+      EDIT_PATTERN: "/projects/[projectId]/edit",
       NEW: "/projects/new",
     },
   },
