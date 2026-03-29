@@ -91,7 +91,7 @@ export function SideMenu({
 
       {/* User Summary */}
       <div className="mt-auto px-7 py-4 xl:py-7">
-        <div className="flex items-center gap-[18px]">
+        <div className="flex items-center gap-4.5">
           <Image
             src={profileImageSource}
             alt="Deven Bhagtani"
@@ -125,7 +125,7 @@ export function SideMenu({
             <Image
               src={brandLogoImageSource}
               alt="Pixolo"
-              className="h-auto w-[120px] object-contain"
+              className="h-auto w-30 object-contain"
               width={120}
               height={36}
             />
@@ -147,7 +147,7 @@ export function SideMenu({
             onClick={onCloseMobileMenu}
           />
 
-          <aside className="relative flex h-full w-[293px] flex-col justify-between overflow-hidden rounded-r-[12px] bg-n-50">
+          <aside className="relative flex h-full w-72 flex-col justify-between overflow-hidden rounded-r-xl bg-n-50">
             {/* Mobile Brand and Close */}
             <div className="flex items-center justify-between px-7 py-3.5">
               <Link
@@ -158,7 +158,7 @@ export function SideMenu({
                 <Image
                   src={brandLogoImageSource}
                   alt="Pixolo"
-                  className="h-auto w-[108px] object-contain"
+                  className="h-auto w-28 object-contain"
                   width={108}
                   height={32}
                 />
@@ -167,7 +167,7 @@ export function SideMenu({
               <button
                 type="button"
                 aria-label="Close side menu"
-                className="flex size-[38px] items-center justify-center rounded-full transition-colors hover:bg-n-100"
+                className="flex size-10 items-center justify-center rounded-full transition-colors hover:bg-n-100"
                 onClick={onCloseMobileMenu}
               >
                 <Close primaryColor="var(--color-n-500)" className="size-5" />

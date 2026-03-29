@@ -128,7 +128,7 @@ export default function ComponentLibraryPage() {
             {buttonSizeItems.map((buttonSizeItem) => (
               <div
                 key={buttonSizeItem.label}
-                className="flex flex-col gap-3 rounded-[24px] border border-dashed border-n-300 bg-n-100/60 p-4"
+                className="flex flex-col gap-3 rounded-3xl border border-dashed border-n-300 bg-n-100/60 p-4"
               >
                 <p className="text-sm font-medium text-n-500">
                   {buttonSizeItem.label}

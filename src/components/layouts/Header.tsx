@@ -79,7 +79,7 @@ export function Header({
         <Image
           src={brandLogoImageSource}
           alt="Pixolo"
-          className="h-auto w-[22%] min-w-[96px] max-w-[108px] object-contain"
+          className="h-auto w-[22%] min-w-24 max-w-28 object-contain"
           width={108}
           height={32}
         />
@@ -115,7 +115,7 @@ export function Header({
         <Image
           src={brandLogoImageSource}
           alt="Pixolo"
-          className="h-auto w-[32%] min-w-[96px] max-w-[108px] object-contain"
+          className="h-auto w-[32%] min-w-24 max-w-28 object-contain"
           width={108}
           height={32}
         />
