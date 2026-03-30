@@ -64,7 +64,7 @@ export function Header({ onToggleMobileMenu }: HeaderPropsData): ReactElement {
       {/* Desktop Actions */}
       <div className="ml-6 flex shrink-0 items-center gap-4">
         <Button asChild size="small" variant="primary">
-          <Link href={ROUTES.APP.PROJECTS.NEW}>
+          <Link href={ROUTES.APP.PROJECTS.CREATE}>
             <AddSquare primaryColor="var(--color-n-50)" className="size-5" />
             <span>Create New Project</span>
           </Link>
