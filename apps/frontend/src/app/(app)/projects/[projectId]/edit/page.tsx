@@ -10,6 +10,7 @@ interface EditProjectPagePropsData {
 export default async function EditProjectPage({
   params,
 }: Readonly<EditProjectPagePropsData>) {
+  // Define Navigation
   const { projectId } = await params;
 
   return (

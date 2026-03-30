@@ -1,14 +1,32 @@
+"use client";
+
+// REACT //
+import { useRouter } from "next/navigation";
+
 // COMPONENTS //
 import Image from "next/image";
 import Link from "next/link";
 import Database from "@/components/icons/neevo-icons/Database";
 import { Button } from "@/components/ui/button";
 
+// CONSTANTS //
+import { ROUTES } from "@/app/constants/routes";
+
 // DATA //
 import { footerLinkItems } from "@/app/data/footer-links";
 
 /** Login page */
 export default function LoginPage() {
+  // Define Navigation
+  const router = useRouter();
+
+  // Helper functions
+  /** Handles Google Sign-In logic */
+  const handleGoogleSignIn = () => {
+    // TODO: Implement Google Sign-In logic here
+    router.push(ROUTES.APP.DASHBOARD);
+  };
+
   return (
     <section className="min-h-screen">
       {/* Container */}
@@ -47,16 +65,19 @@ export default function LoginPage() {
                 type="button"
                 className="h-12 w-full gap-3 rounded-lg px-6 py-3 text-sm"
                 aria-label="Sign in with Google"
+                onClick={handleGoogleSignIn}
               >
                 {/* Google logo */}
-                <Image
-                  src="/images/google-logo.png"
-                  alt=""
-                  aria-hidden="true"
-                  width={20}
-                  height={20}
-                  className="size-5"
-                />
+                <span className="size-5 shrink-0">
+                  <Image
+                    src="/images/google-logo.png"
+                    alt=""
+                    aria-hidden="true"
+                    width={20}
+                    height={20}
+                    className="h-full w-full object-contain"
+                  />
+                </span>
                 <span>Sign in with Google</span>
               </Button>
 

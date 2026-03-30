@@ -10,6 +10,7 @@ interface ProjectPagePropsData {
 export default async function ProjectPage({
   params,
 }: Readonly<ProjectPagePropsData>) {
+  // Define Navigation
   const { projectId } = await params;
 
   return (

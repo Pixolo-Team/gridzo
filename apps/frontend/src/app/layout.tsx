@@ -25,6 +25,18 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Define Navigation
+
+  // Define Context
+
+  // Define Refs
+
+  // Define States
+
+  // Helper Functions
+
+  // Use Effects
+
   return (
     <html lang="en" className={interSans.variable}>
       <body className="antialiased font-sans min-h-screen bg-n-100">
