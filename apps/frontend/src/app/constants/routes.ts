@@ -8,7 +8,7 @@ export const ROUTES = {
       DETAIL_PATTERN: "/projects/[projectId]",
       EDIT: (projectId: string): string => `/projects/${projectId}/edit`,
       EDIT_PATTERN: "/projects/[projectId]/edit",
-      NEW: "/projects/new",
+      CREATE: "/projects/create",
     },
   },
   AUTH: {
