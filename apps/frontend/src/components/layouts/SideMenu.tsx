@@ -138,7 +138,7 @@ export function SideMenu({
   return (
     <>
       {/* Desktop Side Menu */}
-      <aside className="hidden h-full w-86 2xl:w-96 shrink-0 border-r border-n-300 bg-n-50 xl:flex xl:flex-col xl:justify-between">
+      <aside className="hidden h-full w-[26%] max-w-96 min-w-72 shrink-0 border-r border-n-300 bg-n-50 xl:flex xl:flex-col xl:justify-between">
         {/* Desktop Brand */}
         <div className="px-7 py-5">
           <Link
@@ -179,7 +179,7 @@ export function SideMenu({
         />
 
         <aside
-          className={`fixed inset-y-0 left-0 z-10 flex h-full w-86 flex-col justify-between overflow-y-auto rounded-r-xl bg-n-50 shadow-2xl transition-transform duration-300 ease-in-out transform-gpu will-change-transform ${
+          className={`fixed inset-y-0 left-0 z-10 flex h-full w-[85%] max-w-96 flex-col justify-between overflow-y-auto rounded-r-xl bg-n-50 shadow-2xl transition-transform duration-300 ease-in-out transform-gpu will-change-transform ${
             isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >

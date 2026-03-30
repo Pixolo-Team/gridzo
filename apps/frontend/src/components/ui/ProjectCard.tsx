@@ -14,7 +14,7 @@ import { getBadgeLabelUtil } from "@/utils/badge-label.util";
 type ProjectCardPropsData = {
   badgeName: string;
   href: string;
-  backgroundColor: string;
+  backgroundClassName: string;
   iconColorClassName: string;
   Icon: IconComponent;
   lastSyncLabel: string;
@@ -27,7 +27,7 @@ type ProjectCardPropsData = {
 export function ProjectCard({
   badgeName,
   href,
-  backgroundColor,
+  backgroundClassName,
   iconColorClassName,
   Icon,
   lastSyncLabel,
@@ -49,7 +49,7 @@ export function ProjectCard({
     <article className="overflow-hidden rounded-2xl bg-n-50 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
       {/* Card Hero */}
       <div
-        className={`flex h-40 items-center justify-center md:h-44 ${backgroundColor}`}
+        className={`flex h-40 items-center justify-center md:h-44 ${backgroundClassName}`}
       >
         <Icon
           primaryColor="currentColor"

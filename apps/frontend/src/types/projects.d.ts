@@ -2,7 +2,7 @@
 export type DashboardProjectData = {
   badgeName: string;
   href: string;
-  iconBackgroundClassName: string;
+  backgroundClassName: string;
   iconColorClassName: string;
   id: string;
   lastSyncLabel: string;

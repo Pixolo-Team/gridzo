@@ -11,7 +11,7 @@ export const dashboardProjectData: DashboardProjectData[] = [
   {
     badgeName: "Mohd Hussain",
     href: ROUTES.APP.PROJECTS.DETAIL("neelsiddhi-website"),
-    iconBackgroundClassName: "bg-blue-100",
+    backgroundClassName: "bg-blue-100",
     iconColorClassName: "text-blue-400",
     id: "neelsiddhi-website",
     lastSyncLabel: "Last Sync: 2 hours ago",
@@ -20,7 +20,7 @@ export const dashboardProjectData: DashboardProjectData[] = [
   {
     badgeName: "Danish Jain",
     href: ROUTES.APP.PROJECTS.DETAIL("ecommerce-demo-green"),
-    iconBackgroundClassName: "bg-green-100",
+    backgroundClassName: "bg-green-100",
     iconColorClassName: "text-green-400",
     id: "ecommerce-demo-green",
     lastSyncLabel: "Last Sync: 2 hours ago",
@@ -29,7 +29,7 @@ export const dashboardProjectData: DashboardProjectData[] = [
   {
     badgeName: "Danish Ahuja",
     href: ROUTES.APP.PROJECTS.DETAIL("ecommerce-demo-orange"),
-    iconBackgroundClassName: "bg-orange-100",
+    backgroundClassName: "bg-orange-100",
     iconColorClassName: "text-orange-400",
     id: "ecommerce-demo-orange",
     lastSyncLabel: "Last Sync: 5 hours ago",

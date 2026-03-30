@@ -38,7 +38,9 @@ export default function DashboardPage(): ReactElement {
     setSearchValue(event.target.value);
   };
 
-  /**  */
+  /**
+   * Filters the dashboard projects by title using the current search value
+   */
   const filteredDashboardProjectData = dashboardProjectData.filter(
     (dashboardProjectItem) =>
       dashboardProjectItem.title
@@ -69,7 +71,7 @@ export default function DashboardPage(): ReactElement {
         </div>
 
         {/* Subtitle */}
-        <p className="max-w-134 text-xs text-n-500 md:text-base">
+        <p className="max-w-[70%] text-xs text-n-500 md:text-base">
           Manage and monitor your digital assets across all platforms.
         </p>
       </div>
@@ -82,7 +84,7 @@ export default function DashboardPage(): ReactElement {
             key={dashboardProjectItem.id}
             badgeName={dashboardProjectItem.badgeName}
             href={dashboardProjectItem.href}
-            backgroundColor={dashboardProjectItem.iconBackgroundClassName}
+            backgroundClassName={dashboardProjectItem.backgroundClassName}
             iconColorClassName={dashboardProjectItem.iconColorClassName}
             Icon={ShoppingCart2}
             lastSyncLabel={dashboardProjectItem.lastSyncLabel}

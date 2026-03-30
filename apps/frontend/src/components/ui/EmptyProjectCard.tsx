@@ -30,7 +30,7 @@ export function EmptyProjectCard({
   return (
     <Link
       href={href}
-      className="flex min-h-80 flex-col items-center justify-center gap-7 rounded-2xl border-2 border-dashed border-n-300 px-6 py-8 text-center transition-colors hover:border-n-400 hover:bg-n-50 md:min-h-90"
+      className="flex min-h-80 flex-col items-center justify-center gap-7 rounded-2xl border-2 border-dashed border-n-300 px-6 py-8 text-center transition-colors hover:border-n-400 hover:bg-n-50"
     >
       {/* Add Icon */}
       <div className="flex size-9 items-center justify-center rounded-full bg-n-200">
@@ -38,7 +38,7 @@ export function EmptyProjectCard({
       </div>
 
       {/* Empty State Content */}
-      <div className="flex w-full  flex-col gap-1.5">
+      <div className="flex w-full flex-col gap-1.5">
         <h2 className="text-2xl font-bold text-n-950">Create New Project</h2>
         <p className="text-sm text-n-500">Deploy a new site or application</p>
       </div>
