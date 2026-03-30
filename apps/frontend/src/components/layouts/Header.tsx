@@ -1,163 +1,90 @@
 "use client";
 
 // REACT //
-import type { ChangeEvent, ReactElement } from "react";
-import { useState } from "react";
-
-// STYLES //
-import { ThemeImage } from "@/components/ui/ThemeImage";
+import type { ReactElement } from "react";
 
 // COMPONENTS //
-import Link from "next/link";
-import AddSquare from "@/components/icons/neevo-icons/AddSquare";
-import BellNotification from "@/components/icons/neevo-icons/BellNotification";
-import HamburgerMenu1 from "@/components/icons/neevo-icons/HamburgerMenu1";
-import { SearchInput } from "@/components/ui/SearchInput";
-import { Button } from "@/components/ui/button";
+import { AppHeader } from "@/components/layouts/headers/AppHeader";
+import { FlowHeader } from "@/components/layouts/headers/FlowHeader";
+import { ProjectHeader } from "@/components/layouts/headers/ProjectHeader";
 
 // CONSTANTS //
 import { ROUTES } from "@/app/constants/routes";
+
+// NAVIGATION //
+import { usePathname } from "next/navigation";
 
 type HeaderPropsData = {
   onToggleMobileMenu: () => void;
 };
 
 /**
- * Renders the shared application header based on the Figma desktop and mobile states
+ * Renders the shared application header and dispatches to the correct header variant
  */
 export function Header({ onToggleMobileMenu }: HeaderPropsData): ReactElement {
   // Define Navigation
+  const pathname = usePathname();
 
   // Define Context
 
   // Define Refs
 
   // Define States
-  const [searchValue, setSearchValue] = useState<string>("");
 
   // Helper Functions
-  /** Clears the search value */
-  const clearSearchValue = (): void => {
-    setSearchValue("");
+  /**
+   * Checks whether the current route should use the flow header
+   */
+  const checkIsFlowHeaderRoute = (): boolean => {
+    return pathname === ROUTES.APP.PROJECTS.CREATE;
   };
 
   /**
-   * Updates the search value from the search input field
+   * Checks whether the current route should use the project header
    */
-  const handleSearchChange = (event: ChangeEvent<HTMLInputElement>): void => {
-    setSearchValue(event.target.value);
+  const checkIsProjectHeaderRoute = (): boolean => {
+    if (pathname === ROUTES.APP.PROJECTS.CREATE) {
+      return false;
+    }
+
+    return pathname.startsWith("/projects/");
   };
 
-  const desktopHeaderContent = (
-    <>
-      {/* Search */}
-      <div className="w-[438px] shrink-0">
-        <SearchInput
-          className="w-full"
-          placeholder="Search Projects..."
-          value={searchValue}
-          onClear={clearSearchValue}
-          onChange={handleSearchChange}
-        />
-      </div>
+  /**
+   * Gets the current project name from the pathname
+   */
+  const getCurrentProjectName = (): string => {
+    const pathnameSegmentItems = pathname.split("/").filter(Boolean);
+    const projectId = pathnameSegmentItems[1];
 
-      {/* Desktop Actions */}
-      <div className="ml-6 flex shrink-0 items-center gap-4">
-        <Button asChild size="small" variant="primary">
-          <Link href={ROUTES.APP.PROJECTS.CREATE}>
-            <AddSquare primaryColor="var(--color-n-50)" className="size-5" />
-            <span>Create New Project</span>
-          </Link>
-        </Button>
+    if (!projectId || projectId === "edit") {
+      return "Project";
+    }
 
-        <Button
-          type="button"
-          aria-label="Notifications"
-          variant="secondary"
-          className="size-12 rounded-[26px] border-n-300 bg-n-50 p-0 hover:bg-n-100"
-        >
-          <BellNotification
-            primaryColor="var(--color-n-700)"
-            className="size-5"
-          />
-        </Button>
-      </div>
-    </>
-  );
-
-  const tabletHeaderContent = (
-    <>
-      {/* Tablet Brand */}
-      <Link href={ROUTES.APP.DASHBOARD} className="flex h-12 w-28 items-center">
-        <ThemeImage
-          lightSrc="/images/brand/brand-logo.png"
-          darkSrc="/images/brand/brand-logo-dark.png"
-          alt="Pixolo"
-          className="h-auto w-full object-contain"
-          style={{ height: "auto" }}
-          width={108}
-          height={32}
-        />
-      </Link>
-
-      {/* Tablet Menu Trigger */}
-      <button
-        type="button"
-        aria-label="Open side menu"
-        className="flex size-11 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-n-100"
-        onClick={onToggleMobileMenu}
-      >
-        <HamburgerMenu1 primaryColor="var(--color-n-500)" className="size-5" />
-      </button>
-    </>
-  );
-
-  const mobileHeaderContent = (
-    <>
-      {/* Mobile Brand */}
-      <Link href={ROUTES.APP.DASHBOARD} className="flex h-12 w-28 items-center">
-        <ThemeImage
-          lightSrc="/images/brand/brand-logo.png"
-          darkSrc="/images/brand/brand-logo-dark.png"
-          alt="Pixolo"
-          className="h-auto w-full object-contain"
-          style={{ height: "auto" }}
-          width={108}
-          height={32}
-        />
-      </Link>
-
-      {/* Mobile Menu Trigger */}
-      <button
-        type="button"
-        aria-label="Open side menu"
-        className="flex size-11 items-center justify-center rounded-full transition-colors hover:bg-n-100"
-        onClick={onToggleMobileMenu}
-      >
-        <HamburgerMenu1 primaryColor="var(--color-n-500)" className="size-5" />
-      </button>
-    </>
-  );
+    return projectId
+      .split("-")
+      .map((projectNameItem) => {
+        return (
+          projectNameItem.charAt(0).toUpperCase() + projectNameItem.slice(1)
+        );
+      })
+      .join(" ");
+  };
 
   // Use Effects
 
-  return (
-    /* Shared Header Shell */
-    <header className="border-b border-n-300 bg-n-50">
-      {/* Desktop Header Content */}
-      <div className="hidden items-center justify-between gap-6 px-7 py-5 xl:flex">
-        {desktopHeaderContent}
-      </div>
+  if (checkIsFlowHeaderRoute()) {
+    return <FlowHeader onToggleMobileMenu={onToggleMobileMenu} />;
+  }
 
-      {/* Tablet Header Content */}
-      <div className="hidden items-center justify-between px-7 py-4 md:flex xl:hidden">
-        {tabletHeaderContent}
-      </div>
+  if (checkIsProjectHeaderRoute()) {
+    return (
+      <ProjectHeader
+        onToggleMobileMenu={onToggleMobileMenu}
+        projectName={getCurrentProjectName()}
+      />
+    );
+  }
 
-      {/* Mobile Header Content */}
-      <div className="flex items-center justify-between px-7 py-3.5 md:hidden">
-        {mobileHeaderContent}
-      </div>
-    </header>
-  );
+  return <AppHeader onToggleMobileMenu={onToggleMobileMenu} />;
 }
