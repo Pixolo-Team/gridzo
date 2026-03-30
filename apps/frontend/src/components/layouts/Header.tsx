@@ -5,7 +5,7 @@ import type { ChangeEvent, ReactElement } from "react";
 import { useState } from "react";
 
 // STYLES //
-import { ThemeImage } from "@/components/ui/ThemeImage";
+import { AppBrand } from "@/components/ui/AppBrand";
 
 // COMPONENTS //
 import Link from "next/link";
@@ -88,17 +88,12 @@ export function Header({ onToggleMobileMenu }: HeaderPropsData): ReactElement {
   const tabletHeaderContent = (
     <>
       {/* Tablet Brand */}
-      <Link href={ROUTES.APP.DASHBOARD} className="flex h-12 w-28 items-center">
-        <ThemeImage
-          lightSrc="/images/brand/brand-logo.png"
-          darkSrc="/images/brand/brand-logo-dark.png"
-          alt="Pixolo"
-          className="h-auto w-full object-contain"
-          style={{ height: "auto" }}
-          width={108}
-          height={32}
-        />
-      </Link>
+      <AppBrand
+        className="flex h-12 w-28 items-center"
+        imageClassName="h-auto w-full object-contain"
+        width={108}
+        height={32}
+      />
 
       {/* Tablet Menu Trigger */}
       <button
@@ -115,17 +110,12 @@ export function Header({ onToggleMobileMenu }: HeaderPropsData): ReactElement {
   const mobileHeaderContent = (
     <>
       {/* Mobile Brand */}
-      <Link href={ROUTES.APP.DASHBOARD} className="flex h-12 w-28 items-center">
-        <ThemeImage
-          lightSrc="/images/brand/brand-logo.png"
-          darkSrc="/images/brand/brand-logo-dark.png"
-          alt="Pixolo"
-          className="h-auto w-full object-contain"
-          style={{ height: "auto" }}
-          width={108}
-          height={32}
-        />
-      </Link>
+      <AppBrand
+        className="flex h-12 w-28 items-center"
+        imageClassName="h-auto w-full object-contain"
+        width={108}
+        height={32}
+      />
 
       {/* Mobile Menu Trigger */}
       <button
