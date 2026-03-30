@@ -6,13 +6,17 @@ import Copy1 from "@/components/icons/neevo-icons/Copy1";
 import CopyDocument from "@/components/icons/neevo-icons/CopyDocument";
 import { Button } from "@/components/ui/button";
 
-// TYPES //
-import type { InputActionCardActionData } from "@/types/project-overview";
-
 // OTHERS //
 import { cn } from "@/lib/utils";
 
-type InputActionCardPropsData = {
+export type InputActionCardActionData = {
+  iconToneClassName?: string;
+  id: string;
+  label: string;
+  variant: "primary" | "secondary";
+};
+
+export type InputActionCardData = {
   actionItems: InputActionCardActionData[];
   description: string;
   title: string;
@@ -27,7 +31,7 @@ export function InputActionCard({
   description,
   title,
   value,
-}: InputActionCardPropsData): ReactElement {
+}: InputActionCardData): ReactElement {
   // Define Navigation
 
   // Define Context
@@ -70,25 +74,28 @@ export function InputActionCard({
       {/* Card Container */}
       <div className="rounded-2xl border border-n-200 bg-n-50 px-[25px] py-[21px] md:rounded-[18.5px] md:p-[29px]">
         {/* Endpoint Content */}
-        <div className="flex flex-col gap-3.5 lg:flex-row lg:items-center lg:gap-3">
+        <div className="flex flex-col gap-3.5 2xl:flex-row 2xl:items-center 2xl:gap-3">
           {/* Endpoint Value */}
-          <div className="flex min-h-[72px] w-full items-center rounded-lg bg-n-100 px-5 py-4 lg:min-h-14 lg:flex-1 lg:px-[14px] lg:py-4">
-            <p className="w-full font-mono text-sm leading-6 text-n-700 md:text-lg md:leading-normal">
+          <div className="flex min-h-[72px] w-full items-center rounded-lg bg-n-100 px-5 py-4 2xl:min-h-14 2xl:min-w-0 2xl:flex-1 2xl:px-[14px] 2xl:py-4">
+            <p className="w-full break-all font-mono text-sm leading-6 text-n-700 md:text-lg md:leading-normal">
               {value}
             </p>
           </div>
 
           {/* Action Buttons */}
-          <div className="grid grid-cols-2 gap-2 lg:flex lg:shrink-0 lg:items-center">
+          <div className="grid grid-cols-2 gap-2 2xl:flex 2xl:shrink-0 2xl:items-center">
             {actionItems.map((actionItem) => (
               <Button
                 key={actionItem.id}
                 type="button"
                 size="small"
                 variant={actionItem.variant}
-                className="h-12 w-full gap-2 px-6 text-sm md:text-base lg:h-14 lg:w-auto lg:px-8 lg:text-lg"
+                className="h-12 w-full gap-2 px-6 text-sm md:text-base 2xl:h-14 2xl:w-auto 2xl:px-8 2xl:text-lg"
               >
+                {/* Action Icon */}
                 {renderActionIcon(actionItem)}
+
+                {/* Action Label */}
                 <span>{actionItem.label}</span>
               </Button>
             ))}

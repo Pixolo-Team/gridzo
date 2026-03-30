@@ -13,6 +13,11 @@ type StatCardPropsData = {
   value: string;
 };
 
+export type StatCardData = Omit<StatCardPropsData, "icon"> & {
+  id: string;
+  iconColorClassName: string;
+};
+
 /**
  * Renders a reusable project overview statistic card
  */
@@ -65,7 +70,10 @@ export function StatCard({
 
       {/* Card Content */}
       <div className="mt-4 flex flex-col gap-1 md:mt-3">
+        {/* Stat Title */}
         <p className="text-xs text-n-500 md:text-sm">{title}</p>
+
+        {/* Stat Value */}
         <p className="text-[32px] leading-none font-bold text-n-800 md:text-3xl">
           {value}
         </p>

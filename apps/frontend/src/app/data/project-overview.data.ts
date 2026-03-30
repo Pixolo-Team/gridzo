@@ -1,10 +1,8 @@
-// TYPES //
-import type {
-  ProjectOverviewInputActionCardData,
-  ProjectOverviewStatData,
-} from "@/types/project-overview";
+// COMPONENTS //
+import type { InputActionCardData } from "@/components/ui/InputActionCard";
+import type { StatCardData } from "@/components/ui/StatCard";
 
-export const projectOverviewStatItems: ProjectOverviewStatData[] = [
+export const projectOverviewStatItems: StatCardData[] = [
   {
     id: "total-pages",
     title: "Total Pages",
@@ -39,7 +37,7 @@ export const projectOverviewStatItems: ProjectOverviewStatData[] = [
  */
 export function getProjectOverviewInputActionCardData(
   projectId: string,
-): ProjectOverviewInputActionCardData {
+): InputActionCardData {
   return {
     title: "Project API Endpoint",
     description:

@@ -36,6 +36,9 @@ export default async function ProjectPage({
   // Define States
 
   // Helper Functions
+  /**
+   * Builds the API endpoint card content for the current project
+   */
   const projectOverviewInputActionCard =
     getProjectOverviewInputActionCardData(projectId);
 
@@ -46,6 +49,7 @@ export default async function ProjectPage({
       {/* Stats Section */}
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-6 xl:grid-cols-3">
         {projectOverviewStatItems.map((projectOverviewStatItem) => {
+          // Determine the icon variant for the current stat card
           const statCardIcon =
             projectOverviewStatItem.id === "total-pages" ? (
               <TextFile
