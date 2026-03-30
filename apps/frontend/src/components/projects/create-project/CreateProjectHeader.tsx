@@ -4,6 +4,7 @@ import type { ReactElement } from "react";
 // COMPONENTS //
 import HamburgerMenu1 from "@/components/icons/neevo-icons/HamburgerMenu1";
 import LineArrowLeft1 from "@/components/icons/neevo-icons/LineArrowLeft1";
+import { Button } from "@/components/ui/button";
 
 type CreateProjectHeaderPropsData = {
   onBackAction: () => void;
@@ -18,47 +19,53 @@ export function CreateProjectHeader({
   return (
     <>
       <div className="flex items-center justify-between rounded-b-xl bg-n-50 px-7 py-4 md:hidden">
-        <button
+        <Button
           type="button"
+          size="icon"
+          variant="ghost"
           aria-label="Go back"
-          className="flex size-11 items-center justify-center rounded-lg transition-colors hover:bg-n-100"
+          className="size-11 rounded-lg p-0 hover:bg-n-100"
           onClick={onBackAction}
         >
           <LineArrowLeft1
             primaryColor="var(--color-n-500)"
             className="size-5"
           />
-        </button>
+        </Button>
 
         <h1 className="text-base font-semibold text-n-800">
           Create New Project
         </h1>
 
-        <button
+        <Button
           type="button"
+          size="icon"
+          variant="ghost"
           aria-label="Open menu"
-          className="flex size-11 items-center justify-center rounded-full transition-colors hover:bg-n-100"
+          className="size-11 rounded-full p-0 hover:bg-n-100"
         >
           <HamburgerMenu1
             primaryColor="var(--color-n-500)"
             className="size-5"
           />
-        </button>
+        </Button>
       </div>
 
       <div className="hidden border-b border-n-300 bg-n-50 px-7 py-5 md:block">
         <div className="flex items-center gap-5">
-          <button
+          <Button
             type="button"
+            size="icon"
+            variant="ghost"
             aria-label="Go back"
-            className="flex size-12 items-center justify-center rounded-lg bg-n-100 transition-colors hover:bg-n-200"
+            className="size-12 rounded-lg bg-n-100 p-0 hover:bg-n-200"
             onClick={onBackAction}
           >
             <LineArrowLeft1
               primaryColor="var(--color-n-500)"
               className="size-6"
             />
-          </button>
+          </Button>
 
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-bold tracking-[-0.5px] text-n-800">

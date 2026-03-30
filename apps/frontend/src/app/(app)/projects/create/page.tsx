@@ -6,6 +6,7 @@ import { useState } from "react";
 
 // COMPONENTS //
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { CreateProjectActions } from "@/components/projects/create-project/CreateProjectActions";
 import { CreateProjectField } from "@/components/projects/create-project/CreateProjectField";
 import { CreateProjectHeader } from "@/components/projects/create-project/CreateProjectHeader";
@@ -174,7 +175,7 @@ export default function CreateProjectPage(): ReactElement {
             Structure.php Content
           </label>
 
-          <textarea
+          <Textarea
             defaultValue={createProjectStructurePhpContent}
             className="min-h-[354px] w-full resize-none rounded-xl border-[1.5px] border-green-300 bg-green-50 px-[25px] py-[17px] font-mono text-sm leading-7 text-[#1e293b] outline-none md:min-h-[180px] md:px-[25px] md:py-[21px]"
           />
