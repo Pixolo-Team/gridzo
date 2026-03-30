@@ -18,13 +18,10 @@ import { ROUTES } from "@/app/constants/routes";
 // NAVIGATION //
 import { usePathname } from "next/navigation";
 
-const profileImageSource =
-  "https://www.figma.com/api/mcp/asset/d7acd78d-a5b8-47ef-ba1b-bd6eb402d8c4";
-
 type SidebarNavigationItemData = {
   href: string;
-  iconBackgroundClassName: string;
-  iconPrimaryColor: string;
+  backgroundColor: string;
+  iconColor: string;
   Icon: React.ComponentType<{
     className?: string;
     primaryColor?: string;
@@ -37,11 +34,12 @@ type SideMenuPropsData = {
   onCloseMobileMenu: () => void;
 };
 
+// TODO: Will add pages dynamic and based on role later
 const sidebarNavigationItemData: SidebarNavigationItemData[] = [
   {
     href: ROUTES.APP.DASHBOARD,
-    iconBackgroundClassName: "bg-[#FEF3C6]",
-    iconPrimaryColor: "#F59E0B",
+    backgroundColor: "bg-[#FEF3C6]",
+    iconColor: "#F59E0B",
     Icon: DashboardSquare,
     label: "Projects",
   },
@@ -60,9 +58,11 @@ export function SideMenu({
   // Define Context
 
   // Define Refs
+
   // Define States
 
   // Helper Functions
+  /** Checks if the current navigation item is active */
   const checkIsProjectsNavigationItemActive = (): boolean => {
     if (pathname === ROUTES.APP.DASHBOARD) {
       return true;
@@ -89,14 +89,14 @@ export function SideMenu({
             <span
               className={`flex size-8 items-center justify-center rounded ${
                 checkIsProjectsNavigationItemActive()
-                  ? sidebarNavigationItem.iconBackgroundClassName
+                  ? sidebarNavigationItem.backgroundColor
                   : "bg-n-100"
               }`}
             >
               <sidebarNavigationItem.Icon
                 primaryColor={
                   checkIsProjectsNavigationItemActive()
-                    ? sidebarNavigationItem.iconPrimaryColor
+                    ? sidebarNavigationItem.iconColor
                     : "var(--color-n-500)"
                 }
                 className="size-4"
@@ -112,7 +112,7 @@ export function SideMenu({
         <div className="flex items-center gap-4.5">
           <div className="size-10 overflow-hidden rounded-full xl:size-12">
             <Image
-              src={profileImageSource}
+              src={"/images/dummy-profile.png"}
               alt="Deven Bhagtani"
               className="h-full w-full object-cover"
               width={48}

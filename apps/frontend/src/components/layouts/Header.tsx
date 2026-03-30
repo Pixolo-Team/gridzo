@@ -1,7 +1,8 @@
 "use client";
 
 // REACT //
-import * as React from "react";
+import type { ChangeEvent, ReactElement } from "react";
+import { useState } from "react";
 
 // STYLES //
 import { ThemeImage } from "@/components/ui/ThemeImage";
@@ -24,9 +25,7 @@ type HeaderPropsData = {
 /**
  * Renders the shared application header based on the Figma desktop and mobile states
  */
-export function Header({
-  onToggleMobileMenu,
-}: HeaderPropsData): React.ReactElement {
+export function Header({ onToggleMobileMenu }: HeaderPropsData): ReactElement {
   // Define Navigation
 
   // Define Context
@@ -34,8 +33,20 @@ export function Header({
   // Define Refs
 
   // Define States
+  const [searchValue, setSearchValue] = useState<string>("");
 
   // Helper Functions
+  /** Clears the search value */
+  const clearSearchValue = (): void => {
+    setSearchValue("");
+  };
+
+  /**
+   * Updates the search value from the search input field
+   */
+  const handleSearchChange = (event: ChangeEvent<HTMLInputElement>): void => {
+    setSearchValue(event.target.value);
+  };
 
   const desktopHeaderContent = (
     <>
@@ -44,7 +55,9 @@ export function Header({
         <SearchInput
           className="w-full"
           placeholder="Search Projects..."
-          aria-label="Search Projects"
+          value={searchValue}
+          onClear={clearSearchValue}
+          onChange={handleSearchChange}
         />
       </div>
 
