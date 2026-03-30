@@ -1,7 +1,8 @@
 "use client";
 
 // REACT //
-import * as React from "react";
+import type { ReactNode } from "react";
+import { useEffect, useState } from "react";
 
 // COMPONENTS //
 import { Header } from "@/components/layouts/Header";
@@ -13,7 +14,7 @@ import { SideMenu } from "@/components/layouts/SideMenu";
 export default function AppLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: ReactNode;
 }>) {
   // Define Navigation
 
@@ -22,8 +23,7 @@ export default function AppLayout({
   // Define Refs
 
   // Define States
-  const [isMobileMenuOpen, setIsMobileMenuOpen] =
-    React.useState<boolean>(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
 
   // Helper Functions
 
@@ -39,7 +39,7 @@ export default function AppLayout({
 
   // Use Effects
 
-  React.useEffect(() => {
+  useEffect(() => {
     // Lock body scroll while the mobile menu is open so the overlay stays fixed.
     document.body.style.overflow = isMobileMenuOpen ? "hidden" : "";
 
