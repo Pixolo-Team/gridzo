@@ -68,14 +68,16 @@ export default function LoginPage() {
                 onClick={handleGoogleSignIn}
               >
                 {/* Google logo */}
-                <Image
-                  src="/images/google-logo.png"
-                  alt=""
-                  aria-hidden="true"
-                  width={20}
-                  height={20}
-                  className="size-5"
-                />
+                <span className="size-5 shrink-0">
+                  <Image
+                    src="/images/google-logo.png"
+                    alt=""
+                    aria-hidden="true"
+                    width={20}
+                    height={20}
+                    className="h-full w-full object-contain"
+                  />
+                </span>
                 <span>Sign in with Google</span>
               </Button>
 

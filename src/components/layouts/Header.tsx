@@ -3,8 +3,10 @@
 // REACT //
 import * as React from "react";
 
+// STYLES //
+import { ThemeImage } from "@/components/ui/ThemeImage";
+
 // COMPONENTS //
-import Image from "next/image";
 import Link from "next/link";
 import AddSquare from "@/components/icons/neevo-icons/AddSquare";
 import BellNotification from "@/components/icons/neevo-icons/BellNotification";
@@ -14,8 +16,6 @@ import { Button } from "@/components/ui/button";
 
 // CONSTANTS //
 import { ROUTES } from "@/app/constants/routes";
-
-const brandLogoImageSource = "/images/brand-logo.png";
 
 type HeaderPropsData = {
   onToggleMobileMenu: () => void;
@@ -40,7 +40,7 @@ export function Header({
   const desktopHeaderContent = (
     <>
       {/* Search */}
-      <div className="min-w-0 flex-1">
+      <div className="w-[438px] shrink-0">
         <SearchInput
           className="w-full"
           placeholder="Search Projects..."
@@ -64,7 +64,7 @@ export function Header({
           className="size-12 rounded-[26px] border-n-300 bg-n-50 p-0 hover:bg-n-100"
         >
           <BellNotification
-            primaryColor="var(--color-n-500)"
+            primaryColor="var(--color-n-700)"
             className="size-5"
           />
         </Button>
@@ -75,47 +75,40 @@ export function Header({
   const tabletHeaderContent = (
     <>
       {/* Tablet Brand */}
-      <Link href={ROUTES.APP.DASHBOARD} className="flex h-12 items-center">
-        <Image
-          src={brandLogoImageSource}
+      <Link href={ROUTES.APP.DASHBOARD} className="flex h-12 w-28 items-center">
+        <ThemeImage
+          lightSrc="/images/brand-logo.png"
+          darkSrc="/images/brand-logo-dark.png"
           alt="Pixolo"
-          className="h-auto w-[22%] min-w-24 max-w-28 object-contain"
+          className="h-auto w-full object-contain"
+          style={{ height: "auto" }}
           width={108}
           height={32}
         />
       </Link>
 
-      {/* Tablet Search and Trigger */}
-      <div className="flex min-w-0 flex-1 items-center gap-4">
-        <SearchInput
-          className="min-w-0 flex-1"
-          placeholder="Search Projects..."
-          aria-label="Search Projects"
-        />
-
-        <button
-          type="button"
-          aria-label="Open side menu"
-          className="flex size-11 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-n-100"
-          onClick={onToggleMobileMenu}
-        >
-          <HamburgerMenu1
-            primaryColor="var(--color-n-500)"
-            className="size-5"
-          />
-        </button>
-      </div>
+      {/* Tablet Menu Trigger */}
+      <button
+        type="button"
+        aria-label="Open side menu"
+        className="flex size-11 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-n-100"
+        onClick={onToggleMobileMenu}
+      >
+        <HamburgerMenu1 primaryColor="var(--color-n-500)" className="size-5" />
+      </button>
     </>
   );
 
   const mobileHeaderContent = (
     <>
       {/* Mobile Brand */}
-      <Link href={ROUTES.APP.DASHBOARD} className="flex h-12 items-center">
-        <Image
-          src={brandLogoImageSource}
+      <Link href={ROUTES.APP.DASHBOARD} className="flex h-12 w-28 items-center">
+        <ThemeImage
+          lightSrc="/images/brand-logo.png"
+          darkSrc="/images/brand-logo-dark.png"
           alt="Pixolo"
-          className="h-auto w-[32%] min-w-24 max-w-28 object-contain"
+          className="h-auto w-full object-contain"
+          style={{ height: "auto" }}
           width={108}
           height={32}
         />
@@ -139,12 +132,12 @@ export function Header({
     /* Shared Header Shell */
     <header className="border-b border-n-300 bg-n-50">
       {/* Desktop Header Content */}
-      <div className="hidden items-center gap-6 px-7 py-5 xl:flex">
+      <div className="hidden items-center justify-between gap-6 px-7 py-5 xl:flex">
         {desktopHeaderContent}
       </div>
 
       {/* Tablet Header Content */}
-      <div className="hidden items-center gap-4 px-7 py-4 md:flex xl:hidden">
+      <div className="hidden items-center justify-between px-7 py-4 md:flex xl:hidden">
         {tabletHeaderContent}
       </div>
 

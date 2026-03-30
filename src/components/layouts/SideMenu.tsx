@@ -3,6 +3,9 @@
 // REACT //
 import * as React from "react";
 
+// STYLES //
+import { ThemeImage } from "@/components/ui/ThemeImage";
+
 // COMPONENTS //
 import Image from "next/image";
 import Close from "@/components/icons/neevo-icons/Close";
@@ -12,7 +15,9 @@ import Link from "next/link";
 // CONSTANTS //
 import { ROUTES } from "@/app/constants/routes";
 
-const brandLogoImageSource = "/images/brand-logo.png";
+// NAVIGATION //
+import { usePathname } from "next/navigation";
+
 const profileImageSource =
   "https://www.figma.com/api/mcp/asset/d7acd78d-a5b8-47ef-ba1b-bd6eb402d8c4";
 
@@ -24,7 +29,6 @@ type SidebarNavigationItemData = {
     className?: string;
     primaryColor?: string;
   }>;
-  isActive: boolean;
   label: string;
 };
 
@@ -39,7 +43,6 @@ const sidebarNavigationItemData: SidebarNavigationItemData[] = [
     iconBackgroundClassName: "bg-[#FEF3C6]",
     iconPrimaryColor: "#F59E0B",
     Icon: DashboardSquare,
-    isActive: true,
     label: "Projects",
   },
 ];
@@ -52,14 +55,21 @@ export function SideMenu({
   onCloseMobileMenu,
 }: SideMenuPropsData): React.ReactElement {
   // Define Navigation
+  const pathname = usePathname();
 
   // Define Context
 
   // Define Refs
-
   // Define States
 
   // Helper Functions
+  const checkIsProjectsNavigationItemActive = (): boolean => {
+    if (pathname === ROUTES.APP.DASHBOARD) {
+      return true;
+    }
+
+    return pathname.startsWith("/projects");
+  };
 
   const sideMenuNavigationContent = (
     <>
@@ -70,17 +80,25 @@ export function SideMenu({
             key={sidebarNavigationItem.label}
             href={sidebarNavigationItem.href}
             className={`flex items-center gap-5 rounded-xl px-5 py-4 text-base font-medium transition-colors ${
-              sidebarNavigationItem.isActive
-                ? "bg-n-100 text-n-800"
-                : "bg-transparent text-n-700 hover:bg-n-100"
+              checkIsProjectsNavigationItemActive()
+                ? "bg-n-100 text-n-950"
+                : "bg-transparent text-n-700 hover:bg-n-100 hover:text-n-950"
             }`}
             onClick={onCloseMobileMenu}
           >
             <span
-              className={`flex size-8 items-center justify-center rounded ${sidebarNavigationItem.iconBackgroundClassName}`}
+              className={`flex size-8 items-center justify-center rounded ${
+                checkIsProjectsNavigationItemActive()
+                  ? sidebarNavigationItem.iconBackgroundClassName
+                  : "bg-n-100"
+              }`}
             >
               <sidebarNavigationItem.Icon
-                primaryColor={sidebarNavigationItem.iconPrimaryColor}
+                primaryColor={
+                  checkIsProjectsNavigationItemActive()
+                    ? sidebarNavigationItem.iconPrimaryColor
+                    : "var(--color-n-500)"
+                }
                 className="size-4"
               />
             </span>
@@ -92,13 +110,15 @@ export function SideMenu({
       {/* User Summary */}
       <div className="mt-auto px-7 py-4 xl:py-7">
         <div className="flex items-center gap-4.5">
-          <Image
-            src={profileImageSource}
-            alt="Deven Bhagtani"
-            className="size-10 rounded-full object-cover xl:size-12"
-            width={48}
-            height={48}
-          />
+          <div className="size-10 overflow-hidden rounded-full xl:size-12">
+            <Image
+              src={profileImageSource}
+              alt="Deven Bhagtani"
+              className="h-full w-full object-cover"
+              width={48}
+              height={48}
+            />
+          </div>
 
           <div className="flex flex-col gap-0.5">
             <p className="text-base font-medium leading-normal text-n-950 xl:text-lg xl:font-semibold">
@@ -121,11 +141,16 @@ export function SideMenu({
       <aside className="hidden h-full w-96 shrink-0 border-r border-n-300 bg-n-50 xl:flex xl:flex-col xl:justify-between">
         {/* Desktop Brand */}
         <div className="px-7 py-5">
-          <Link href={ROUTES.APP.DASHBOARD} className="flex h-12 items-center">
-            <Image
-              src={brandLogoImageSource}
+          <Link
+            href={ROUTES.APP.DASHBOARD}
+            className="flex h-12 w-30 items-center"
+          >
+            <ThemeImage
+              lightSrc="/images/brand-logo.png"
+              darkSrc="/images/brand-logo-dark.png"
               alt="Pixolo"
-              className="h-auto w-30 object-contain"
+              className="h-auto w-full object-contain"
+              style={{ height: "auto" }}
               width={120}
               height={36}
             />
@@ -137,49 +162,60 @@ export function SideMenu({
         </div>
       </aside>
 
-      {isMobileMenuOpen ? (
-        <div className="fixed inset-0 z-50 xl:hidden">
-          {/* Overlay */}
-          <button
-            type="button"
-            aria-label="Close menu overlay"
-            className="absolute inset-0 bg-n-800/60"
-            onClick={onCloseMobileMenu}
-          />
+      {/* Mobile Side Menu */}
+      <div
+        className={`fixed inset-0 z-50 xl:hidden ${
+          isMobileMenuOpen ? "pointer-events-auto" : "pointer-events-none"
+        }`}
+      >
+        {/* Overlay */}
+        <button
+          type="button"
+          aria-label="Close menu overlay"
+          className={`absolute inset-0 bg-n-800/30 transition-opacity duration-300 ease-in-out ${
+            isMobileMenuOpen ? "visible opacity-100" : "invisible opacity-0"
+          }`}
+          onClick={onCloseMobileMenu}
+        />
 
-          <aside className="relative flex h-full w-72 flex-col justify-between overflow-hidden rounded-r-xl bg-n-50">
-            {/* Mobile Brand and Close */}
-            <div className="flex items-center justify-between px-7 py-3.5">
-              <Link
-                href={ROUTES.APP.DASHBOARD}
-                className="flex h-12 items-center"
-                onClick={onCloseMobileMenu}
-              >
-                <Image
-                  src={brandLogoImageSource}
-                  alt="Pixolo"
-                  className="h-auto w-28 object-contain"
-                  width={108}
-                  height={32}
-                />
-              </Link>
+        <aside
+          className={`fixed inset-y-0 left-0 z-10 flex h-full w-72 flex-col justify-between overflow-y-auto rounded-r-xl bg-n-50 shadow-2xl transition-transform duration-300 ease-in-out transform-gpu will-change-transform ${
+            isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
+          {/* Mobile Brand and Close */}
+          <div className="flex items-center justify-between px-7 py-3.5">
+            <Link
+              href={ROUTES.APP.DASHBOARD}
+              className="flex h-12 w-28 items-center"
+              onClick={onCloseMobileMenu}
+            >
+              <ThemeImage
+                lightSrc="/images/brand-logo.png"
+                darkSrc="/images/brand-logo-dark.png"
+                alt="Pixolo"
+                className="h-auto w-full object-contain"
+                style={{ height: "auto" }}
+                width={108}
+                height={32}
+              />
+            </Link>
 
-              <button
-                type="button"
-                aria-label="Close side menu"
-                className="flex size-10 items-center justify-center rounded-full transition-colors hover:bg-n-100"
-                onClick={onCloseMobileMenu}
-              >
-                <Close primaryColor="var(--color-n-500)" className="size-5" />
-              </button>
-            </div>
+            <button
+              type="button"
+              aria-label="Close side menu"
+              className="flex size-10 items-center justify-center rounded-full transition-colors hover:bg-n-100"
+              onClick={onCloseMobileMenu}
+            >
+              <Close primaryColor="var(--color-n-500)" className="size-5" />
+            </button>
+          </div>
 
-            <div className="flex min-h-0 flex-1 flex-col justify-between">
-              {sideMenuNavigationContent}
-            </div>
-          </aside>
-        </div>
-      ) : null}
+          <div className="flex min-h-0 flex-1 flex-col justify-between">
+            {sideMenuNavigationContent}
+          </div>
+        </aside>
+      </div>
     </>
   );
 }
