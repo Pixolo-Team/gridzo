@@ -146,8 +146,8 @@ export function SideMenu({
             className="flex h-12 w-30 items-center"
           >
             <ThemeImage
-              lightSrc="/images/brand-logo.png"
-              darkSrc="/images/brand-logo-dark.png"
+              lightSrc="/images/brand/brand-logo.png"
+              darkSrc="/images/brand/brand-logo-dark.png"
               alt="Pixolo"
               className="h-auto w-full object-contain"
               style={{ height: "auto" }}
@@ -191,8 +191,8 @@ export function SideMenu({
               onClick={onCloseMobileMenu}
             >
               <ThemeImage
-                lightSrc="/images/brand-logo.png"
-                darkSrc="/images/brand-logo-dark.png"
+                lightSrc="/images/brand/brand-logo.png"
+                darkSrc="/images/brand/brand-logo-dark.png"
                 alt="Pixolo"
                 className="h-auto w-full object-contain"
                 style={{ height: "auto" }}

@@ -77,8 +77,8 @@ export function Header({
       {/* Tablet Brand */}
       <Link href={ROUTES.APP.DASHBOARD} className="flex h-12 w-28 items-center">
         <ThemeImage
-          lightSrc="/images/brand-logo.png"
-          darkSrc="/images/brand-logo-dark.png"
+          lightSrc="/images/brand/brand-logo.png"
+          darkSrc="/images/brand/brand-logo-dark.png"
           alt="Pixolo"
           className="h-auto w-full object-contain"
           style={{ height: "auto" }}
@@ -104,8 +104,8 @@ export function Header({
       {/* Mobile Brand */}
       <Link href={ROUTES.APP.DASHBOARD} className="flex h-12 w-28 items-center">
         <ThemeImage
-          lightSrc="/images/brand-logo.png"
-          darkSrc="/images/brand-logo-dark.png"
+          lightSrc="/images/brand/brand-logo.png"
+          darkSrc="/images/brand/brand-logo-dark.png"
           alt="Pixolo"
           className="h-auto w-full object-contain"
           style={{ height: "auto" }}
