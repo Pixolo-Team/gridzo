@@ -4,9 +4,15 @@
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 
+// CONSTANTS //
+import { ROUTES } from "@/app/constants/routes";
+
 // COMPONENTS //
 import { Header } from "@/components/layouts/Header";
 import { SideMenu } from "@/components/layouts/SideMenu";
+
+// NAVIGATION //
+import { usePathname } from "next/navigation";
 
 /**
  * Renders the protected application layout
@@ -17,6 +23,7 @@ export default function AppLayout({
   children: ReactNode;
 }>) {
   // Define Navigation
+  const pathname = usePathname();
 
   // Define Context
 
@@ -35,6 +42,10 @@ export default function AppLayout({
     setIsMobileMenuOpen(
       (previousIsMobileMenuOpen) => !previousIsMobileMenuOpen,
     );
+  };
+
+  const checkShouldHideSharedHeader = (): boolean => {
+    return pathname === ROUTES.APP.PROJECTS.CREATE;
   };
 
   // Use Effects
@@ -59,7 +70,9 @@ export default function AppLayout({
 
       {/* Main Content Area */}
       <main className="flex h-full min-w-0 flex-1 flex-col overflow-hidden bg-n-100">
-        <Header onToggleMobileMenu={toggleMobileMenu} />
+        {checkShouldHideSharedHeader() ? null : (
+          <Header onToggleMobileMenu={toggleMobileMenu} />
+        )}
         {/* Page Content Scroll Area */}
         <div className="flex-1 overflow-y-auto">{children}</div>
       </main>
