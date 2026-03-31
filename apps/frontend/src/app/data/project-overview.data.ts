@@ -1,10 +1,15 @@
-// COMPONENTS //
+// TYPES //
+import type { projectOverviewStatIconMap } from "@/app/constants/project-overview-stat-icons";
 import type { InputActionCardData } from "@/components/ui/InputActionCard";
 import type { StatCardData } from "@/components/ui/StatCard";
 
-export const projectOverviewStatItems: StatCardData[] = [
+/**
+ * Provides the Project overview statistic card data
+ */
+export const projectOverviewStatItems = [
   {
     id: "total-pages",
+    iconName: "TextFile",
     title: "Total Pages",
     value: "23",
     accentLabel: "+2 this week",
@@ -14,6 +19,7 @@ export const projectOverviewStatItems: StatCardData[] = [
   },
   {
     id: "last-deployment",
+    iconName: "TimeLapse",
     title: "Last Deployment",
     value: "2h ago",
     accentLabel: "Auto-deployment on",
@@ -23,6 +29,7 @@ export const projectOverviewStatItems: StatCardData[] = [
   },
   {
     id: "active-templates",
+    iconName: "TemplateThemeDesignLayout",
     title: "Active Templates",
     value: "2",
     accentLabel: "System optimized",
@@ -30,7 +37,11 @@ export const projectOverviewStatItems: StatCardData[] = [
     iconBackgroundClassName: "bg-orange-50",
     iconColorClassName: "text-orange-500",
   },
-];
+] satisfies ProjectOverviewStatData[];
+
+export type ProjectOverviewStatData = StatCardData & {
+  iconName: keyof typeof projectOverviewStatIconMap;
+};
 
 /**
  * Builds the project overview API card content for the current project

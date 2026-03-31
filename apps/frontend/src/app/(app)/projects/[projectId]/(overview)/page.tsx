@@ -2,11 +2,11 @@
 import type { ReactElement } from "react";
 
 // COMPONENTS //
-import TemplateThemeDesignLayout from "@/components/icons/neevo-icons/TemplateThemeDesignLayout";
-import TextFile from "@/components/icons/neevo-icons/TextFile";
-import TimeLapse from "@/components/icons/neevo-icons/TimeLapse";
 import { InputActionCard } from "@/components/ui/InputActionCard";
 import { StatCard } from "@/components/ui/StatCard";
+
+// CONSTANTS //
+import { projectOverviewStatIconMap } from "@/app/constants/project-overview-stat-icons";
 
 // DATA //
 import {
@@ -21,7 +21,7 @@ type ProjectPagePropsData = {
 };
 
 /**
- * Renders the project details page
+ * Renders the project overview page
  */
 export default async function ProjectPage({
   params,
@@ -49,34 +49,20 @@ export default async function ProjectPage({
       {/* Stats Section */}
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-6 xl:grid-cols-3">
         {projectOverviewStatItems.map((projectOverviewStatItem) => {
-          // Determine the icon variant for the current stat card
-          const statCardIcon =
-            projectOverviewStatItem.id === "total-pages" ? (
-              <TextFile
-                primaryColor="currentColor"
-                className={projectOverviewStatItem.iconColorClassName}
-              />
-            ) : projectOverviewStatItem.id === "last-deployment" ? (
-              <TimeLapse
-                primaryColor="currentColor"
-                className={projectOverviewStatItem.iconColorClassName}
-              />
-            ) : (
-              <TemplateThemeDesignLayout
-                primaryColor="currentColor"
-                className={projectOverviewStatItem.iconColorClassName}
-              />
-            );
+          // Resolve the icon from overview data so each stat can render its own visual.
+          const ProjectOverviewStatIcon =
+            projectOverviewStatIconMap[projectOverviewStatItem.iconName];
 
           return (
             <StatCard
               key={projectOverviewStatItem.id}
               accentLabel={projectOverviewStatItem.accentLabel}
               accentToneClassName={projectOverviewStatItem.accentToneClassName}
-              icon={statCardIcon}
+              Icon={ProjectOverviewStatIcon}
               iconBackgroundClassName={
                 projectOverviewStatItem.iconBackgroundClassName
               }
+              iconColorClassName={projectOverviewStatItem.iconColorClassName}
               title={projectOverviewStatItem.title}
               value={projectOverviewStatItem.value}
             />

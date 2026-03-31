@@ -2,11 +2,13 @@
 import type { ReactElement } from "react";
 
 // TYPES //
-import type { IconComponent } from "@/types/icon";
+import type { IconComponentData } from "@/types/icon";
+
+// LIBRARIES //
+import Link from "next/link";
 
 // COMPONENTS //
 import LineArrowSynchronize1 from "@/components/icons/neevo-icons/LineArrowSynchronize1";
-import Link from "next/link";
 
 // UTILS //
 import { getBadgeLabelUtil } from "@/utils/badge-label.util";
@@ -16,7 +18,7 @@ type ProjectCardPropsData = {
   href: string;
   backgroundClassName: string;
   iconColorClassName: string;
-  Icon: IconComponent;
+  Icon: IconComponentData;
   lastSyncLabel: string;
   title: string;
 };

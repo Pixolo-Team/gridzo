@@ -1,5 +1,8 @@
 // REACT //
-import type { ReactElement, ReactNode } from "react";
+import type { ReactElement } from "react";
+
+// TYPES //
+import type { IconComponentData } from "@/types/icon";
 
 // OTHERS //
 import { cn } from "@/lib/utils";
@@ -7,13 +10,14 @@ import { cn } from "@/lib/utils";
 type StatCardPropsData = {
   accentLabel?: string;
   accentToneClassName?: string;
-  icon: ReactNode;
+  Icon: IconComponentData;
   iconBackgroundClassName: string;
+  iconColorClassName: string;
   title: string;
   value: string;
 };
 
-export type StatCardData = Omit<StatCardPropsData, "icon"> & {
+export type StatCardData = Omit<StatCardPropsData, "Icon"> & {
   id: string;
   iconColorClassName: string;
 };
@@ -24,8 +28,9 @@ export type StatCardData = Omit<StatCardPropsData, "icon"> & {
 export function StatCard({
   accentLabel,
   accentToneClassName,
-  icon,
+  Icon,
   iconBackgroundClassName,
+  iconColorClassName,
   title,
   value,
 }: StatCardPropsData): ReactElement {
@@ -52,7 +57,10 @@ export function StatCard({
             iconBackgroundClassName,
           )}
         >
-          {icon}
+          <Icon
+            primaryColor="currentColor"
+            className={cn("size-6", iconColorClassName)}
+          />
         </div>
 
         {/* Accent Label */}
