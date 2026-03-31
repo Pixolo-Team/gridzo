@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const ButtonSkipBackward10: IconComponent = ({
+const ButtonSkipBackward10: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,

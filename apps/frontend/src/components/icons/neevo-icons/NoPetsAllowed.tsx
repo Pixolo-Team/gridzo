@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const NoPetsAllowed: IconComponent = ({
+const NoPetsAllowed: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,

@@ -1,11 +1,13 @@
 // REACT //
 import type { ReactElement } from "react";
 
+// NEXT //
+import Link from "next/link";
+
 // COMPONENTS //
 import HamburgerMenu1 from "@/components/icons/neevo-icons/HamburgerMenu1";
 import LineArrowLeft1 from "@/components/icons/neevo-icons/LineArrowLeft1";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
 
 // CONSTANTS //
 import { ROUTES } from "@/app/constants/routes";
@@ -81,7 +83,9 @@ export function FlowHeader({
           />
         </Link>
 
-        <h1 className="text-base font-semibold text-n-800">Create New Project</h1>
+        <h1 className="text-base font-semibold text-n-800">
+          Create New Project
+        </h1>
 
         {/* Menu Trigger */}
         <Button
@@ -91,7 +95,10 @@ export function FlowHeader({
           className="size-11 rounded-full p-0 hover:bg-n-100"
           onClick={onToggleMobileMenu}
         >
-          <HamburgerMenu1 primaryColor="var(--color-n-500)" className="size-5" />
+          <HamburgerMenu1
+            primaryColor="var(--color-n-500)"
+            className="size-5"
+          />
         </Button>
       </div>
     </HeaderShell>

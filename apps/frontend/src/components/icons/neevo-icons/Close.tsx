@@ -1,7 +1,7 @@
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const Close: IconComponent = ({ primaryColor = "", ...props }) => (
+const Close: IconComponentData = ({ primaryColor = "", ...props }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width={28}

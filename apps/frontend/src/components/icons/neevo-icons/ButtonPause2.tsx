@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const ButtonPause2: IconComponent = ({
+const ButtonPause2: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,

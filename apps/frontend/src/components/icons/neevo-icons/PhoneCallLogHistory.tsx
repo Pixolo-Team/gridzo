@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const PhoneCallLogHistory: IconComponent = ({
+const PhoneCallLogHistory: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,

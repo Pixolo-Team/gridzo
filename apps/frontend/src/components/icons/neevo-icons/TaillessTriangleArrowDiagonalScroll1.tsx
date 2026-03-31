@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const TaillessTriangleArrowDiagonalScroll1: IconComponent = ({
+const TaillessTriangleArrowDiagonalScroll1: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,

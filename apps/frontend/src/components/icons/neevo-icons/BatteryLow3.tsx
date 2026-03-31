@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const BatteryLow3: IconComponent = ({
+const BatteryLow3: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,

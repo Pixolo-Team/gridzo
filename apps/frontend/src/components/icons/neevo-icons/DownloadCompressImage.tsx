@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const DownloadCompressImage: IconComponent = ({
+const DownloadCompressImage: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,

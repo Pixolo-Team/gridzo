@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const PathfinderMinusFront1: IconComponent = ({
+const PathfinderMinusFront1: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,

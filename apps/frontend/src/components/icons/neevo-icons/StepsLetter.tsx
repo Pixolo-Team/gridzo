@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const StepsLetter: IconComponent = ({
+const StepsLetter: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,

@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const Loop1: IconComponent = ({
+const Loop1: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,

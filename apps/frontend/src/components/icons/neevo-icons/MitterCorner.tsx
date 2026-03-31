@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const MitterCorner: IconComponent = ({
+const MitterCorner: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,

@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const CellularNetwork5g: IconComponent = ({
+const CellularNetwork5g: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,

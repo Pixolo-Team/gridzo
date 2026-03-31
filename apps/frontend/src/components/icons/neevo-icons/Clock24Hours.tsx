@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const Clock24Hours: IconComponent = ({
+const Clock24Hours: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,
