@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const Dislike1: IconComponent = ({
+const Dislike1: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,

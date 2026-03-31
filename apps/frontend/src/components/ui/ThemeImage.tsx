@@ -1,7 +1,7 @@
 // REACT //
 import * as React from "react";
 
-// COMPONENTS //
+// NEXT //
 import Image from "next/image";
 
 // OTHERS //

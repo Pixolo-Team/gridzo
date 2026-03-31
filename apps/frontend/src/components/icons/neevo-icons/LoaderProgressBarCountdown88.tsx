@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const LoaderProgressBarCountdown88: IconComponent = ({
+const LoaderProgressBarCountdown88: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,

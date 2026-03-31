@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const Asterisk3: IconComponent = ({
+const Asterisk3: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,

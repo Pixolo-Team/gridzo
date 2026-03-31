@@ -7,4 +7,4 @@ export type IconComponentPropsData = SVGProps<SVGSVGElement> & {
   tertiaryColor?: string;
 };
 
-export type IconComponent = ComponentType<IconComponentPropsData>;
+export type IconComponentData = ComponentType<IconComponentPropsData>;

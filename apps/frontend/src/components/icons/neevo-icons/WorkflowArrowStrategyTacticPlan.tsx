@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const WorkflowArrowStrategyTacticPlan: IconComponent = ({
+const WorkflowArrowStrategyTacticPlan: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,

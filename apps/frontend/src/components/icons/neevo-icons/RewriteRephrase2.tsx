@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const RewriteRephrase2: IconComponent = ({
+const RewriteRephrase2: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,

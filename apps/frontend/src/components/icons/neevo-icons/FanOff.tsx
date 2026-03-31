@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const FanOff: IconComponent = ({
+const FanOff: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,

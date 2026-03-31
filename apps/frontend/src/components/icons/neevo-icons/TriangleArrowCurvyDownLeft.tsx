@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const TriangleArrowCurvyDownLeft: IconComponent = ({
+const TriangleArrowCurvyDownLeft: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,

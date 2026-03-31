@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const EpicGames1: IconComponent = ({
+const EpicGames1: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,

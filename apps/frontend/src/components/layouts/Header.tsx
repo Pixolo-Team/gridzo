@@ -3,6 +3,9 @@
 // REACT //
 import type { ReactElement } from "react";
 
+// NEXT //
+import { usePathname } from "next/navigation";
+
 // COMPONENTS //
 import { AppHeader } from "@/components/layouts/headers/AppHeader";
 import { FlowHeader } from "@/components/layouts/headers/FlowHeader";
@@ -10,9 +13,6 @@ import { ProjectHeader } from "@/components/layouts/headers/ProjectHeader";
 
 // CONSTANTS //
 import { ROUTES } from "@/app/constants/routes";
-
-// NAVIGATION //
-import { usePathname } from "next/navigation";
 
 type HeaderPropsData = {
   onToggleMobileMenu: () => void;
@@ -57,7 +57,7 @@ export function Header({ onToggleMobileMenu }: HeaderPropsData): ReactElement {
     const pathnameSegmentItems = pathname.split("/").filter(Boolean);
     const projectId = pathnameSegmentItems[1];
 
-    if (!projectId || projectId === "edit") {
+    if (!projectId) {
       return "Project";
     }
 

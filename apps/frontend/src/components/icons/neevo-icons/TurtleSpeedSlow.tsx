@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const TurtleSpeedSlow: IconComponent = ({
+const TurtleSpeedSlow: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,

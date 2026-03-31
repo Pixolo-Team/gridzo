@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const Maximize2: IconComponent = ({
+const Maximize2: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,

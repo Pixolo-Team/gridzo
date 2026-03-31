@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const TextToSpeech2: IconComponent = ({
+const TextToSpeech2: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,

@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const LineArrowMoveDown2: IconComponent = ({
+const LineArrowMoveDown2: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,

@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const FlipVerticalCircle2: IconComponent = ({
+const FlipVerticalCircle2: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,

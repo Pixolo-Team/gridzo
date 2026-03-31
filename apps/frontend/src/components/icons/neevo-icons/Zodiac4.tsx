@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const Zodiac4: IconComponent = ({
+const Zodiac4: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,

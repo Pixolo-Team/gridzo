@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const Quality4k: IconComponent = ({
+const Quality4k: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,
