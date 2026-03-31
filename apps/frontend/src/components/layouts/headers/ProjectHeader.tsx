@@ -73,11 +73,10 @@ export function ProjectHeader({
               </div>
 
               {/* Breadcrumb */}
-              <p className="text-xl font-normal text-n-500">Projects</p>
+              <p className="text-xl font-normal text-n-500">Projects /</p>
 
               {/* Project Meta */}
               <div className="flex items-center gap-2">
-                <span className="text-xl font-normal text-n-500">/</span>
                 <Building1
                   primaryColor="var(--color-n-500)"
                   className="size-5"
@@ -168,12 +167,12 @@ export function ProjectHeader({
       </div>
 
       {/* Mobile Project Header */}
-      <div className="flex items-center justify-between rounded-b-xl px-6 py-3.5 md:hidden">
+      <div className="flex items-center rounded-b-xl px-6 py-3.5 md:hidden">
         {/* Back Trigger */}
         <Link
           href={ROUTES.APP.DASHBOARD}
           aria-label="Back to Projects"
-          className="flex size-5 items-center justify-center"
+          className="flex size-5 shrink-0 items-center justify-center"
         >
           <LineArrowLeft1
             primaryColor="var(--color-n-500)"
@@ -182,16 +181,25 @@ export function ProjectHeader({
         </Link>
 
         {/* Mobile Project Identity */}
-        <div className="flex items-center gap-2">
+        <div className="mx-4 flex min-w-0 flex-1 items-center gap-2">
           {/* Project Icon */}
-          <div className="flex size-11 items-center justify-center rounded-xl bg-purple-100 text-purple-500">
+          <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-purple-100 text-purple-500">
             <FileDocumentCopyDuplicateOff
               primaryColor="currentColor"
               className="size-6"
             />
           </div>
 
-          <p className="text-base font-semibold text-n-600">{projectName}</p>
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="shrink-0 text-base font-normal text-n-500">/</span>
+            <Building1
+              primaryColor="var(--color-n-500)"
+              className="size-5 shrink-0"
+            />
+            <p className="truncate text-base font-semibold text-n-600">
+              {projectName}
+            </p>
+          </div>
         </div>
 
         {/* Menu Trigger */}
@@ -199,7 +207,7 @@ export function ProjectHeader({
           type="button"
           aria-label="Open side menu"
           variant="ghost"
-          className="size-11 p-0"
+          className="ml-auto size-11 shrink-0 p-0"
           onClick={onToggleMobileMenu}
         >
           <HamburgerMenu1

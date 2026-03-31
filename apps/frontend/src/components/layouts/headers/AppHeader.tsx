@@ -56,7 +56,7 @@ export function AppHeader({
   const desktopHeaderContent = (
     <>
       {/* Search */}
-      <div className="w-[42%] max-w-[438px] min-w-[320px] shrink-0">
+      <div className="w-[42%] shrink-0">
         <SearchInput
           aria-label="Search Projects"
           className="w-full"
