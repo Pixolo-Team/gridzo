@@ -1,12 +1,10 @@
 // REACT //
 import type { ReactElement } from "react";
 
-// NEXT //
-import Link from "next/link";
-
 // COMPONENTS //
+import Link from "next/link";
 import Building1 from "@/components/icons/neevo-icons/Building1";
-import FileDocumentCopyDuplicateOff from "@/components/icons/neevo-icons/FileDocumentCopyDuplicateOff";
+import FolderDocumentCopyDuplicate from "@/components/icons/neevo-icons/FolderDocumentCopyDuplicate";
 import Flash2 from "@/components/icons/neevo-icons/Flash2";
 import HamburgerMenu1 from "@/components/icons/neevo-icons/HamburgerMenu1";
 import LineArrowLeft1 from "@/components/icons/neevo-icons/LineArrowLeft1";
@@ -16,6 +14,8 @@ import { Button } from "@/components/ui/button";
 
 // CONSTANTS //
 import { ROUTES } from "@/app/constants/routes";
+
+// NEXT //
 
 type ProjectHeaderPropsData = {
   onToggleMobileMenu: () => void;
@@ -38,6 +38,33 @@ export function ProjectHeader({
   // Define States
 
   // Helper Functions
+  const renderProjectIcon = (
+    iconClassName: string,
+    wrapperClassName: string,
+  ): ReactElement => {
+    return (
+      <div className={wrapperClassName}>
+        <FolderDocumentCopyDuplicate
+          primaryColor="currentColor"
+          className={iconClassName}
+        />
+      </div>
+    );
+  };
+
+  const renderDeployButton = (): ReactElement => {
+    return (
+      <Button
+        type="button"
+        size="small"
+        variant="success"
+        className="px-6 text-base"
+      >
+        <Flash2 primaryColor="var(--color-n-50)" className="size-5" />
+        <span>Deploy Now</span>
+      </Button>
+    );
+  };
 
   // Use Effects
 
@@ -65,12 +92,10 @@ export function ProjectHeader({
             {/* Project Identity */}
             <div className="flex items-center gap-4">
               {/* Project Icon */}
-              <div className="flex size-8 items-center justify-center rounded bg-purple-100 text-purple-500">
-                <FileDocumentCopyDuplicateOff
-                  primaryColor="currentColor"
-                  className="size-5"
-                />
-              </div>
+              {renderProjectIcon(
+                "size-5",
+                "flex size-8 items-center justify-center rounded bg-purple-100 text-purple-500",
+              )}
 
               {/* Breadcrumb */}
               <p className="text-xl font-normal text-n-500">Projects /</p>
@@ -94,16 +119,7 @@ export function ProjectHeader({
 
             {/* Header Actions */}
             <div className="flex items-center gap-4">
-              <Button
-                type="button"
-                size="small"
-                variant="success"
-                className="px-6 text-base"
-              >
-                <Flash2 primaryColor="var(--color-n-50)" className="size-5" />
-                <span>Deploy Now</span>
-              </Button>
-
+              {renderDeployButton()}
               <NotificationButton />
             </div>
           </div>
@@ -128,12 +144,10 @@ export function ProjectHeader({
           {/* Tablet Project Meta */}
           <div className="flex min-w-0 items-center gap-2">
             {/* Project Icon */}
-            <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-purple-100 text-purple-500">
-              <FileDocumentCopyDuplicateOff
-                primaryColor="currentColor"
-                className="size-6"
-              />
-            </div>
+            {renderProjectIcon(
+              "size-6",
+              "flex size-11 shrink-0 items-center justify-center rounded-xl bg-purple-100 text-purple-500",
+            )}
 
             {/* Breadcrumb */}
             <p className="text-base font-normal text-n-500">Projects /</p>
@@ -152,16 +166,7 @@ export function ProjectHeader({
 
         {/* Tablet Actions */}
         <div className="flex shrink-0 items-center gap-4">
-          <Button
-            type="button"
-            size="small"
-            variant="success"
-            className="px-6 text-base"
-          >
-            <Flash2 primaryColor="var(--color-n-50)" className="size-5" />
-            <span>Deploy Now</span>
-          </Button>
-
+          {renderDeployButton()}
           <NotificationButton />
         </div>
       </div>
@@ -183,12 +188,10 @@ export function ProjectHeader({
         {/* Mobile Project Identity */}
         <div className="mx-4 flex min-w-0 flex-1 items-center gap-2">
           {/* Project Icon */}
-          <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-purple-100 text-purple-500">
-            <FileDocumentCopyDuplicateOff
-              primaryColor="currentColor"
-              className="size-6"
-            />
-          </div>
+          {renderProjectIcon(
+            "size-6",
+            "flex size-11 shrink-0 items-center justify-center rounded-xl bg-purple-100 text-purple-500",
+          )}
 
           <div className="flex min-w-0 items-center gap-2">
             <span className="shrink-0 text-base font-normal text-n-500">/</span>
