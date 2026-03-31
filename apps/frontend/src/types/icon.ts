@@ -1,10 +1,10 @@
 // REACT //
 import type { ComponentType, SVGProps } from "react";
 
-export type IconPropsData = SVGProps<SVGSVGElement> & {
+export type IconComponentPropsData = SVGProps<SVGSVGElement> & {
   primaryColor?: string;
   secondaryColor?: string;
   tertiaryColor?: string;
 };
 
-export type IconComponent = ComponentType<IconPropsData>;
+export type IconComponentData = ComponentType<IconComponentPropsData>;

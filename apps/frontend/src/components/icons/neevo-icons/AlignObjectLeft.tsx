@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const AlignObjectLeft: IconComponent = ({
+const AlignObjectLeft: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,

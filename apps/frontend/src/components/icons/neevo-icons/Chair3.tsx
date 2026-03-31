@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const Chair3: IconComponent = ({
+const Chair3: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,

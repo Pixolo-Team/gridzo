@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const Dice3: IconComponent = ({
+const Dice3: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,

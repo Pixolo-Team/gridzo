@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const ButtonJumpForward30: IconComponent = ({
+const ButtonJumpForward30: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,

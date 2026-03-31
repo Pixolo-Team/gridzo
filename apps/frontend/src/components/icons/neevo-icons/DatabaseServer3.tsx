@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const DatabaseServer3: IconComponent = ({
+const DatabaseServer3: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,

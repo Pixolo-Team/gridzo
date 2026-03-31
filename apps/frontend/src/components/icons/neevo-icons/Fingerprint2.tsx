@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const Fingerprint2: IconComponent = ({
+const Fingerprint2: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,

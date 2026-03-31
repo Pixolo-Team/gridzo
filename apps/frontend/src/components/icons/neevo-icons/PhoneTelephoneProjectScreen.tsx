@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const PhoneTelephoneProjectScreen: IconComponent = ({
+const PhoneTelephoneProjectScreen: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,

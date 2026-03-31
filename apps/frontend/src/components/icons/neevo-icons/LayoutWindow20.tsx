@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const LayoutWindow20: IconComponent = ({
+const LayoutWindow20: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,

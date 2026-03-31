@@ -3,20 +3,20 @@
 // REACT //
 import * as React from "react";
 
+// NEXT //
+import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+
 // STYLES //
 import { ThemeImage } from "@/components/ui/ThemeImage";
 
 // COMPONENTS //
-import Image from "next/image";
 import Close from "@/components/icons/neevo-icons/Close";
 import DashboardSquare from "@/components/icons/neevo-icons/DashboardSquare";
-import Link from "next/link";
 
 // CONSTANTS //
 import { ROUTES } from "@/app/constants/routes";
-
-// NAVIGATION //
-import { usePathname } from "next/navigation";
 
 type SidebarNavigationItemData = {
   href: string;

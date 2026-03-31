@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const CheckForward: IconComponent = ({
+const CheckForward: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,
