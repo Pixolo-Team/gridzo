@@ -1,11 +1,11 @@
 // TYPES //
-import type { HealthResponseData } from "@pixsheet/shared";
+import type { HealthResponseData } from "./types/health-response.data.js";
 
-// LIBRARIES //
+// CONSTANTS //
+import { APP_NAME } from "./constants/app-name.constant.js";
+
+// OTHERS //
 import { createServer } from "node:http";
-
-// MODULES //
-import { APP_NAME } from "@pixsheet/shared";
 
 const BACKEND_PORT = 4000;
 
