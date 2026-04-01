@@ -1,7 +1,10 @@
-// TYPES //
-import type { projectOverviewStatIconMap } from "@/app/constants/project-overview-stat-icons";
+// COMPONENTS //
 import type { InputActionCardData } from "@/components/ui/InputActionCard";
 import type { StatCardData } from "@/components/ui/StatCard";
+
+// CONSTANTS //
+import type { projectOverviewStatIconMap } from "@/app/constants/project-overview-stat-icons";
+import { CONSTANTS } from "@/constants/constants";
 
 /**
  * Provides the Project overview statistic card data
@@ -46,14 +49,14 @@ export type ProjectOverviewStatData = StatCardData & {
 /**
  * Builds the project overview API card content for the current project
  */
-export function getProjectOverviewInputActionCardData(
+export function getProjectOverviewInputActionCard(
   projectId: string,
 ): InputActionCardData {
   return {
     title: "Project API Endpoint",
     description:
       "This API endpoint provides access to your project's structured data for integrations and external applications.",
-    value: `https://api.pixolo.com/v1/projects/${projectId}/data`,
+    value: `${CONSTANTS.API_URL}/v1/projects/${projectId}/data`,
     actionItems: [
       {
         id: "api-data",

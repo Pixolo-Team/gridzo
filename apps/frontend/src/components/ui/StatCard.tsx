@@ -19,7 +19,6 @@ type StatCardPropsData = {
 
 export type StatCardData = Omit<StatCardPropsData, "Icon"> & {
   id: string;
-  iconColorClassName: string;
 };
 
 /**

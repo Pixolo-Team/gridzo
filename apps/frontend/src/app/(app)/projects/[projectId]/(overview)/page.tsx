@@ -10,7 +10,7 @@ import { projectOverviewStatIconMap } from "@/app/constants/project-overview-sta
 
 // DATA //
 import {
-  getProjectOverviewInputActionCardData,
+  getProjectOverviewInputActionCard,
   projectOverviewStatItems,
 } from "@/app/data/project-overview.data";
 
@@ -40,7 +40,7 @@ export default async function ProjectPage({
    * Builds the API endpoint card content for the current project
    */
   const projectOverviewInputActionCard =
-    getProjectOverviewInputActionCardData(projectId);
+    getProjectOverviewInputActionCard(projectId);
 
   // Use Effects
 

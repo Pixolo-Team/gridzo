@@ -26,7 +26,7 @@ export function MobileBottomActions({
   return (
     <div className="fixed inset-x-0 bottom-0 z-20 bg-n-100 px-6 py-6 md:hidden">
       {/* Bottom Actions Content */}
-      <div className="mx-auto flex w-full max-w-90 items-start justify-center gap-4">
+      <div className="mx-auto container flex w-full items-start justify-center gap-4">
         {children}
       </div>
     </div>
