@@ -1,30 +1,23 @@
-// REACT //
-import type { ReactElement } from "react";
-
-// NEXT //
-import Link from "next/link";
-
 // COMPONENTS //
+import Link from "next/link";
 import HamburgerMenu1 from "@/components/icons/neevo-icons/HamburgerMenu1";
 import LineArrowLeft1 from "@/components/icons/neevo-icons/LineArrowLeft1";
 import { Button } from "@/components/ui/button";
+import HeaderShell from "@/components/layouts/headers/HeaderShell";
 
 // CONSTANTS //
 import { ROUTES } from "@/app/constants/routes";
 
-// MODULES //
-import { HeaderShell } from "@/components/layouts/headers/HeaderShell";
-
-type FlowHeaderPropsData = {
+interface FlowHeaderPropsData {
   onToggleMobileMenu: () => void;
-};
+}
 
 /**
  * Renders the create-project flow header
  */
-export function FlowHeader({
+export default function FlowHeader({
   onToggleMobileMenu,
-}: FlowHeaderPropsData): ReactElement {
+}: FlowHeaderPropsData) {
   // Define Navigation
 
   // Define Context

@@ -1,38 +1,33 @@
 "use client";
 
-// REACT //
-import * as React from "react";
-
-// NEXT //
-import Image from "next/image";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-
-// STYLES //
-import { AppBrand } from "@/components/ui/AppBrand";
+// TYPES //
+import type { IconComponentData } from "@/types/icon";
 
 // COMPONENTS //
+import Image from "next/image";
+import Link from "next/link";
+import AppBrand from "@/components/ui/AppBrand";
 import Close from "@/components/icons/neevo-icons/Close";
 import DashboardSquare from "@/components/icons/neevo-icons/DashboardSquare";
 
 // CONSTANTS //
 import { ROUTES } from "@/app/constants/routes";
 
-type SidebarNavigationItemData = {
+// NAVIGATION //
+import { usePathname } from "next/navigation";
+
+interface SidebarNavigationItemData {
   href: string;
   backgroundColor: string;
   iconColor: string;
-  Icon: React.ComponentType<{
-    className?: string;
-    primaryColor?: string;
-  }>;
+  Icon: IconComponentData;
   label: string;
-};
+}
 
-type SideMenuPropsData = {
+interface SideMenuPropsData {
   isMobileMenuOpen: boolean;
   onCloseMobileMenu: () => void;
-};
+}
 
 // TODO: Will add pages dynamic and based on role later
 const sidebarNavigationItemData: SidebarNavigationItemData[] = [
@@ -51,7 +46,7 @@ const sidebarNavigationItemData: SidebarNavigationItemData[] = [
 export function SideMenu({
   isMobileMenuOpen,
   onCloseMobileMenu,
-}: SideMenuPropsData): React.ReactElement {
+}: SideMenuPropsData) {
   // Define Navigation
   const pathname = usePathname();
 
@@ -96,7 +91,9 @@ export function SideMenu({
               >
                 <sidebarNavigationItem.Icon
                   primaryColor={
-                    isActive ? sidebarNavigationItem.iconColor : "var(--color-n-500)"
+                    isActive
+                      ? sidebarNavigationItem.iconColor
+                      : "var(--color-n-500)"
                   }
                   className="size-4"
                 />

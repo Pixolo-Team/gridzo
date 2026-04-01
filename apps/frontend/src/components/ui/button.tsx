@@ -34,21 +34,17 @@ const buttonVariants = cva(
   },
 );
 
-type ButtonPropsData = React.ComponentProps<"button"> &
-  VariantProps<typeof buttonVariants> & {
-    asChild?: boolean;
-  };
-
 /**
  * Renders a reusable button with project-wide variants and sizes
  */
-export function Button({
+function Button({
   className,
   variant,
   size,
   asChild = false,
   ...props
-}: ButtonPropsData): React.ReactElement {
+}: React.ComponentProps<"button"> &
+  VariantProps<typeof buttonVariants> & { asChild?: boolean }) {
   // Define Navigation
 
   // Define Context
@@ -66,8 +62,12 @@ export function Button({
   return (
     <Component
       data-slot="button"
+      data-variant={variant}
+      data-size={size}
       className={cn(buttonVariants({ variant, size, className }))}
       {...props}
     />
   );
 }
+
+export { Button, buttonVariants };

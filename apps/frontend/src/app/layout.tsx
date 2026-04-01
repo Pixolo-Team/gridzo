@@ -2,10 +2,13 @@
 import "./globals.css";
 
 // COMPONENTS //
-import { Inter } from "next/font/google";
+import { Inter, Geist } from "next/font/google";
 
 // DATA //
 import type { Metadata } from "next";
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 const interSans = Inter({
   variable: "--font-inter-sans",
@@ -38,7 +41,7 @@ export default function RootLayout({
   // Use Effects
 
   return (
-    <html lang="en" className={interSans.variable}>
+    <html lang="en" className={cn("font-sans", geist.variable)}>
       <body className="antialiased font-sans min-h-screen bg-n-100">
         {children}
       </body>

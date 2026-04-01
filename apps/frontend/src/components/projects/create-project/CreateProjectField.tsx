@@ -1,55 +1,110 @@
-// REACT //
-import type { ReactElement } from "react";
-
 // COMPONENTS //
-import ChevronArrowDown from "@/components/icons/neevo-icons/ChevronArrowDown";
+import Close from "@/components/icons/neevo-icons/Close";
+import Dropdown from "@/components/ui/Dropdown";
 import { Input } from "@/components/ui/input";
-
-// TYPES //
 import type { CreateProjectFieldData } from "@/components/projects/create-project/create-project.data";
 
-// UTILS //
+// OTHERS //
 import { cn } from "@/lib/utils";
 
-type CreateProjectFieldPropsData = CreateProjectFieldData;
+interface CreateProjectFieldPropsData extends CreateProjectFieldData {
+  onValueChange: (fieldId: string, value: string) => void;
+  value: string;
+}
 
 /**
  * Renders a shared create-project input row while preserving the existing visual treatment
  */
-export function CreateProjectField({
+export default function CreateProjectField({
+  fieldType = "input",
   helperText,
+  id,
   label,
+  onValueChange,
+  optionItems,
   placeholder,
-}: CreateProjectFieldPropsData): ReactElement {
-  const checkIsSelectField = label === "Project Category";
+  type = "text",
+  value,
+}: CreateProjectFieldPropsData) {
+  // Define Navigation
+
+  // Define Context
+
+  // Define Refs
+
+  // Define States
+
+  // Helper Functions
+  /**
+   * Updates the shared create-project field value
+   */
+  const handleFieldValueChange = (value: string) => {
+    onValueChange(id, value);
+  };
+
+  const checkIsSelectField = fieldType === "select";
+
+  /**
+   * Updates the shared create-project dropdown value
+   */
+  const handleDropdownValueChange = (nextValue: string): void => {
+    onValueChange(id, nextValue);
+  };
+
+  // Use Effects
 
   return (
     <div className="flex w-full flex-col gap-2.5 md:gap-3">
-      <label className="text-base font-medium text-n-800 md:text-lg">
+      {/* Field Label */}
+      <label
+        htmlFor={id}
+        className="text-base font-medium text-n-800 md:text-lg"
+      >
         {label}
       </label>
 
-      <div className="relative">
-        <Input
-          placeholder={placeholder}
-          readOnly={checkIsSelectField}
-          className={cn(
-            "h-[53px] border-[1.5px] border-n-100 bg-n-50 px-[25px] text-base text-n-700 placeholder:text-n-400 focus-visible:border-n-200 focus-visible:ring-0 focus-visible:ring-offset-0 md:h-[62px] md:text-lg",
-            checkIsSelectField ? "cursor-pointer pr-14" : "",
-          )}
-        />
-
+      {/* Field Control */}
+      <div>
         {checkIsSelectField ? (
-          <span className="pointer-events-none absolute inset-y-0 right-5 flex items-center">
-            <ChevronArrowDown
-              primaryColor="var(--color-n-400)"
-              className="size-5"
+          <>
+            {/* Dropdown Field */}
+            <Dropdown
+              className="focus:border-n-200 focus:ring-0 focus:ring-offset-0"
+              options={optionItems ?? []}
+              selectedOption={value}
+              title={placeholder}
+              onChange={handleDropdownValueChange}
             />
-          </span>
-        ) : null}
+          </>
+        ) : (
+          /* Input Field */
+          <div className="relative">
+            <Input
+              id={id}
+              type={type}
+              value={value}
+              placeholder={placeholder}
+              className="h-14 border-[1.5px] border-n-100 bg-n-50 px-6 pr-12 text-base text-n-700 placeholder:text-n-400 focus-visible:border-n-200 focus-visible:ring-0 focus-visible:ring-offset-0 md:h-16 md:text-lg"
+              onChange={(e) => handleFieldValueChange(e.target.value)}
+            />
+
+            {/* Clear Action */}
+            {value ? (
+              <button
+                type="button"
+                aria-label={`Clear ${label}`}
+                className="absolute top-1/2 right-4 flex size-6 -translate-y-1/2 items-center justify-center rounded-full transition-colors hover:bg-n-200"
+                onClick={() => handleFieldValueChange("")}
+              >
+                <Close primaryColor="var(--color-n-500)" className="size-4" />
+              </button>
+            ) : null}
+          </div>
+        )}
       </div>
 
       {helperText ? (
+        /* Field Helper Text */
         <p className="text-xs leading-[1.35] text-n-500 md:text-sm">
           {helperText}
         </p>

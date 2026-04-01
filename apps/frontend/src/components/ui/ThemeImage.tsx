@@ -1,11 +1,10 @@
-// REACT //
-import * as React from "react";
-
-// NEXT //
+// COMPONENTS //
 import Image from "next/image";
 
 // OTHERS //
 import { cn } from "@/lib/utils";
+
+// NEXT //
 
 type ThemeImagePropsData = Omit<React.ComponentProps<typeof Image>, "src"> & {
   darkClassName?: string;
@@ -17,7 +16,7 @@ type ThemeImagePropsData = Omit<React.ComponentProps<typeof Image>, "src"> & {
 /**
  * Renders theme-aware images by swapping light and dark sources with CSS.
  */
-export function ThemeImage({
+export default function ThemeImage({
   alt,
   className,
   darkClassName,
@@ -25,7 +24,7 @@ export function ThemeImage({
   lightClassName,
   lightSrc,
   ...props
-}: ThemeImagePropsData): React.ReactElement {
+}: ThemeImagePropsData) {
   const resolvedDarkSrc = darkSrc ?? lightSrc;
 
   return (

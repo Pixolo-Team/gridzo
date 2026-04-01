@@ -1,28 +1,35 @@
-// REACT //
-import type { ReactElement } from "react";
-
-// TYPES //
+// COMPONENTS //
+import ProgressBar from "@/components/ui/progress-bar";
 import type { CreateProjectStepData } from "@/components/projects/create-project/create-project.data";
 
-// UTILS //
-import { cn } from "@/lib/utils";
-
-type CreateProjectProgressPropsData = {
+interface CreateProjectProgressPropsData {
   activeStep: number;
-  progressWidthClassName: string;
   stepData: CreateProjectStepData;
-};
+}
 
 /**
  * Renders the create-project step heading, description, and progress bar
  */
 export function CreateProjectProgress({
   activeStep,
-  progressWidthClassName,
   stepData,
-}: CreateProjectProgressPropsData): ReactElement {
+}: CreateProjectProgressPropsData) {
+  // Define Navigation
+
+  // Define Context
+
+  // Define Refs
+
+  // Define States
+
+  // Helper Functions
+  const progressValue = activeStep === 1 ? 33 : activeStep === 2 ? 66 : 100;
+
+  // Use Effects
+
   return (
     <div className="flex w-full flex-col gap-5">
+      {/* Progress Header */}
       <div className="flex flex-col gap-4 md:gap-0">
         <div className="flex items-end justify-between gap-4">
           <div className="text-n-800">
@@ -44,16 +51,11 @@ export function CreateProjectProgress({
           </p>
         </div>
 
-        <div className="mt-4 h-2 w-full rounded-full bg-n-200 md:mt-3">
-          <div
-            className={cn(
-              "h-full rounded-full bg-n-800",
-              progressWidthClassName,
-            )}
-          />
-        </div>
+        {/* Progress Bar */}
+        <ProgressBar className="mt-4 md:mt-3" value={progressValue} />
       </div>
 
+      {/* Step Description */}
       {activeStep === 3 ? (
         <div className="flex flex-wrap items-center gap-1.5 text-xs leading-[1.55] text-n-500 md:text-sm">
           <span>Paste the content of your</span>

@@ -1,6 +1,3 @@
-// REACT //
-import type { ReactElement } from "react";
-
 // COMPONENTS //
 import Link from "next/link";
 import Building1 from "@/components/icons/neevo-icons/Building1";
@@ -8,27 +5,25 @@ import FolderDocumentCopyDuplicate from "@/components/icons/neevo-icons/FolderDo
 import Flash2 from "@/components/icons/neevo-icons/Flash2";
 import HamburgerMenu1 from "@/components/icons/neevo-icons/HamburgerMenu1";
 import LineArrowLeft1 from "@/components/icons/neevo-icons/LineArrowLeft1";
-import { HeaderShell } from "@/components/layouts/headers/HeaderShell";
-import { NotificationButton } from "@/components/ui/NotificationButton";
+import HeaderShell from "@/components/layouts/headers/HeaderShell";
+import NotificationButton from "@/components/ui/NotificationButton";
 import { Button } from "@/components/ui/button";
 
 // CONSTANTS //
 import { ROUTES } from "@/app/constants/routes";
 
-// NEXT //
-
-type ProjectHeaderPropsData = {
+interface ProjectHeaderPropsData {
   onToggleMobileMenu: () => void;
   projectName: string;
-};
+}
 
 /**
  * Renders the project details header
  */
-export function ProjectHeader({
+export default function ProjectHeader({
   onToggleMobileMenu,
   projectName,
-}: ProjectHeaderPropsData): ReactElement {
+}: ProjectHeaderPropsData) {
   // Define Navigation
 
   // Define Context
@@ -38,10 +33,13 @@ export function ProjectHeader({
   // Define States
 
   // Helper Functions
+  /**
+   * Renders the project icon with the specified class names
+   */
   const renderProjectIcon = (
     iconClassName: string,
     wrapperClassName: string,
-  ): ReactElement => {
+  ) => {
     return (
       <div className={wrapperClassName}>
         <FolderDocumentCopyDuplicate
@@ -52,7 +50,10 @@ export function ProjectHeader({
     );
   };
 
-  const renderDeployButton = (): ReactElement => {
+  /**
+   * Renders the deploy button
+   */
+  const renderDeployButton = () => {
     return (
       <Button
         type="button"

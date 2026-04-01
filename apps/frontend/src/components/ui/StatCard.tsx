@@ -1,13 +1,10 @@
-// REACT //
-import type { ReactElement } from "react";
-
 // TYPES //
 import type { IconComponentData } from "@/types/icon";
 
 // OTHERS //
 import { cn } from "@/lib/utils";
 
-type StatCardPropsData = {
+interface StatCardPropsData {
   accentLabel?: string;
   accentToneClassName?: string;
   Icon: IconComponentData;
@@ -15,16 +12,12 @@ type StatCardPropsData = {
   iconColorClassName: string;
   title: string;
   value: string;
-};
-
-export type StatCardData = Omit<StatCardPropsData, "Icon"> & {
-  id: string;
-};
+}
 
 /**
  * Renders a reusable project overview statistic card
  */
-export function StatCard({
+export default function StatCard({
   accentLabel,
   accentToneClassName,
   Icon,
@@ -32,7 +25,7 @@ export function StatCard({
   iconColorClassName,
   title,
   value,
-}: StatCardPropsData): ReactElement {
+}: StatCardPropsData) {
   // Define Navigation
 
   // Define Context

@@ -1,20 +1,15 @@
-// REACT //
-import type { ReactElement } from "react";
-
 // COMPONENTS //
 import Add1 from "@/components/icons/neevo-icons/Add1";
 import Link from "next/link";
 
-type EmptyProjectCardPropsData = {
+interface EmptyProjectCardPropsData {
   href: string;
-};
+}
 
 /**
  * Renders the empty create-project card for the dashboard
  */
-export function EmptyProjectCard({
-  href,
-}: EmptyProjectCardPropsData): ReactElement {
+export default function EmptyProjectCard({ href }: EmptyProjectCardPropsData) {
   // Define Navigation
 
   // Define Context

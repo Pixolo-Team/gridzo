@@ -1,18 +1,18 @@
 // REACT //
-import type { ReactElement, ReactNode } from "react";
+import * as React from "react";
 
-type HeaderShellPropsData = {
-  children: ReactNode;
+interface HeaderShellPropsData {
+  children: React.ReactNode;
   className?: string;
-};
+}
 
 /**
  * Renders the shared shell used across header variants
  */
-export function HeaderShell({
+export default function HeaderShell({
   children,
   className,
-}: HeaderShellPropsData): ReactElement {
+}: HeaderShellPropsData) {
   // Define Navigation
 
   // Define Context

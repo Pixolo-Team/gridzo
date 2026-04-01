@@ -1,19 +1,15 @@
 // REACT //
-import { forwardRef } from "react";
-import type { ComponentProps, ForwardedRef, ReactElement } from "react";
+import type { TextareaHTMLAttributes } from "react";
 
 // OTHERS //
 import { cn } from "@/lib/utils";
 
-type TextareaPropsData = ComponentProps<"textarea">;
+type TextareaPropsData = TextareaHTMLAttributes<HTMLTextAreaElement>;
 
 /**
- * Renders a reusable base textarea with project-aligned styling
+ * Renders a reusable textarea using the shared project field styling
  */
-export const Textarea = forwardRef(function Textarea(
-  { className, ...props }: TextareaPropsData,
-  ref: ForwardedRef<HTMLTextAreaElement>,
-): ReactElement {
+export function Textarea({ className, ...props }: TextareaPropsData) {
   // Define Navigation
 
   // Define Context
@@ -28,12 +24,12 @@ export const Textarea = forwardRef(function Textarea(
 
   return (
     <textarea
-      ref={ref}
+      data-slot="textarea"
       className={cn(
-        "flex min-h-[80px] w-full rounded-xl border border-n-300 bg-n-50 px-4 py-3 text-base text-n-900 outline-none transition-colors placeholder:text-n-500 focus-visible:border-n-400 focus-visible:ring-2 focus-visible:ring-n-400 focus-visible:ring-offset-2 focus-visible:ring-offset-n-50 disabled:cursor-not-allowed disabled:bg-n-100 disabled:text-n-400",
+        "flex field-sizing-content min-h-16 w-full rounded-lg border border-input bg-transparent px-2.5 py-2 text-base transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
         className,
       )}
       {...props}
     />
   );
-});
+}
