@@ -1,6 +1,8 @@
+// TYPES //
+import type { CreateProjectStepData } from "@/types/create-project";
+
 // COMPONENTS //
 import ProgressBar from "@/components/ui/progress-bar";
-import type { CreateProjectStepData } from "@/components/projects/create-project/create-project.data";
 
 interface CreateProjectProgressPropsData {
   activeStep: number;

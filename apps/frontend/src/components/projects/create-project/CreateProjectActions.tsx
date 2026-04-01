@@ -24,18 +24,24 @@ export default function CreateProjectActions({
   // Define States
 
   // Helper Functions
+  /**
+   * Gets the shared action width classes so step actions scale by available width
+   */
+  const getActionWidthClassName = (): string => {
+    return "w-auto min-w-[32%] md:min-w-[24%] lg:min-w-[18%]";
+  };
 
   // Use Effects
 
   return (
-    <div className="flex w-full justify-end gap-3 md:gap-5">
+    <div className="flex w-full flex-wrap justify-end gap-3 md:gap-5">
       {/* Back Action */}
       {onBackAction ? (
         <Button
           type="button"
           size="small"
           variant="secondary"
-          className="min-w-[104px] px-8 text-base md:min-w-[92px] md:text-lg"
+          className={`${getActionWidthClassName()} px-6 text-base md:px-8 md:text-lg`}
           onClick={onBackAction}
         >
           Back
@@ -47,7 +53,7 @@ export default function CreateProjectActions({
         type="button"
         size="small"
         variant="primary"
-        className="min-w-[132px] px-8 text-base md:min-w-[151px] md:text-lg"
+        className={`${getActionWidthClassName()} px-6 text-base md:px-8 md:text-lg`}
         onClick={onNextAction}
       >
         {nextLabel}

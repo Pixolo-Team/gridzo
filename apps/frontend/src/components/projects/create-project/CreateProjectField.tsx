@@ -1,8 +1,11 @@
+// TYPES //
+import type { CreateProjectFieldData } from "@/types/create-project";
+
 // COMPONENTS //
 import Close from "@/components/icons/neevo-icons/Close";
 import Dropdown from "@/components/ui/Dropdown";
 import { Input } from "@/components/ui/input";
-import type { CreateProjectFieldData } from "@/components/projects/create-project/create-project.data";
+import { Textarea } from "@/components/ui/textarea";
 
 // OTHERS //
 import { cn } from "@/lib/utils";
@@ -16,6 +19,7 @@ interface CreateProjectFieldPropsData extends CreateProjectFieldData {
  * Renders a shared create-project input row while preserving the existing visual treatment
  */
 export default function CreateProjectField({
+  controlClassName,
   fieldType = "input",
   helperText,
   id,
@@ -43,6 +47,7 @@ export default function CreateProjectField({
   };
 
   const checkIsSelectField = fieldType === "select";
+  const checkIsTextareaField = fieldType === "textarea";
 
   /**
    * Updates the shared create-project dropdown value
@@ -76,6 +81,18 @@ export default function CreateProjectField({
               onChange={handleDropdownValueChange}
             />
           </>
+        ) : checkIsTextareaField ? (
+          /* Textarea Field */
+          <Textarea
+            id={id}
+            value={value}
+            placeholder={placeholder}
+            className={cn(
+              "min-h-[180px] w-full resize-none rounded-xl border-[1.5px] border-n-100 bg-n-50 px-6 py-5 text-base text-n-700 placeholder:text-n-400 focus-visible:border-n-200 focus-visible:ring-0 focus-visible:ring-offset-0 md:text-lg",
+              controlClassName,
+            )}
+            onChange={(event) => handleFieldValueChange(event.target.value)}
+          />
         ) : (
           /* Input Field */
           <div className="relative">
@@ -84,7 +101,10 @@ export default function CreateProjectField({
               type={type}
               value={value}
               placeholder={placeholder}
-              className="h-14 border-[1.5px] border-n-100 bg-n-50 px-6 pr-12 text-base text-n-700 placeholder:text-n-400 focus-visible:border-n-200 focus-visible:ring-0 focus-visible:ring-offset-0 md:h-16 md:text-lg"
+              className={cn(
+                "h-14 border-[1.5px] border-n-100 bg-n-50 px-6 pr-12 text-base text-n-700 placeholder:text-n-400 focus-visible:border-n-200 focus-visible:ring-0 focus-visible:ring-offset-0 md:h-16 md:text-lg",
+                controlClassName,
+              )}
               onChange={(e) => handleFieldValueChange(e.target.value)}
             />
 
