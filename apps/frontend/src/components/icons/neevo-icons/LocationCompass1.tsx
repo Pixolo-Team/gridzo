@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const LocationCompass1: IconComponent = ({
+const LocationCompass1: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,

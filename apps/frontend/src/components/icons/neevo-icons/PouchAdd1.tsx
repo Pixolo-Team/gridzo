@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const PouchAdd1: IconComponent = ({
+const PouchAdd1: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,

@@ -2,9 +2,12 @@
 import React from "react";
 
 // TYPES //
-import { IconProps } from "@/types/icon";
+import { IconComponentPropsData } from "@/types/icon";
 
-const Phone = ({ primaryColor = "currentColor", ...props }: IconProps) => (
+const Phone = ({
+  primaryColor = "currentColor",
+  ...props
+}: IconComponentPropsData) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width={28}

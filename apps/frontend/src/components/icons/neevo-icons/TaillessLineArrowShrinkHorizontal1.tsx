@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const TaillessLineArrowShrinkHorizontal1: IconComponent = ({
+const TaillessLineArrowShrinkHorizontal1: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,

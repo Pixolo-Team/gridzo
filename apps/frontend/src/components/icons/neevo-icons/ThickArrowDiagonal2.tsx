@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const ThickArrowDiagonal2: IconComponent = ({
+const ThickArrowDiagonal2: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,

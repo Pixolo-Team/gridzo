@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const LineArrowCurvyBothDirection3: IconComponent = ({
+const LineArrowCurvyBothDirection3: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,

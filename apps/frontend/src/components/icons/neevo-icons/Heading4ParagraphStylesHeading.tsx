@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const Heading4ParagraphStylesHeading: IconComponent = ({
+const Heading4ParagraphStylesHeading: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,

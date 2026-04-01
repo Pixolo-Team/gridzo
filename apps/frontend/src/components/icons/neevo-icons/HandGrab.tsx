@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const HandGrab: IconComponent = ({
+const HandGrab: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,

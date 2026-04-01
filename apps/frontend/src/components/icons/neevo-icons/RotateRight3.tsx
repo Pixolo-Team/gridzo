@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const RotateRight3: IconComponent = ({
+const RotateRight3: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,

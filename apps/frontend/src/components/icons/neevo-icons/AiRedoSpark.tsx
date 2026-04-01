@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const AiRedoSpark: IconComponent = ({
+const AiRedoSpark: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,

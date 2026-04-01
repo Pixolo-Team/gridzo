@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const SquareBrackets: IconComponent = ({
+const SquareBrackets: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,

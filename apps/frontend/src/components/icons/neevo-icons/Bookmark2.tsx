@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const Bookmark2: IconComponent = ({
+const Bookmark2: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,

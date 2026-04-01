@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const LinkToSound: IconComponent = ({
+const LinkToSound: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,

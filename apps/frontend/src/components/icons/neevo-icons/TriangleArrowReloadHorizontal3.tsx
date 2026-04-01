@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const TriangleArrowReloadHorizontal3: IconComponent = ({
+const TriangleArrowReloadHorizontal3: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,

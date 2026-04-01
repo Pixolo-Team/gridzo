@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const CheckCircleOff: IconComponent = ({
+const CheckCircleOff: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,

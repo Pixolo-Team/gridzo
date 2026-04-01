@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const Timer3Seconds: IconComponent = ({
+const Timer3Seconds: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,

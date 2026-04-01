@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const TimeLapse: IconComponent = ({
+const TimeLapse: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,

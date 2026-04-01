@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const Hierarchy9: IconComponent = ({
+const Hierarchy9: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,

@@ -2,9 +2,9 @@
 import React from "react";
 
 // TYPES //
-import { IconComponent } from "@/types/icon";
+import { IconComponentData } from "@/types/icon";
 
-const FocusPoints: IconComponent = ({
+const FocusPoints: IconComponentData = ({
   primaryColor,
   secondaryColor,
   tertiaryColor,
