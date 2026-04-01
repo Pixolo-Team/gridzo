@@ -4,13 +4,16 @@
 import type { ChangeEvent, ReactElement } from "react";
 import { useState } from "react";
 
+// TYPES //
+import type { IconComponentData } from "@/types/icon";
+
 // COMPONENTS //
-import ShoppingCart2 from "@/components/icons/neevo-icons/ShoppingCart2";
 import { EmptyProjectCard } from "@/components/ui/EmptyProjectCard";
 import { ProjectCard } from "@/components/ui/ProjectCard";
 import { SearchInput } from "@/components/ui/SearchInput";
 
 // CONSTANTS //
+import { dashboardProjectIconMap } from "@/app/constants/dashboard-project-icons";
 import { ROUTES } from "@/app/constants/routes";
 
 // DATA //
@@ -36,6 +39,15 @@ export default function DashboardPage(): ReactElement {
   /** Updates the dashboard search value from the search input field */
   const handleSearchChange = (event: ChangeEvent<HTMLInputElement>): void => {
     setSearchValue(event.target.value);
+  };
+
+  /**
+   * Gets the matching icon component for the provided dashboard project card
+   */
+  const getDashboardProjectIcon = (
+    dashboardProjectIconName: (typeof dashboardProjectData)[number]["iconName"],
+  ): IconComponentData => {
+    return dashboardProjectIconMap[dashboardProjectIconName];
   };
 
   /**
@@ -79,18 +91,25 @@ export default function DashboardPage(): ReactElement {
       {/* Project Grid */}
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-5 2xl:grid-cols-3">
         {/* Project Cards */}
-        {filteredDashboardProjectData.map((dashboardProjectItem) => (
-          <ProjectCard
-            key={dashboardProjectItem.id}
-            badgeName={dashboardProjectItem.badgeName}
-            href={dashboardProjectItem.href}
-            backgroundClassName={dashboardProjectItem.backgroundClassName}
-            iconColorClassName={dashboardProjectItem.iconColorClassName}
-            Icon={ShoppingCart2}
-            lastSyncLabel={dashboardProjectItem.lastSyncLabel}
-            title={dashboardProjectItem.title}
-          />
-        ))}
+        {filteredDashboardProjectData.map((dashboardProjectItem) => {
+          // Resolve the icon from dashboard data so each project can render its own visual.
+          const DashboardProjectIcon = getDashboardProjectIcon(
+            dashboardProjectItem.iconName,
+          );
+
+          return (
+            <ProjectCard
+              key={dashboardProjectItem.id}
+              badgeName={dashboardProjectItem.badgeName}
+              href={dashboardProjectItem.href}
+              backgroundClassName={dashboardProjectItem.backgroundClassName}
+              iconColorClassName={dashboardProjectItem.iconColorClassName}
+              Icon={DashboardProjectIcon}
+              lastSyncLabel={dashboardProjectItem.lastSyncLabel}
+              title={dashboardProjectItem.title}
+            />
+          );
+        })}
 
         {/* Empty Project Card */}
         <EmptyProjectCard href={ROUTES.APP.PROJECTS.CREATE} />
