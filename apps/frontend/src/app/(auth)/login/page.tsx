@@ -20,12 +20,26 @@ export default function LoginPage() {
   // Define Navigation
   const router = useRouter();
 
-  // Helper functions
+  // Define Context
+
+  // Define Refs
+
+  // Define States
+
+  // Helper Functions
   /** Handles Google Sign-In logic */
-  const handleGoogleSignIn = () => {
+  const handleGoogleSignIn = (): void => {
     // TODO: Implement Google Sign-In logic here
     router.push(ROUTES.APP.DASHBOARD);
   };
+
+  /** Handles Google Sign-Up logic */
+  const handleGoogleSignUp = (): void => {
+    // TODO: Implement Google Sign-Up logic here
+    router.push(ROUTES.APP.DASHBOARD);
+  };
+
+  // Use Effects
 
   return (
     <section className="min-h-screen">
@@ -60,26 +74,49 @@ export default function LoginPage() {
 
             {/* Sign In Card */}
             <div className="flex w-full flex-col items-center gap-6 rounded-xl border border-n-300 bg-n-50 px-7 py-5 md:px-8 lg:px-9">
-              {/* Sign In Button */}
-              <Button
-                type="button"
-                className="h-12 w-full gap-3 rounded-lg px-6 py-3 text-sm"
-                aria-label="Sign in with Google"
-                onClick={handleGoogleSignIn}
-              >
-                {/* Google logo */}
-                <span className="size-5 shrink-0">
-                  <Image
-                    src="/images/google-logo.png"
-                    alt=""
-                    aria-hidden="true"
-                    width={20}
-                    height={20}
-                    className="h-full w-full object-contain"
-                  />
-                </span>
-                <span>Sign in with Google</span>
-              </Button>
+              {/* Auth Buttons */}
+              <div className="flex w-full flex-col gap-3">
+                <Button
+                  type="button"
+                  className="h-12 w-full gap-3 rounded-lg px-6 py-3 text-sm"
+                  aria-label="Sign in with Google"
+                  onClick={handleGoogleSignIn}
+                >
+                  {/* Google logo */}
+                  <span className="size-5 shrink-0">
+                    <Image
+                      src="/images/google-logo.png"
+                      alt=""
+                      aria-hidden="true"
+                      width={20}
+                      height={20}
+                      className="h-full w-full object-contain"
+                    />
+                  </span>
+                  <span>Sign in with Google</span>
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className="h-12 w-full gap-3 rounded-lg px-6 py-3 text-sm"
+                  aria-label="Sign up with Google"
+                  onClick={handleGoogleSignUp}
+                >
+                  {/* Google logo */}
+                  <span className="size-5 shrink-0">
+                    <Image
+                      src="/images/google-logo.png"
+                      alt=""
+                      aria-hidden="true"
+                      width={20}
+                      height={20}
+                      className="h-full w-full object-contain"
+                    />
+                  </span>
+                  <span>Sign up with Google</span>
+                </Button>
+              </div>
 
               {/* Description text */}
               <p className="max-w-[84%] text-center text-xs leading-4 text-n-600 md:max-w-[76%] lg:max-w-[72%]">
