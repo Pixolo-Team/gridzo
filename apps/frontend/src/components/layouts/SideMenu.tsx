@@ -6,7 +6,7 @@ import type { IconComponentData } from "@/types/icon";
 // COMPONENTS //
 import Image from "next/image";
 import Link from "next/link";
-import AppBrand from "@/components/ui/AppBrand";
+import BrandLogo from "@/components/ui/BrandLogo";
 import Close from "@/components/icons/neevo-icons/Close";
 import DashboardSquare from "@/components/icons/neevo-icons/DashboardSquare";
 
@@ -138,7 +138,7 @@ export function SideMenu({
       <aside className="hidden h-full w-[26%] max-w-96 min-w-72 shrink-0 border-r border-n-300 bg-n-50 xl:flex xl:flex-col xl:justify-between">
         {/* Desktop Brand */}
         <div className="px-7 py-5">
-          <AppBrand
+          <BrandLogo
             className="flex h-12 w-30 items-center"
             imageClassName="h-auto w-full object-contain"
             width={120}
@@ -174,7 +174,7 @@ export function SideMenu({
         >
           {/* Mobile Brand and Close */}
           <div className="flex items-center justify-between px-7 py-3.5">
-            <AppBrand
+            <BrandLogo
               className="flex h-12 w-28 items-center"
               imageClassName="h-auto w-full object-contain"
               width={108}

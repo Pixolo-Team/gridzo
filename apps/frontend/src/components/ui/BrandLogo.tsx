@@ -1,6 +1,3 @@
-// REACT //
-import type { ComponentProps, MouseEventHandler } from "react";
-
 // STYLES //
 import ThemeImage from "@/components/ui/ThemeImage";
 
@@ -10,28 +7,25 @@ import Link from "next/link";
 // CONSTANTS //
 import { ROUTES } from "@/app/constants/routes";
 
-type AppBrandPropsData = {
+interface BrandLogoPropsData {
   className: string;
   height: number;
   imageClassName: string;
-  onClick?: MouseEventHandler<HTMLAnchorElement>;
+  onClick?: () => void;
   width: number;
-} & Omit<
-  ComponentProps<typeof ThemeImage>,
-  "alt" | "className" | "darkSrc" | "height" | "lightSrc" | "width"
->;
+}
 
 /**
  * Renders the shared Pixolo brand logo with the exact responsive image sizing passed by each layout
  */
-export default function AppBrand({
+export default function BrandLogo({
   className,
   height,
   imageClassName,
   onClick,
   width,
   ...props
-}: AppBrandPropsData) {
+}: BrandLogoPropsData) {
   return (
     <Link href={ROUTES.APP.DASHBOARD} className={className} onClick={onClick}>
       <ThemeImage

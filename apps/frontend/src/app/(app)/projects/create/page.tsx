@@ -96,7 +96,7 @@ export default function CreateProjectPage() {
    */
   const handleNextAction = (): void => {
     if (checkIsFinalCreateProjectStep()) {
-      router.push(ROUTES.APP.DASHBOARD);
+      router.push(ROUTES.APP.PROJECTS.CREATE_SUCCESS);
       return;
     }
 

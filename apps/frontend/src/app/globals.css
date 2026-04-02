@@ -182,3 +182,29 @@
     @apply font-sans;
   }
 }
+
+.theme-image-dark {
+  display: none;
+}
+
+.theme-image-light {
+  display: block;
+}
+
+.dark .theme-image-light {
+  display: none;
+}
+
+.dark .theme-image-dark {
+  display: block;
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not(.light) .theme-image-light {
+    display: none;
+  }
+
+  html:not(.light) .theme-image-dark {
+    display: block;
+  }
+}
