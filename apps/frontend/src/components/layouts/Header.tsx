@@ -1,18 +1,20 @@
 "use client";
 
-// REACT //
-import type { ReactElement } from "react";
-
-// NEXT //
-import { usePathname } from "next/navigation";
-
 // COMPONENTS //
 import { AppHeader } from "@/components/layouts/headers/AppHeader";
-import { FlowHeader } from "@/components/layouts/headers/FlowHeader";
-import { ProjectHeader } from "@/components/layouts/headers/ProjectHeader";
+import FlowHeader from "@/components/layouts/headers/FlowHeader";
+import ProjectHeader from "@/components/layouts/headers/ProjectHeader";
+
+// CONTEXTS //
+import { useCreateProjectFlowContext } from "@/contexts/create-project-flow.context";
 
 // CONSTANTS //
 import { ROUTES } from "@/app/constants/routes";
+
+// NAVIGATION //
+import { usePathname } from "next/navigation";
+
+// NEXT //
 
 type HeaderPropsData = {
   onToggleMobileMenu: () => void;
@@ -21,9 +23,10 @@ type HeaderPropsData = {
 /**
  * Renders the shared application header and dispatches to the correct header variant
  */
-export function Header({ onToggleMobileMenu }: HeaderPropsData): ReactElement {
+export function Header({ onToggleMobileMenu }: HeaderPropsData) {
   // Define Navigation
   const pathname = usePathname();
+  const { backAction } = useCreateProjectFlowContext();
 
   // Define Context
 
@@ -74,7 +77,12 @@ export function Header({ onToggleMobileMenu }: HeaderPropsData): ReactElement {
   // Use Effects
 
   if (checkIsFlowHeaderRoute()) {
-    return <FlowHeader onToggleMobileMenu={onToggleMobileMenu} />;
+    return (
+      <FlowHeader
+        onToggleMobileMenu={onToggleMobileMenu}
+        onBackAction={backAction}
+      />
+    );
   }
 
   if (checkIsProjectHeaderRoute()) {

@@ -1,6 +1,3 @@
-// REACT //
-import type { ReactElement } from "react";
-
 // COMPONENTS //
 import BellNotification from "@/components/icons/neevo-icons/BellNotification";
 import { Button } from "@/components/ui/button";
@@ -8,7 +5,7 @@ import { Button } from "@/components/ui/button";
 /**
  * Renders the shared notification icon button
  */
-export function NotificationButton(): ReactElement {
+export default function NotificationButton() {
   // Define Navigation
 
   // Define Context

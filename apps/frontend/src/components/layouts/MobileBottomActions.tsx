@@ -1,16 +1,16 @@
 // REACT //
-import type { ReactElement, ReactNode } from "react";
+import type { ReactNode } from "react";
 
-type MobileBottomActionsPropsData = {
+interface MobileBottomActionsPropsData {
   children: ReactNode;
-};
+}
 
 /**
  * Renders the shared mobile-only fixed bottom actions container
  */
 export function MobileBottomActions({
   children,
-}: MobileBottomActionsPropsData): ReactElement {
+}: MobileBottomActionsPropsData) {
   // Define Navigation
 
   // Define Context

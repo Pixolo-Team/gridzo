@@ -1,9 +1,6 @@
-// REACT //
-import type { ReactElement } from "react";
-
 // COMPONENTS //
-import { InputActionCard } from "@/components/ui/InputActionCard";
-import { StatCard } from "@/components/ui/StatCard";
+import InputActionCard from "@/components/ui/InputActionCard";
+import StatCard from "@/components/ui/StatCard";
 
 // CONSTANTS //
 import { projectOverviewStatIconMap } from "@/app/constants/project-overview-stat-icons";
@@ -14,18 +11,16 @@ import {
   projectOverviewStatItems,
 } from "@/app/data/project-overview.data";
 
-type ProjectPagePropsData = {
-  params: Promise<{
+interface ProjectPagePropsData {
+  params: {
     projectId: string;
-  }>;
-};
+  };
+}
 
 /**
  * Renders the project overview page
  */
-export default async function ProjectPage({
-  params,
-}: Readonly<ProjectPagePropsData>): Promise<ReactElement> {
+export default async function ProjectPage({ params }: ProjectPagePropsData) {
   // Define Navigation
   const { projectId } = await params;
 

@@ -1,38 +1,33 @@
 "use client";
 
-// REACT //
-import * as React from "react";
-
-// NEXT //
-import Image from "next/image";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-
-// STYLES //
-import { ThemeImage } from "@/components/ui/ThemeImage";
+// TYPES //
+import type { IconComponentData } from "@/types/icon";
 
 // COMPONENTS //
+import Image from "next/image";
+import Link from "next/link";
+import AppBrand from "@/components/ui/AppBrand";
 import Close from "@/components/icons/neevo-icons/Close";
 import DashboardSquare from "@/components/icons/neevo-icons/DashboardSquare";
 
 // CONSTANTS //
 import { ROUTES } from "@/app/constants/routes";
 
-type SidebarNavigationItemData = {
+// NAVIGATION //
+import { usePathname } from "next/navigation";
+
+interface SidebarNavigationItemData {
   href: string;
   backgroundColor: string;
   iconColor: string;
-  Icon: React.ComponentType<{
-    className?: string;
-    primaryColor?: string;
-  }>;
+  Icon: IconComponentData;
   label: string;
-};
+}
 
-type SideMenuPropsData = {
+interface SideMenuPropsData {
   isMobileMenuOpen: boolean;
   onCloseMobileMenu: () => void;
-};
+}
 
 // TODO: Will add pages dynamic and based on role later
 const sidebarNavigationItemData: SidebarNavigationItemData[] = [
@@ -51,7 +46,7 @@ const sidebarNavigationItemData: SidebarNavigationItemData[] = [
 export function SideMenu({
   isMobileMenuOpen,
   onCloseMobileMenu,
-}: SideMenuPropsData): React.ReactElement {
+}: SideMenuPropsData) {
   // Define Navigation
   const pathname = usePathname();
 
@@ -75,36 +70,38 @@ export function SideMenu({
     <>
       {/* Navigation Links */}
       <nav className="flex flex-col gap-4 px-7 pt-4 xl:pt-3">
-        {sidebarNavigationItemData.map((sidebarNavigationItem) => (
-          <Link
-            key={sidebarNavigationItem.label}
-            href={sidebarNavigationItem.href}
-            className={`flex items-center gap-5 rounded-xl px-5 py-4 text-base font-medium transition-colors ${
-              checkIsProjectsNavigationItemActive()
-                ? "bg-n-100 text-n-950"
-                : "bg-transparent text-n-700 hover:bg-n-100 hover:text-n-950"
-            }`}
-            onClick={onCloseMobileMenu}
-          >
-            <span
-              className={`flex size-8 items-center justify-center rounded ${
-                checkIsProjectsNavigationItemActive()
-                  ? sidebarNavigationItem.backgroundColor
-                  : "bg-n-100"
+        {sidebarNavigationItemData.map((sidebarNavigationItem) => {
+          const isActive = checkIsProjectsNavigationItemActive();
+
+          return (
+            <Link
+              key={sidebarNavigationItem.label}
+              href={sidebarNavigationItem.href}
+              className={`flex items-center gap-5 rounded-xl px-5 py-4 text-base font-medium transition-colors ${
+                isActive
+                  ? "bg-n-100 text-n-950"
+                  : "bg-transparent text-n-700 hover:bg-n-100 hover:text-n-950"
               }`}
+              onClick={onCloseMobileMenu}
             >
-              <sidebarNavigationItem.Icon
-                primaryColor={
-                  checkIsProjectsNavigationItemActive()
-                    ? sidebarNavigationItem.iconColor
-                    : "var(--color-n-500)"
-                }
-                className="size-4"
-              />
-            </span>
-            <span>{sidebarNavigationItem.label}</span>
-          </Link>
-        ))}
+              <span
+                className={`flex size-8 items-center justify-center rounded ${
+                  isActive ? sidebarNavigationItem.backgroundColor : "bg-n-100"
+                }`}
+              >
+                <sidebarNavigationItem.Icon
+                  primaryColor={
+                    isActive
+                      ? sidebarNavigationItem.iconColor
+                      : "var(--color-n-500)"
+                  }
+                  className="size-4"
+                />
+              </span>
+              <span>{sidebarNavigationItem.label}</span>
+            </Link>
+          );
+        })}
       </nav>
 
       {/* User Summary */}
@@ -141,20 +138,12 @@ export function SideMenu({
       <aside className="hidden h-full w-[26%] max-w-96 min-w-72 shrink-0 border-r border-n-300 bg-n-50 xl:flex xl:flex-col xl:justify-between">
         {/* Desktop Brand */}
         <div className="px-7 py-5">
-          <Link
-            href={ROUTES.APP.DASHBOARD}
+          <AppBrand
             className="flex h-12 w-30 items-center"
-          >
-            <ThemeImage
-              lightSrc="/images/brand/brand-logo.png"
-              darkSrc="/images/brand/brand-logo-dark.png"
-              alt="Pixolo"
-              className="h-auto w-full object-contain"
-              style={{ height: "auto" }}
-              width={120}
-              height={36}
-            />
-          </Link>
+            imageClassName="h-auto w-full object-contain"
+            width={120}
+            height={36}
+          />
         </div>
 
         <div className="flex min-h-0 flex-1 flex-col justify-between">
@@ -185,21 +174,13 @@ export function SideMenu({
         >
           {/* Mobile Brand and Close */}
           <div className="flex items-center justify-between px-7 py-3.5">
-            <Link
-              href={ROUTES.APP.DASHBOARD}
+            <AppBrand
               className="flex h-12 w-28 items-center"
+              imageClassName="h-auto w-full object-contain"
+              width={108}
+              height={32}
               onClick={onCloseMobileMenu}
-            >
-              <ThemeImage
-                lightSrc="/images/brand/brand-logo.png"
-                darkSrc="/images/brand/brand-logo-dark.png"
-                alt="Pixolo"
-                className="h-auto w-full object-contain"
-                style={{ height: "auto" }}
-                width={108}
-                height={32}
-              />
-            </Link>
+            />
 
             <button
               type="button"

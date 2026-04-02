@@ -1,23 +1,22 @@
 // REACT //
-import type { ChangeEvent, ReactElement } from "react";
 import { useState } from "react";
 
-// NEXT //
-import Link from "next/link";
+// STYLES //
+import ThemeImage from "@/components/ui/ThemeImage";
 
 // COMPONENTS //
+import Link from "next/link";
 import AddSquare from "@/components/icons/neevo-icons/AddSquare";
 import HamburgerMenu1 from "@/components/icons/neevo-icons/HamburgerMenu1";
-import { NotificationButton } from "@/components/ui/NotificationButton";
-import { ThemeImage } from "@/components/ui/ThemeImage";
-import { SearchInput } from "@/components/ui/SearchInput";
+import NotificationButton from "@/components/ui/NotificationButton";
+import SearchInput from "@/components/ui/SearchInput";
 import { Button } from "@/components/ui/button";
+import HeaderShell from "@/components/layouts/headers/HeaderShell";
 
 // CONSTANTS //
 import { ROUTES } from "@/app/constants/routes";
 
-// MODULES //
-import { HeaderShell } from "@/components/layouts/headers/HeaderShell";
+// NEXT //
 
 type AppHeaderPropsData = {
   onToggleMobileMenu: () => void;
@@ -26,9 +25,7 @@ type AppHeaderPropsData = {
 /**
  * Renders the default application header
  */
-export function AppHeader({
-  onToggleMobileMenu,
-}: AppHeaderPropsData): ReactElement {
+export function AppHeader({ onToggleMobileMenu }: AppHeaderPropsData) {
   // Define Navigation
 
   // Define Context
@@ -49,10 +46,13 @@ export function AppHeader({
   /**
    * Updates the search value from the search input field
    */
-  const handleSearchChange = (event: ChangeEvent<HTMLInputElement>): void => {
-    setSearchValue(event.target.value);
+  const handleSearchChange = (value: string) => {
+    setSearchValue(value);
   };
 
+  /**
+   * Renders the desktop header content
+   */
   const desktopHeaderContent = (
     <>
       {/* Search */}
@@ -81,6 +81,9 @@ export function AppHeader({
     </>
   );
 
+  /**
+   * Renders the compact header content
+   */
   const compactHeaderContent = (
     <>
       {/* Brand */}

@@ -1,16 +1,15 @@
 "use client";
 
 // REACT //
-import type { ChangeEvent, ReactElement } from "react";
 import { useState } from "react";
 
 // TYPES //
 import type { IconComponentData } from "@/types/icon";
 
 // COMPONENTS //
-import { EmptyProjectCard } from "@/components/ui/EmptyProjectCard";
-import { ProjectCard } from "@/components/ui/ProjectCard";
-import { SearchInput } from "@/components/ui/SearchInput";
+import EmptyProjectCard from "@/components/ui/EmptyProjectCard";
+import ProjectCard from "@/components/ui/ProjectCard";
+import SearchInput from "@/components/ui/SearchInput";
 
 // CONSTANTS //
 import { dashboardProjectIconMap } from "@/app/constants/dashboard-project-icons";
@@ -20,7 +19,7 @@ import { ROUTES } from "@/app/constants/routes";
 import { dashboardProjectData } from "@/app/data/dashboard-projects.data";
 
 /** Dashboard Page */
-export default function DashboardPage(): ReactElement {
+export default function DashboardPage() {
   // Define Navigation
 
   // Define Context
@@ -37,8 +36,8 @@ export default function DashboardPage(): ReactElement {
   };
 
   /** Updates the dashboard search value from the search input field */
-  const handleSearchChange = (event: ChangeEvent<HTMLInputElement>): void => {
-    setSearchValue(event.target.value);
+  const handleSearchChange = (value: string) => {
+    setSearchValue(value);
   };
 
   /**

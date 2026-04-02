@@ -1,6 +1,3 @@
-// REACT //
-import type { ChangeEventHandler, ComponentProps, ReactElement } from "react";
-
 // COMPONENTS //
 import Close from "@/components/icons/neevo-icons/Close";
 import MagnifyingGlass from "@/components/icons/neevo-icons/MagnifyingGlass";
@@ -9,21 +6,22 @@ import { Input } from "@/components/ui/input";
 // OTHERS //
 import { cn } from "@/lib/utils";
 
-type SearchInputPropsData = Omit<ComponentProps<"input">, "type"> & {
+interface SearchInputPropsData {
+  className?: string;
   onClear: () => void;
+  onChange: (value: string) => void;
+  placeholder?: string;
   value: string;
-  onChange: ChangeEventHandler<HTMLInputElement>;
-};
+}
 
 /** SearchInput Component */
-export function SearchInput({
+export default function SearchInput({
   className,
   onChange,
   onClear,
   placeholder,
   value,
-  ...props
-}: SearchInputPropsData): ReactElement {
+}: SearchInputPropsData) {
   // Define Navigation
 
   // Define Context
@@ -38,7 +36,7 @@ export function SearchInput({
 
   return (
     <div className="relative w-full">
-      {/* Search Icon (positioned absolutely within the input field) */}
+      {/* Search Icon */}
       <MagnifyingGlass
         primaryColor="var(--color-n-700)"
         className="pointer-events-none absolute top-1/2 left-3.5 size-6 -translate-y-1/2"
@@ -48,16 +46,17 @@ export function SearchInput({
       <Input
         type="search"
         className={cn(
-          "border-0 bg-n-100 py-3 pr-12 pl-14 text-base text-n-700 shadow-none [appearance:textfield] [&::-webkit-search-cancel-button]:appearance-none [&::-webkit-search-decoration]:appearance-none focus-visible:border-0 focus-visible:ring-0 focus-visible:ring-offset-0",
+          "h-12 border-0 bg-n-100 py-3 pr-12 pl-14 text-base text-n-700 shadow-none [appearance:textfield] [&::-webkit-search-cancel-button]:appearance-none [&::-webkit-search-decoration]:appearance-none focus-visible:border-0 focus-visible:ring-0 focus-visible:ring-offset-0",
           className,
         )}
-        onChange={onChange}
+        onChange={(e) => {
+          onChange && onChange(e.target.value);
+        }}
         placeholder={placeholder}
         value={value}
-        {...props}
       />
 
-      {/* Show clear button only when there is a value in the search input */}
+      {/* Clear Action */}
       {value ? (
         <button
           type="button"

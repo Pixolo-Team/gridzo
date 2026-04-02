@@ -1,31 +1,29 @@
-// REACT //
-import type { ReactElement } from "react";
-
-// NEXT //
-import Link from "next/link";
+// NAVIGATION //
+import { useRouter } from "next/navigation";
 
 // COMPONENTS //
 import HamburgerMenu1 from "@/components/icons/neevo-icons/HamburgerMenu1";
 import LineArrowLeft1 from "@/components/icons/neevo-icons/LineArrowLeft1";
 import { Button } from "@/components/ui/button";
+import HeaderShell from "@/components/layouts/headers/HeaderShell";
 
 // CONSTANTS //
 import { ROUTES } from "@/app/constants/routes";
 
-// MODULES //
-import { HeaderShell } from "@/components/layouts/headers/HeaderShell";
-
-type FlowHeaderPropsData = {
+interface FlowHeaderPropsData {
+  onBackAction?: (() => void) | null;
   onToggleMobileMenu: () => void;
-};
+}
 
 /**
  * Renders the create-project flow header
  */
-export function FlowHeader({
+export default function FlowHeader({
+  onBackAction = null,
   onToggleMobileMenu,
-}: FlowHeaderPropsData): ReactElement {
+}: FlowHeaderPropsData) {
   // Define Navigation
+  const router = useRouter();
 
   // Define Context
 
@@ -34,6 +32,17 @@ export function FlowHeader({
   // Define States
 
   // Helper Functions
+  /**
+   * Handles the flow back action using the shared step navigation when available
+   */
+  const handleBackAction = (): void => {
+    if (onBackAction) {
+      onBackAction();
+      return;
+    }
+
+    router.push(ROUTES.APP.DASHBOARD);
+  };
 
   // Use Effects
 
@@ -43,16 +52,17 @@ export function FlowHeader({
       <div className="hidden md:block">
         {/* Back Row */}
         <div className="border-b border-n-300 px-7 py-5">
-          <Link
-            href={ROUTES.APP.DASHBOARD}
+          <button
+            type="button"
             className="inline-flex items-center gap-3 text-base font-semibold text-n-600 transition-colors hover:text-n-800"
+            onClick={handleBackAction}
           >
             <LineArrowLeft1
               primaryColor="var(--color-n-500)"
               className="size-5"
             />
             <span>Back to Projects</span>
-          </Link>
+          </button>
         </div>
 
         {/* Title Row */}
@@ -72,16 +82,17 @@ export function FlowHeader({
 
       {/* Mobile Flow Header */}
       <div className="flex items-center justify-between rounded-b-xl px-7 py-3.5 md:hidden">
-        <Link
-          href={ROUTES.APP.DASHBOARD}
+        <button
+          type="button"
           aria-label="Back to Projects"
           className="flex size-11 items-center justify-center rounded-lg transition-colors hover:bg-n-100"
+          onClick={handleBackAction}
         >
           <LineArrowLeft1
             primaryColor="var(--color-n-500)"
             className="size-5"
           />
-        </Link>
+        </button>
 
         <h1 className="text-base font-semibold text-n-800">
           Create New Project

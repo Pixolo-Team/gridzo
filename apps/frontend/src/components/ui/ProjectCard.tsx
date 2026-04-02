@@ -1,19 +1,14 @@
-// REACT //
-import type { ReactElement } from "react";
-
 // TYPES //
 import type { IconComponentData } from "@/types/icon";
 
-// LIBRARIES //
-import Link from "next/link";
-
 // COMPONENTS //
+import Link from "next/link";
 import LineArrowSynchronize1 from "@/components/icons/neevo-icons/LineArrowSynchronize1";
 
 // UTILS //
 import { getBadgeLabelUtil } from "@/utils/badge-label.util";
 
-type ProjectCardPropsData = {
+interface ProjectCardPropsData {
   badgeName: string;
   href: string;
   backgroundClassName: string;
@@ -21,12 +16,12 @@ type ProjectCardPropsData = {
   Icon: IconComponentData;
   lastSyncLabel: string;
   title: string;
-};
+}
 
 /**
  * Renders a dashboard project card based on the Figma design
  */
-export function ProjectCard({
+export default function ProjectCard({
   badgeName,
   href,
   backgroundClassName,
@@ -34,7 +29,7 @@ export function ProjectCard({
   Icon,
   lastSyncLabel,
   title,
-}: ProjectCardPropsData): ReactElement {
+}: ProjectCardPropsData) {
   // Define Navigation
 
   // Define Context

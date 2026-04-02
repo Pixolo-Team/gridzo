@@ -1,6 +1,3 @@
-// REACT //
-import type { ReactElement } from "react";
-
 // COMPONENTS //
 import Copy1 from "@/components/icons/neevo-icons/Copy1";
 import CopyDocument from "@/components/icons/neevo-icons/CopyDocument";
@@ -26,12 +23,12 @@ export type InputActionCardData = {
 /**
  * Renders a reusable project overview input card with side actions
  */
-export function InputActionCard({
+export default function InputActionCard({
   actionItems,
   description,
   title,
   value,
-}: InputActionCardData): ReactElement {
+}: InputActionCardData) {
   // Define Navigation
 
   // Define Context
@@ -44,9 +41,7 @@ export function InputActionCard({
   /**
    * Renders the correct action icon for the provided action item
    */
-  const renderActionIcon = (
-    actionItem: InputActionCardActionData,
-  ): ReactElement => {
+  const renderActionIcon = (actionItem: InputActionCardActionData) => {
     if (actionItem.id === "api-url") {
       return (
         <Copy1
