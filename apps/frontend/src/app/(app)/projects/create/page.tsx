@@ -18,10 +18,7 @@ import { useCreateProjectFlowContext } from "@/contexts/create-project-flow.cont
 import { ROUTES } from "@/app/constants/routes";
 
 // DATA //
-import {
-  createProjectStepItems,
-  createProjectStructurePhpContent,
-} from "@/app/data/create-project";
+import { createProjectStepItems } from "@/app/data/create-project";
 
 /**
  * Renders the create project page flow with three UI-only setup steps
@@ -50,7 +47,7 @@ export default function CreateProjectPage() {
     "project-id": "",
     "project-name": "",
     slug: "",
-    "structure-php-content": createProjectStructurePhpContent,
+    "structure-php-content": "",
     "website-url": "",
   });
 

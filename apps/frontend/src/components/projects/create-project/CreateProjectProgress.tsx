@@ -61,7 +61,7 @@ export function CreateProjectProgress({
       {activeStep === 3 ? (
         <div className="flex flex-wrap items-center gap-1.5 text-xs leading-[1.55] text-n-500 md:text-sm">
           <span>Paste the content of your</span>
-          <span className="rounded bg-n-200 px-1 py-0.5 font-mono text-[#1a2b3d]">
+          <span className="rounded bg-n-200 px-1 py-0.5 font-mono text-n-800">
             structure.php
           </span>
           <span>file here to define how the sheet data is mapped</span>

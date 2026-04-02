@@ -13,6 +13,7 @@ export type CreateProjectFieldData = {
   placeholder: string;
   required?: boolean;
   type?: "email" | "text" | "url";
+  validationType?: "php";
 };
 
 export type CreateProjectFieldGroupData = {

@@ -28,23 +28,6 @@ export const createProjectCategoryOptionItems: CreateProjectFieldOptionData[] =
   ];
 
 /**
- * Provides the starter structure.php content for new projects
- */
-export const createProjectStructurePhpContent = `<?php
-
-// Define your mappings here...
-// This allows you to connect spreadsheet columns to database fields.
-
-return [
-    'sheet_name' => 'Inventory_Q1',
-    'mapping' => [
-        'SKU' => 'product_id',
-        'Quantity' => 'stock_level',
-        'Price' => 'unit_price',
-    ]
-];`;
-
-/**
  * Provides the create-project flow configuration for all steps
  */
 export const createProjectStepItems: CreateProjectStepData[] = [
@@ -161,19 +144,29 @@ export const createProjectStepItems: CreateProjectStepData[] = [
   },
   {
     description:
-      "Paste the content of your structure.php file here to define how the sheet data is mapped",
+      "Paste the content of your structure.php file here to define how the sheet data is mapped.",
     fieldGroupItems: [
       {
         layout: "single-column",
         fieldItems: [
           {
             controlClassName:
-              "min-h-[354px] w-full resize-none rounded-xl border-[1.5px] border-green-300 bg-green-50 px-[25px] py-[17px] font-mono text-sm leading-7 text-[#1e293b] outline-none placeholder:text-[#1e293b]/60 focus-visible:border-green-300 focus-visible:ring-0 focus-visible:ring-offset-0 md:min-h-[180px] md:px-[25px] md:py-[21px]",
+              "min-h-[354px] w-full resize-y rounded-xl bg-n-50 px-[25px] py-[17px] font-mono text-sm leading-7 text-n-900 outline-none placeholder:text-n-400 focus-visible:ring-0 focus-visible:ring-offset-0 md:min-h-[180px] md:px-[25px] md:py-[21px]",
             fieldType: "textarea",
             id: "structure-php-content",
             label: "Structure.php Content",
-            placeholder: "Paste the contents of your structure.php file",
+            placeholder: `<?php
+
+return [
+    'sheet_name' => 'Inventory_Q1',
+    'mapping' => [
+        'SKU' => 'product_id',
+        'Quantity' => 'stock_level',
+        'Price' => 'unit_price',
+    ],
+];`,
             required: true,
+            validationType: "php",
           },
         ],
       },

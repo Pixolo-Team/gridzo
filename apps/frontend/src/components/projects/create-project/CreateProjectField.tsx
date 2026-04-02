@@ -28,6 +28,7 @@ export default function CreateProjectField({
   optionItems,
   placeholder,
   type = "text",
+  validationType,
   value,
 }: CreateProjectFieldPropsData) {
   // Define Navigation
@@ -55,6 +56,47 @@ export default function CreateProjectField({
   const handleDropdownValueChange = (nextValue: string): void => {
     onValueChange(id, nextValue);
   };
+
+  /**
+   * Checks whether the current textarea content matches the expected PHP structure format
+   */
+  const checkIsPhpValueValid = (): boolean => {
+    if (validationType !== "php") {
+      return false;
+    }
+
+    const trimmedValue = value.trim();
+
+    if (!trimmedValue.startsWith("<?php")) {
+      return false;
+    }
+
+    const hasReturnArraySyntax =
+      trimmedValue.includes("return [") || trimmedValue.includes("return array(");
+    const hasMappingKey = /['"]mapping['"]\s*=>/.test(trimmedValue);
+
+    return hasReturnArraySyntax && hasMappingKey;
+  };
+
+  /**
+   * Gets the shared textarea validation state for PHP-enabled fields
+   */
+  const getTextareaValidationState = (): "default" | "valid" | "invalid" => {
+    if (validationType !== "php" || !value.trim()) {
+      return "default";
+    }
+
+    return checkIsPhpValueValid() ? "valid" : "invalid";
+  };
+
+  /**
+   * Gets the helper text shown below the textarea field
+   */
+  const getFieldHelperText = (): string | undefined => {
+    return helperText;
+  };
+
+  const textareaValidationState = getTextareaValidationState();
 
   // Use Effects
 
@@ -88,7 +130,13 @@ export default function CreateProjectField({
             value={value}
             placeholder={placeholder}
             className={cn(
-              "min-h-[180px] w-full resize-none rounded-xl border-[1.5px] border-n-100 bg-n-50 px-6 py-5 text-base text-n-700 placeholder:text-n-400 focus-visible:border-n-200 focus-visible:ring-0 focus-visible:ring-offset-0 md:text-lg",
+              "min-h-[180px] w-full resize-none rounded-xl border-[1.5px] bg-n-50 px-6 py-5 text-base text-n-900 placeholder:text-n-400 focus-visible:ring-0 focus-visible:ring-offset-0 md:text-lg",
+              textareaValidationState === "default" &&
+                "border-n-100 focus-visible:border-n-200",
+              textareaValidationState === "valid" &&
+                "border-success-500 focus-visible:border-success-500",
+              textareaValidationState === "invalid" &&
+                "border-destructive focus-visible:border-destructive",
               controlClassName,
             )}
             onChange={(event) => handleFieldValueChange(event.target.value)}
@@ -123,10 +171,17 @@ export default function CreateProjectField({
         )}
       </div>
 
-      {helperText ? (
+      {getFieldHelperText() ? (
         /* Field Helper Text */
-        <p className="text-xs leading-[1.35] text-n-500 md:text-sm">
-          {helperText}
+        <p
+          className={cn(
+            "text-xs leading-[1.35] md:text-sm",
+            textareaValidationState === "valid" && "text-success-500",
+            textareaValidationState === "invalid" && "text-destructive",
+            textareaValidationState === "default" && "text-n-500",
+          )}
+        >
+          {getFieldHelperText()}
         </p>
       ) : null}
     </div>
