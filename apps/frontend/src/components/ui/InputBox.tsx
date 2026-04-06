@@ -1,5 +1,5 @@
-// ENUMS //
-import { InputBoxEnum } from "@/enums/input.enum";
+// REACT //
+import type { HTMLInputTypeAttribute } from "react";
 
 // COMPONENTS //
 import { FieldDescription, FieldLabel } from "@/components/ui/field";
@@ -11,7 +11,7 @@ interface InputBoxPropsData {
   id?: string;
   label: string;
   placeholder: string;
-  type?: InputBoxEnum;
+  type?: HTMLInputTypeAttribute;
   value?: string;
 }
 
@@ -24,7 +24,7 @@ export default function InputBox({
   label,
   onChange,
   placeholder,
-  type = InputBoxEnum.TEXT,
+  type = "text",
   value,
 }: InputBoxPropsData) {
   // Define Navigation

@@ -1,18 +1,17 @@
-// COMPONENTS //
-import Image from "next/image";
-
-// OTHERS //
-import { cn } from "@/lib/utils";
-
-// NEXT //
+// REACT //
+import type { ImgHTMLAttributes, SourceHTMLAttributes } from "react";
 
 interface ThemeImagePropsData {
   alt: string;
   className?: string;
   darkClassName?: string;
   darkSrc?: string;
+  height?: number;
   lightClassName?: string;
   lightSrc: string;
+  sizes?: string;
+  style?: ImgHTMLAttributes<HTMLImageElement>["style"];
+  width?: number;
 }
 
 /**
@@ -23,8 +22,12 @@ export default function ThemeImage({
   className,
   darkClassName,
   darkSrc,
+  height,
   lightClassName,
   lightSrc,
+  sizes,
+  style,
+  width,
   ...props
 }: ThemeImagePropsData) {
   // Define Navigation
@@ -44,22 +47,25 @@ export default function ThemeImage({
   // Use Effects
 
   return (
-    <>
-      {/* Light Theme Image */}
-      <Image
-        {...props}
-        alt={alt}
-        src={lightSrc}
-        className={cn("theme-image-light", className, lightClassName)}
+    <picture>
+      <source
+        srcSet={resolvedDarkSrc}
+        media="(prefers-color-scheme: dark)"
+        {...({ sizes } satisfies Partial<
+          SourceHTMLAttributes<HTMLSourceElement>
+        >)}
       />
 
-      {/* Dark Theme Image */}
-      <Image
-        {...props}
+      <img
+        {...(props as ImgHTMLAttributes<HTMLImageElement>)}
+        src={lightSrc}
         alt={alt}
-        src={resolvedDarkSrc}
-        className={cn("theme-image-dark", className, darkClassName)}
+        width={width}
+        height={height}
+        sizes={sizes}
+        style={style}
+        className={className ?? lightClassName ?? darkClassName}
       />
-    </>
+    </picture>
   );
 }
