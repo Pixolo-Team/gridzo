@@ -20,7 +20,7 @@ import { ROUTES } from "@/app/constants/routes";
 // DATA //
 import {
   editProjectDetails,
-  editProjectFormValueData,
+  editProjectFormValues,
   editProjectCategoryOptionItems,
   editProjectSectionDetails,
 } from "@/app/data/edit-project";
@@ -38,18 +38,17 @@ export default function EditProjectPage() {
   // Define Refs
 
   // Define States
-  const [formValueData, setFormValueData] = useState<EditProjectFormValueData>(
-    () => ({ ...editProjectFormValueData }),
-  );
+  const [formInputField, setFormInputField] =
+    useState<EditProjectFormValueData>(() => ({ ...editProjectFormValues }));
 
   // Helper Functions
   /**
    * Updates the local edit-project field value
    */
   const handleFieldValueChange = (fieldId: string, value: string): void => {
-    setFormValueData((previousFormValueData) => {
+    setFormInputField((previousFormInputField) => {
       return {
-        ...previousFormValueData,
+        ...previousFormInputField,
         [fieldId]: value,
       };
     });
@@ -59,7 +58,7 @@ export default function EditProjectPage() {
    * Gets the current value for the provided edit-project field
    */
   const getFieldValue = (fieldId: string): string => {
-    return formValueData[fieldId] ?? "";
+    return formInputField[fieldId] ?? "";
   };
 
   /**

@@ -22,6 +22,18 @@ export default function TextareaBox({
   placeholder,
   value,
 }: TextareaBoxPropsData) {
+  // Define Navigation
+
+  // Define Context
+
+  // Define Refs
+
+  // Define States
+
+  // Helper Functions
+
+  // Use Effects
+
   return (
     <div className="flex w-full flex-col gap-2.5 md:gap-3">
       {/* Label */}

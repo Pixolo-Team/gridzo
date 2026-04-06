@@ -27,6 +27,18 @@ export default function InputBox({
   type = InputBoxEnum.TEXT,
   value,
 }: InputBoxPropsData) {
+  // Define Navigation
+
+  // Define Context
+
+  // Define Refs
+
+  // Define States
+
+  // Helper Functions
+
+  // Use Effects
+
   return (
     <div className="flex w-full flex-col gap-2.5 md:gap-3">
       {/* Label */}

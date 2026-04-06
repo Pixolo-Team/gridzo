@@ -38,22 +38,17 @@ export const editProjectDetails = {
 /**
  * Provides the dummy edit-project form values keyed by field id
  */
-export const editProjectFormValueData = {
-  "client-email": "service-account@project.iam.gserviceaccount.com",
-  "client-id": "782349012384-asdfjklasdf8901234.apps.googleusercontent.com",
-  "client-x509-cert-url":
-    "https://www.googleapis.com/robot/v1/metadata/x509/...",
-  "google-sheet-id": "1aB2c3D4e5F6g7H8i9J0kLmNoPqRsTuVwXyZ",
-  "private-key": `{
-  "type": "service_account",
-  "project_id": "api-project-12345",
-  "private_key_id": "f1234567890abcdef1234567890abcdef",
-  "private_key": "-----BEGIN PRIVATE KEY-----\\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCpY...\\n-----END PRIVATE KEY-----\\n",
-  ...
-}`,
-  "private-key-id": "••••••••••••••••••••••••••••",
-  "project-category": "real-estate",
-  "project-id": "pixolo-prod-123456",
+export const editProjectFormValues = {
+  "client-email": "your-service-account@your-project.iam.gserviceaccount.com",
+  "client-id": "redacted-client-id.apps.googleusercontent.com",
+  "client-x509-cert-url": "https://example.com/redacted-client-cert-url",
+  "google-sheet-id": "redacted-google-sheet-id",
+  "private-key": `-----BEGIN PRIVATE KEY-----
+[REDACTED_PRIVATE_KEY_CONTENT]
+-----END PRIVATE KEY-----`,
+  "private-key-id": "redacted-private-key-id",
+  "project-category": "internal-tool",
+  "project-id": "your-project-id",
   "project-name": "Internal Analytics Tool",
   slug: "pixolo.io/project-slug",
   "website-url": "pixolo.io/your-website",

@@ -35,7 +35,7 @@ interface SideMenuPropsData {
 }
 
 // TODO: Will add pages dynamic and based on role later
-const appSidebarNavigationItemData: SidebarNavigationItemData[] = [
+const appSidebarNavigationItems: SidebarNavigationItemData[] = [
   {
     id: "projects",
     href: ROUTES.APP.DASHBOARD,
@@ -65,10 +65,7 @@ export function SideMenu({
   // Helper Functions
   /** Checks whether the current route is within a project details area */
   const checkIsProjectNavigationRoute = (): boolean => {
-    if (
-      pathname === ROUTES.APP.PROJECTS.CREATE ||
-      pathname === ROUTES.APP.PROJECTS.CREATE_SUCCESS
-    ) {
+    if (pathname === ROUTES.APP.PROJECTS.CREATE) {
       return false;
     }
 
@@ -88,11 +85,11 @@ export function SideMenu({
   /**
    * Gets the navigation items for the current side menu mode
    */
-  const getSidebarNavigationItemData = (): SidebarNavigationItemData[] => {
+  const getSidebarNavigationItems = (): SidebarNavigationItemData[] => {
     const projectId = getCurrentProjectId();
 
     if (!checkIsProjectNavigationRoute() || !projectId) {
-      return appSidebarNavigationItemData;
+      return appSidebarNavigationItems;
     }
 
     return [
@@ -142,7 +139,7 @@ export function SideMenu({
     <>
       {/* Navigation Links */}
       <nav className="flex flex-col gap-2 px-7 pt-3">
-        {getSidebarNavigationItemData().map((sidebarNavigationItem) => {
+        {getSidebarNavigationItems().map((sidebarNavigationItem) => {
           const isActive = checkIsNavigationItemActive(sidebarNavigationItem);
           const navigationItemClassName = `flex items-center gap-5 rounded-xl px-5 py-3 text-base transition-colors ${
             isActive
