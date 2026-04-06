@@ -74,9 +74,9 @@ export default function CreateProjectSuccessStep({
   return (
     <section className="flex min-h-full flex-col bg-n-100">
       {/* Success Layout */}
-      <div className="flex min-h-full flex-1 flex-col px-6 py-8 md:px-16 md:py-10 xl:px-24 2xl:px-64">
+      <div className="flex min-h-full flex-1 flex-col px-6 py-8 md:px-16 md:py-10 xl:px-24 2xl:px-54">
         {/* Success Content */}
-        <div className="mx-auto flex w-full max-w-[1024px] flex-1 flex-col gap-8 md:gap-12">
+        <div className="mx-auto flex w-full flex-1 flex-col gap-8 md:gap-12">
           {/* Success Heading */}
           <div className="flex items-center gap-4 md:gap-7">
             {/* Success Icon */}
@@ -145,12 +145,12 @@ export default function CreateProjectSuccessStep({
             </p>
 
             {/* Action Buttons */}
-            <div className="order-1 flex w-full flex-col-reverse gap-3 md:order-2 md:w-auto md:flex-row md:justify-end md:gap-5">
+            <div className="order-1 flex w-full flex-col gap-3 md:order-2 md:w-auto md:flex-row md:justify-end md:gap-5">
               <Button
                 asChild
                 size="small"
                 variant="primary"
-                className={`order-1 px-6 text-base md:order-2 md:px-8 md:text-lg ${getActionWidthClassName()}`}
+                className={`order-1 md:order-2 px-6 text-base md:px-8 md:text-lg ${getActionWidthClassName()}`}
               >
                 <Link href={projectDashboardHref}>
                   Continue to Project Dashboard
@@ -161,7 +161,7 @@ export default function CreateProjectSuccessStep({
                 asChild
                 size="small"
                 variant="secondary"
-                className={`order-2 px-6 text-base md:order-1 md:px-8 md:text-lg ${getActionWidthClassName()}`}
+                className={`px-6 order-2 md:order-1 text-base md:px-8 md:text-lg ${getActionWidthClassName()}`}
               >
                 <Link href={ROUTES.APP.DASHBOARD}>Go to My Projects</Link>
               </Button>

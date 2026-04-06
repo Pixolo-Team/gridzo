@@ -115,7 +115,7 @@ export default function CreateProjectPage() {
   return (
     <section className="flex min-h-full flex-col bg-n-100">
       {/* Page Content */}
-      <div className="px-6 py-8 md:px-16 md:py-10 xl:px-24 2xl:px-64">
+      <div className="px-6 py-8 md:px-16 md:py-10 xl:px-24 2xl:px-54">
         {/* Flow Container */}
         <div className="mx-auto flex w-full flex-col gap-10 md:max-w-[88%] md:min-w-0 md:gap-12 lg:max-w-[90%] xl:max-w-[90%] 2xl:max-w-[86%]">
           {/* Progress Section */}

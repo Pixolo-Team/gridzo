@@ -184,27 +184,27 @@
 }
 
 .theme-image-dark {
-  display: none;
+  display: none !important;
 }
 
 .theme-image-light {
-  display: block;
+  display: block !important;
 }
 
 .dark .theme-image-light {
-  display: none;
+  display: none !important;
 }
 
 .dark .theme-image-dark {
-  display: block;
+  display: block !important;
 }
 
 @media (prefers-color-scheme: dark) {
   html:not(.light) .theme-image-light {
-    display: none;
+    display: none !important;
   }
 
   html:not(.light) .theme-image-dark {
-    display: block;
+    display: block !important;
   }
 }
