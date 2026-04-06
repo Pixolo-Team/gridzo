@@ -7,10 +7,13 @@ import { useState } from "react";
 import type { IconComponentData } from "@/types/icon";
 
 // COMPONENTS //
+import Link from "next/link";
+import Add1 from "@/components/icons/neevo-icons/Add1";
 import EmptyProjectCard from "@/components/ui/EmptyProjectCard";
 import PageIntro from "@/components/ui/PageIntro";
 import ProjectCard from "@/components/ui/ProjectCard";
 import SearchInput from "@/components/ui/SearchInput";
+import { Button } from "@/components/ui/button";
 
 // CONSTANTS //
 import { dashboardProjectIconMap } from "@/app/constants/dashboard-project-icons";
@@ -63,7 +66,7 @@ export default function DashboardPage() {
   // Use Effects
 
   return (
-    <section className="flex flex-col gap-8 px-6 py-5 md:px-9 md:py-10">
+    <section className="relative flex flex-col gap-8 px-6 py-5 pb-28 md:px-9 md:py-10 md:pb-32 xl:pb-10">
       {/* Page Header */}
       <div className="flex flex-col gap-4 md:gap-3.5">
         {/* Page Intro */}
@@ -72,8 +75,8 @@ export default function DashboardPage() {
           description="Manage and monitor your digital assets across all platforms."
         />
 
-        {/* Mobile Search */}
-        <div className="md:hidden">
+        {/* Compact Search */}
+        <div className="xl:hidden">
           <SearchInput
             className="w-full bg-n-50"
             placeholder="Search Projects..."
@@ -111,6 +114,18 @@ export default function DashboardPage() {
         {/* Empty Project Card */}
         <EmptyProjectCard href={ROUTES.APP.PROJECTS.CREATE} />
       </div>
+
+      {/* Tablet and Mobile Floating Create Action */}
+      <Button
+        asChild
+        size="icon"
+        variant="primary"
+        className="fixed right-6 bottom-6 z-20 size-16 rounded-full shadow-[0_20px_40px_rgba(15,23,42,0.16)] md:right-9 md:bottom-9 xl:hidden"
+      >
+        <Link href={ROUTES.APP.PROJECTS.CREATE} aria-label="Create New Project">
+          <Add1 primaryColor="var(--color-n-50)" className="size-6" />
+        </Link>
+      </Button>
     </section>
   );
 }

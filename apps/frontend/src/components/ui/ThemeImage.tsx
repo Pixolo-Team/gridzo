@@ -6,12 +6,14 @@ import { cn } from "@/lib/utils";
 
 // NEXT //
 
-type ThemeImagePropsData = Omit<React.ComponentProps<typeof Image>, "src"> & {
+interface ThemeImagePropsData {
+  alt: string;
+  className?: string;
   darkClassName?: string;
   darkSrc?: string;
   lightClassName?: string;
   lightSrc: string;
-};
+}
 
 /**
  * Renders theme-aware images by swapping light and dark sources with CSS.
@@ -25,22 +27,38 @@ export default function ThemeImage({
   lightSrc,
   ...props
 }: ThemeImagePropsData) {
+  // Define Navigation
+
+  // Define Context
+
+  // Define Refs
+
+  // Define States
+
+  // Helper Functions
+  /**
+   * Gets the dark image source, falling back to the light asset when needed
+   */
   const resolvedDarkSrc = darkSrc ?? lightSrc;
+
+  // Use Effects
 
   return (
     <>
+      {/* Light Theme Image */}
       <Image
         {...props}
         alt={alt}
         src={lightSrc}
-        className={cn("dark:hidden", className, lightClassName)}
+        className={cn("theme-image-light", className, lightClassName)}
       />
 
+      {/* Dark Theme Image */}
       <Image
         {...props}
         alt={alt}
         src={resolvedDarkSrc}
-        className={cn("hidden dark:block", className, darkClassName)}
+        className={cn("theme-image-dark", className, darkClassName)}
       />
     </>
   );
