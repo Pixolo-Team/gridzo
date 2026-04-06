@@ -5,7 +5,7 @@ import CreateProjectSuccessStep from "@/components/projects/create-project/Creat
 import { ROUTES } from "@/app/constants/routes";
 
 interface CreateProjectSuccessPagePropsData {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
+  searchParams?: Record<string, string | string[] | undefined>;
 }
 
 /**
@@ -15,7 +15,7 @@ export default async function CreateProjectSuccessPage({
   searchParams,
 }: CreateProjectSuccessPagePropsData) {
   // Define Navigation
-  const resolvedSearchParams = await searchParams;
+  const resolvedSearchParams = searchParams ?? {};
 
   // Define Context
 

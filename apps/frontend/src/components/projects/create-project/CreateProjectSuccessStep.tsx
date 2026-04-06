@@ -52,11 +52,15 @@ export default function CreateProjectSuccessStep({
         label: "Website URL",
         value: websiteUrl,
       },
-      {
-        id: "owner",
-        label: "Owner",
-        value: ownerName,
-      },
+      ...(ownerName
+        ? [
+            {
+              id: "owner",
+              label: "Owner",
+              value: ownerName,
+            },
+          ]
+        : []),
     ];
   };
 

@@ -96,7 +96,16 @@ export default function CreateProjectPage() {
    */
   const handleNextAction = (): void => {
     if (checkIsFinalCreateProjectStep()) {
-      router.push(ROUTES.APP.PROJECTS.CREATE_SUCCESS);
+      const createProjectSuccessSearchParams = new URLSearchParams({
+        owner: createProjectFormData.owner ?? "",
+        projectName: createProjectFormData["project-name"] ?? "",
+        slug: createProjectFormData.slug ?? "",
+        websiteUrl: createProjectFormData["website-url"] ?? "",
+      });
+
+      router.push(
+        `${ROUTES.APP.PROJECTS.CREATE_SUCCESS}?${createProjectSuccessSearchParams.toString()}`,
+      );
       return;
     }
 

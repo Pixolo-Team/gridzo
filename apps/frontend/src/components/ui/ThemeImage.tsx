@@ -6,12 +6,14 @@ import { cn } from "@/lib/utils";
 
 // NEXT //
 
-type ThemeImagePropsData = Omit<React.ComponentProps<typeof Image>, "src"> & {
+interface ThemeImagePropsData {
+  alt: string;
+  className?: string;
   darkClassName?: string;
   darkSrc?: string;
   lightClassName?: string;
   lightSrc: string;
-};
+}
 
 /**
  * Renders theme-aware images by swapping light and dark sources with CSS.
