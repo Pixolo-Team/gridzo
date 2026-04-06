@@ -39,7 +39,17 @@ export function Header({ onToggleMobileMenu }: HeaderPropsData) {
    * Checks whether the current route should use the flow header
    */
   const checkIsFlowHeaderRoute = (): boolean => {
-    return pathname === ROUTES.APP.PROJECTS.CREATE;
+    return (
+      pathname === ROUTES.APP.PROJECTS.CREATE ||
+      pathname === ROUTES.APP.PROJECTS.CREATE_SUCCESS
+    );
+  };
+
+  /**
+   * Checks whether the current route is the create-project success state
+   */
+  const checkIsCreateProjectSuccessRoute = (): boolean => {
+    return pathname === ROUTES.APP.PROJECTS.CREATE_SUCCESS;
   };
 
   /**
@@ -79,6 +89,7 @@ export function Header({ onToggleMobileMenu }: HeaderPropsData) {
   if (checkIsFlowHeaderRoute()) {
     return (
       <FlowHeader
+        isProjectCreated={checkIsCreateProjectSuccessRoute()}
         onToggleMobileMenu={onToggleMobileMenu}
         onBackAction={backAction}
       />

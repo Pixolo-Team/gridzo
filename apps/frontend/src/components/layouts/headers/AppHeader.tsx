@@ -1,13 +1,11 @@
 // REACT //
 import { useState } from "react";
 
-// STYLES //
-import ThemeImage from "@/components/ui/ThemeImage";
-
 // COMPONENTS //
 import Link from "next/link";
 import AddSquare from "@/components/icons/neevo-icons/AddSquare";
 import HamburgerMenu1 from "@/components/icons/neevo-icons/HamburgerMenu1";
+import BrandLogo from "@/components/ui/BrandLogo";
 import NotificationButton from "@/components/ui/NotificationButton";
 import SearchInput from "@/components/ui/SearchInput";
 import { Button } from "@/components/ui/button";
@@ -87,17 +85,12 @@ export function AppHeader({ onToggleMobileMenu }: AppHeaderPropsData) {
   const compactHeaderContent = (
     <>
       {/* Brand */}
-      <Link href={ROUTES.APP.DASHBOARD} className="flex h-12 w-28 items-center">
-        <ThemeImage
-          lightSrc="/images/brand/brand-logo.png"
-          darkSrc="/images/brand/brand-logo-dark.png"
-          alt="Pixolo"
-          className="h-auto w-full object-contain"
-          style={{ height: "auto" }}
-          width={108}
-          height={32}
-        />
-      </Link>
+      <BrandLogo
+        className="flex h-12 w-28 items-center"
+        imageClassName="h-auto w-full object-contain"
+        width={108}
+        height={32}
+      />
 
       {/* Menu Trigger */}
       <Button

@@ -9,6 +9,7 @@ export const ROUTES = {
       EDIT: (projectId: string): string => `/projects/${projectId}/edit`,
       EDIT_PATTERN: "/projects/[projectId]/edit",
       CREATE: "/projects/create",
+      CREATE_SUCCESS: "/projects/create/success",
     },
   },
   AUTH: {

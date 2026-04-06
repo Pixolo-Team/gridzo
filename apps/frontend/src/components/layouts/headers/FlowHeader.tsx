@@ -11,6 +11,7 @@ import HeaderShell from "@/components/layouts/headers/HeaderShell";
 import { ROUTES } from "@/app/constants/routes";
 
 interface FlowHeaderPropsData {
+  isProjectCreated?: boolean;
   onBackAction?: (() => void) | null;
   onToggleMobileMenu: () => void;
 }
@@ -19,6 +20,7 @@ interface FlowHeaderPropsData {
  * Renders the create-project flow header
  */
 export default function FlowHeader({
+  isProjectCreated = false,
   onBackAction = null,
   onToggleMobileMenu,
 }: FlowHeaderPropsData) {
@@ -50,34 +52,64 @@ export default function FlowHeader({
     <HeaderShell>
       {/* Desktop Flow Header */}
       <div className="hidden md:block">
-        {/* Back Row */}
-        <div className="border-b border-n-300 px-7 py-5">
-          <button
-            type="button"
-            className="inline-flex items-center gap-3 text-base font-semibold text-n-600 transition-colors hover:text-n-800"
-            onClick={handleBackAction}
-          >
-            <LineArrowLeft1
-              primaryColor="var(--color-n-500)"
-              className="size-5"
-            />
-            <span>Back to Projects</span>
-          </button>
-        </div>
+        {isProjectCreated ? (
+          <div className="border-b border-n-300 px-7 py-5">
+            <div className="flex items-center gap-5">
+              <Button
+                type="button"
+                aria-label="Back to Projects"
+                variant="ghost"
+                className="size-12 rounded-lg bg-n-100 p-0 hover:bg-n-200"
+                onClick={handleBackAction}
+              >
+                <LineArrowLeft1
+                  primaryColor="var(--color-n-500)"
+                  className="size-6"
+                />
+              </Button>
 
-        {/* Title Row */}
-        <div className="px-7 py-5">
-          <div className="flex items-center gap-2">
-            {/* Title */}
-            <h1 className="text-xl font-bold tracking-[-0.5px] text-n-800">
-              Create New Project
-            </h1>
-            {/* Status Badge */}
-            <span className="rounded bg-blue-50 px-2 py-1 text-xs font-medium text-blue-500">
-              In Progress
-            </span>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-bold tracking-[-0.5px] text-n-800">
+                  Create New Project
+                </h1>
+                <span className="rounded bg-blue-50 px-2 py-1 text-xs font-medium text-blue-500">
+                  Project Created
+                </span>
+              </div>
+            </div>
           </div>
-        </div>
+        ) : (
+          <>
+            {/* Back Row */}
+            <div className="border-b border-n-300 px-7 py-5">
+              <button
+                type="button"
+                className="inline-flex items-center gap-3 text-base font-semibold text-n-600 transition-colors hover:text-n-800"
+                onClick={handleBackAction}
+              >
+                <LineArrowLeft1
+                  primaryColor="var(--color-n-500)"
+                  className="size-5"
+                />
+                <span>Back to Projects</span>
+              </button>
+            </div>
+
+            {/* Title Row */}
+            <div className="px-7 py-5">
+              <div className="flex items-center gap-2">
+                {/* Title */}
+                <h1 className="text-xl font-bold tracking-[-0.5px] text-n-800">
+                  Create New Project
+                </h1>
+                {/* Status Badge */}
+                <span className="rounded bg-blue-50 px-2 py-1 text-xs font-medium text-blue-500">
+                  In Progress
+                </span>
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Mobile Flow Header */}
