@@ -8,6 +8,7 @@ import Image from "next/image";
 import Link from "next/link";
 import BrandLogo from "@/components/ui/BrandLogo";
 import Close from "@/components/icons/neevo-icons/Close";
+import Cog from "@/components/icons/neevo-icons/Cog";
 import DashboardSquare from "@/components/icons/neevo-icons/DashboardSquare";
 
 // CONSTANTS //
@@ -16,9 +17,13 @@ import { ROUTES } from "@/app/constants/routes";
 // NAVIGATION //
 import { usePathname } from "next/navigation";
 
+// OTHERS //
+import { cn } from "@/lib/utils";
+
 interface SidebarNavigationItemData {
-  href: string;
+  href?: string;
   backgroundColor: string;
+  id: string;
   iconColor: string;
   Icon: IconComponentData;
   label: string;
@@ -30,11 +35,12 @@ interface SideMenuPropsData {
 }
 
 // TODO: Will add pages dynamic and based on role later
-const sidebarNavigationItemData: SidebarNavigationItemData[] = [
+const appSidebarNavigationItems: SidebarNavigationItemData[] = [
   {
+    id: "projects",
     href: ROUTES.APP.DASHBOARD,
-    backgroundColor: "bg-[#FEF3C6]",
-    iconColor: "#F59E0B",
+    backgroundColor: "bg-amber-100",
+    iconColor: "text-amber-600",
     Icon: DashboardSquare,
     label: "Projects",
   },
@@ -57,57 +63,139 @@ export function SideMenu({
   // Define States
 
   // Helper Functions
-  /** Checks if the current navigation item is active */
-  const checkIsProjectsNavigationItemActive = (): boolean => {
-    if (pathname === ROUTES.APP.DASHBOARD) {
-      return true;
+  /** Checks whether the current route is within a project details area */
+  const checkIsProjectNavigationRoute = (): boolean => {
+    if (pathname === ROUTES.APP.PROJECTS.CREATE) {
+      return false;
     }
 
-    return pathname.startsWith("/projects");
+    return pathname.startsWith("/projects/");
+  };
+
+  /**
+   * Gets the current project ID from the pathname
+   */
+  const getCurrentProjectId = (): string | null => {
+    const pathnameSegmentItems = pathname.split("/").filter(Boolean);
+    const projectId = pathnameSegmentItems[1];
+
+    return projectId ?? null;
+  };
+
+  /**
+   * Gets the navigation items for the current side menu mode
+   */
+  const getSidebarNavigationItems = (): SidebarNavigationItemData[] => {
+    const projectId = getCurrentProjectId();
+
+    if (!checkIsProjectNavigationRoute() || !projectId) {
+      return appSidebarNavigationItems;
+    }
+
+    return [
+      {
+        id: "project-dashboard",
+        href: ROUTES.APP.PROJECTS.DETAIL(projectId),
+        backgroundColor: "bg-amber-100",
+        iconColor: "text-amber-600",
+        Icon: DashboardSquare,
+        label: "Dashboard",
+      },
+      {
+        id: "project-settings",
+        href: ROUTES.APP.PROJECTS.EDIT(projectId),
+        backgroundColor: "bg-green-100",
+        iconColor: "text-green-600",
+        Icon: Cog,
+        label: "Project Settings",
+      },
+    ];
+  };
+
+  /**
+   * Checks whether the provided navigation item should render as active
+   */
+  const checkIsNavigationItemActive = (
+    sidebarNavigationItem: SidebarNavigationItemData,
+  ): boolean => {
+    if (sidebarNavigationItem.id === "projects") {
+      return (
+        pathname === ROUTES.APP.DASHBOARD || pathname.startsWith("/projects")
+      );
+    }
+
+    if (sidebarNavigationItem.id === "project-dashboard") {
+      return pathname === sidebarNavigationItem.href;
+    }
+
+    if (sidebarNavigationItem.id === "project-settings") {
+      return pathname === sidebarNavigationItem.href;
+    }
+
+    return false;
   };
 
   const sideMenuNavigationContent = (
     <>
       {/* Navigation Links */}
-      <nav className="flex flex-col gap-4 px-7 pt-4 xl:pt-3">
-        {sidebarNavigationItemData.map((sidebarNavigationItem) => {
-          const isActive = checkIsProjectsNavigationItemActive();
-
-          return (
-            <Link
-              key={sidebarNavigationItem.label}
-              href={sidebarNavigationItem.href}
-              className={`flex items-center gap-5 rounded-xl px-5 py-4 text-base font-medium transition-colors ${
-                isActive
-                  ? "bg-n-100 text-n-950"
-                  : "bg-transparent text-n-700 hover:bg-n-100 hover:text-n-950"
-              }`}
-              onClick={onCloseMobileMenu}
-            >
+      <nav className="flex flex-col gap-2 px-7 pt-3">
+        {getSidebarNavigationItems().map((sidebarNavigationItem) => {
+          const isActive = checkIsNavigationItemActive(sidebarNavigationItem);
+          const navigationItemClassName = `flex items-center gap-5 rounded-xl px-5 py-3 text-base transition-colors ${
+            isActive
+              ? "bg-n-100 text-n-800"
+              : "bg-transparent text-n-500 hover:bg-n-100 hover:text-n-700"
+          }`;
+          const navigationItemContent = (
+            <>
               <span
-                className={`flex size-8 items-center justify-center rounded ${
-                  isActive ? sidebarNavigationItem.backgroundColor : "bg-n-100"
+                className={`flex size-8 shrink-0 items-center justify-center rounded ${
+                  sidebarNavigationItem.backgroundColor
                 }`}
               >
                 <sidebarNavigationItem.Icon
-                  primaryColor={
-                    isActive
-                      ? sidebarNavigationItem.iconColor
-                      : "var(--color-n-500)"
-                  }
-                  className="size-4"
+                  primaryColor="currentColor"
+                  className={cn("size-5", sidebarNavigationItem.iconColor)}
                 />
               </span>
-              <span>{sidebarNavigationItem.label}</span>
+              <span className="text-lg font-medium">
+                {sidebarNavigationItem.label}
+              </span>
+            </>
+          );
+
+          if (!sidebarNavigationItem.href) {
+            return (
+              <div
+                key={sidebarNavigationItem.id}
+                aria-disabled="true"
+                className={cn(
+                  navigationItemClassName,
+                  "cursor-default opacity-80 hover:text-n-500",
+                )}
+              >
+                {navigationItemContent}
+              </div>
+            );
+          }
+
+          return (
+            <Link
+              key={sidebarNavigationItem.id}
+              href={sidebarNavigationItem.href}
+              className={navigationItemClassName}
+              onClick={onCloseMobileMenu}
+            >
+              {navigationItemContent}
             </Link>
           );
         })}
       </nav>
 
       {/* User Summary */}
-      <div className="mt-auto px-7 py-4 xl:py-7">
-        <div className="flex items-center gap-4.5">
-          <div className="size-10 overflow-hidden rounded-full xl:size-12">
+      <div className="mt-auto px-7 py-7">
+        <div className="flex items-center gap-[18px]">
+          <div className="size-12 overflow-hidden rounded-full">
             <Image
               src={"/images/dummy-profile.png"}
               alt="Deven Bhagtani"
@@ -118,12 +206,10 @@ export function SideMenu({
           </div>
 
           <div className="flex flex-col gap-0.5">
-            <p className="text-base font-medium leading-normal text-n-950 xl:text-lg xl:font-semibold">
+            <p className="text-lg font-semibold leading-normal text-n-950">
               Deven Bhagtani
             </p>
-            <p className="text-xs leading-normal text-n-500 xl:text-sm">
-              Pro Plan
-            </p>
+            <p className="text-sm leading-normal text-n-500">Pro Plan</p>
           </div>
         </div>
       </div>
@@ -135,7 +221,7 @@ export function SideMenu({
   return (
     <>
       {/* Desktop Side Menu */}
-      <aside className="hidden h-full w-[26%] max-w-96 min-w-72 shrink-0 border-r border-n-300 bg-n-50 xl:flex xl:flex-col xl:justify-between">
+      <aside className="hidden h-full w-96 shrink-0 border-r border-n-300 bg-n-50 xl:flex xl:flex-col xl:justify-between">
         {/* Desktop Brand */}
         <div className="px-7 py-5">
           <BrandLogo

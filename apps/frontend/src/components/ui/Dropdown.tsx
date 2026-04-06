@@ -17,6 +17,7 @@ interface DropdownOptionData {
 
 interface DropdownPropsData {
   className?: string;
+  id?: string;
   onChange: (value: string) => void;
   options: Array<DropdownOptionData | string>;
   selectedOption: string;
@@ -28,6 +29,7 @@ interface DropdownPropsData {
  */
 export default function Dropdown({
   className,
+  id,
   onChange,
   options,
   selectedOption,
@@ -64,6 +66,7 @@ export default function Dropdown({
     <Select value={selectedOption} onValueChange={onChange}>
       {/* Dropdown Trigger */}
       <SelectTrigger
+        id={id}
         className={cn(
           "h-14 w-full rounded-xl border-[1.5px] border-n-100 bg-n-50 px-6 text-left text-base outline-none focus:border-n-200 focus:ring-0 focus:ring-offset-0 data-[placeholder]:text-n-400 md:h-16 md:text-lg",
           !selectedOption ? "text-n-400" : "text-n-700",

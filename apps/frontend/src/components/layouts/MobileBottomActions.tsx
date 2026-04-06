@@ -8,7 +8,7 @@ interface MobileBottomActionsPropsData {
 /**
  * Renders the shared mobile-only fixed bottom actions container
  */
-export function MobileBottomActions({
+export default function MobileBottomActions({
   children,
 }: MobileBottomActionsPropsData) {
   // Define Navigation

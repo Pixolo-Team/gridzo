@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 
 // COMPONENTS //
 import Flash2 from "@/components/icons/neevo-icons/Flash2";
-import { MobileBottomActions } from "@/components/layouts/MobileBottomActions";
+import MobileBottomActions from "@/components/layouts/MobileBottomActions";
 import NotificationButton from "@/components/ui/NotificationButton";
 import { Button } from "@/components/ui/button";
 

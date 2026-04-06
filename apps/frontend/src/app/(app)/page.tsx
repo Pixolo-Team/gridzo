@@ -10,6 +10,7 @@ import type { IconComponentData } from "@/types/icon";
 import Link from "next/link";
 import Add1 from "@/components/icons/neevo-icons/Add1";
 import EmptyProjectCard from "@/components/ui/EmptyProjectCard";
+import PageIntro from "@/components/ui/PageIntro";
 import ProjectCard from "@/components/ui/ProjectCard";
 import SearchInput from "@/components/ui/SearchInput";
 import { Button } from "@/components/ui/button";
@@ -68,9 +69,11 @@ export default function DashboardPage() {
     <section className="relative flex flex-col gap-8 px-6 py-5 pb-28 md:px-9 md:py-10 md:pb-32 xl:pb-10">
       {/* Page Header */}
       <div className="flex flex-col gap-4 md:gap-3.5">
-        <h1 className="text-2xl font-bold text-n-900 md:text-3xl">
-          Your Projects
-        </h1>
+        {/* Page Intro */}
+        <PageIntro
+          title="Your Projects"
+          description="Manage and monitor your digital assets across all platforms."
+        />
 
         {/* Compact Search */}
         <div className="xl:hidden">
@@ -83,11 +86,6 @@ export default function DashboardPage() {
             onChange={handleSearchChange}
           />
         </div>
-
-        {/* Subtitle */}
-        <p className="max-w-full text-xs text-n-500 md:max-w-[70%] md:text-base">
-          Manage and monitor your digital assets across all platforms.
-        </p>
       </div>
 
       {/* Project Grid */}

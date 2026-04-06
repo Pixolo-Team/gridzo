@@ -34,7 +34,7 @@ export default function CreateProjectPage() {
 
   // Define States
   const [activeStep, setActiveStep] = useState<number>(1);
-  const [createProjectFormData, setCreateProjectFormData] = useState<
+  const [createProjectFormField, setCreateProjectFormField] = useState<
     Record<string, string>
   >({
     "client-email": "",
@@ -73,8 +73,8 @@ export default function CreateProjectPage() {
     fieldId: string,
     value: string,
   ): void => {
-    setCreateProjectFormData((previousCreateProjectFormData) => ({
-      ...previousCreateProjectFormData,
+    setCreateProjectFormField((previousCreateProjectFormField) => ({
+      ...previousCreateProjectFormField,
       [fieldId]: value,
     }));
   };
@@ -97,10 +97,10 @@ export default function CreateProjectPage() {
   const handleNextAction = (): void => {
     if (checkIsFinalCreateProjectStep()) {
       const createProjectSuccessSearchParams = new URLSearchParams({
-        owner: createProjectFormData.owner ?? "",
-        projectName: createProjectFormData["project-name"] ?? "",
-        slug: createProjectFormData.slug ?? "",
-        websiteUrl: createProjectFormData["website-url"] ?? "",
+        owner: createProjectFormField.owner ?? "",
+        projectName: createProjectFormField["project-name"] ?? "",
+        slug: createProjectFormField.slug ?? "",
+        websiteUrl: createProjectFormField["website-url"] ?? "",
       });
 
       router.push(
@@ -135,7 +135,7 @@ export default function CreateProjectPage() {
 
           {/* Step Content */}
           <CreateProjectStepContent
-            createProjectFormData={createProjectFormData}
+            createProjectFormData={createProjectFormField}
             stepData={getCurrentCreateProjectStep()}
             onBackAction={handleBackAction}
             onNextAction={handleNextAction}
