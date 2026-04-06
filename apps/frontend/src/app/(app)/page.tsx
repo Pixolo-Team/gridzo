@@ -8,6 +8,7 @@ import type { IconComponentData } from "@/types/icon";
 
 // COMPONENTS //
 import EmptyProjectCard from "@/components/ui/EmptyProjectCard";
+import PageIntro from "@/components/ui/PageIntro";
 import ProjectCard from "@/components/ui/ProjectCard";
 import SearchInput from "@/components/ui/SearchInput";
 
@@ -65,9 +66,11 @@ export default function DashboardPage() {
     <section className="flex flex-col gap-8 px-6 py-5 md:px-9 md:py-10">
       {/* Page Header */}
       <div className="flex flex-col gap-4 md:gap-3.5">
-        <h1 className="text-2xl font-bold text-n-900 md:text-3xl">
-          Your Projects
-        </h1>
+        {/* Page Intro */}
+        <PageIntro
+          title="Your Projects"
+          description="Manage and monitor your digital assets across all platforms."
+        />
 
         {/* Mobile Search */}
         <div className="md:hidden">
@@ -80,11 +83,6 @@ export default function DashboardPage() {
             onChange={handleSearchChange}
           />
         </div>
-
-        {/* Subtitle */}
-        <p className="max-w-[70%] text-xs text-n-500 md:text-base">
-          Manage and monitor your digital assets across all platforms.
-        </p>
       </div>
 
       {/* Project Grid */}
