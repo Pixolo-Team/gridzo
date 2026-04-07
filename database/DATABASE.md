@@ -164,7 +164,7 @@ Stores schema definition (JSON + PHP).
 | id                 | UUID (PK) |
 | project_id         | UUID (FK) |
 | version            | TEXT      |
-| json_code          | TEXT      |
+| json_code          | JSON      |
 | php_code           | TEXT      |
 | is_current         | BOOLEAN   |
 | created_by_user_id | UUID (FK) |
@@ -178,7 +178,7 @@ Stores schema definition (JSON + PHP).
 
 ---
 
-# GOOGLE SHEETS CREDENTIALS
+# GOOGLE SHEET CREDENTIALS
 
 ## Purpose
 
