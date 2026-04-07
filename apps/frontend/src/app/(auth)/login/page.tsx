@@ -3,6 +3,9 @@
 // REACT //
 import { useRouter } from "next/navigation";
 
+// SERVICES //
+import { signInWithGoogleRequest } from "@/services/auth.service";
+
 // COMPONENTS //
 import Image from "next/image";
 import Link from "next/link";
@@ -27,9 +30,19 @@ export default function LoginPage() {
   // Define States
 
   // Helper Functions
-  /** Handles Google Auth logic */
-  const handleGoogleAuth = (): void => {
-    router.replace(ROUTES.APP.DASHBOARD);
+  /**
+   * Handles Google Auth logic by triggering the OAuth flow
+   */
+  const handleGoogleAuth = async (): Promise<void> => {
+    const { data, error } = await signInWithGoogleRequest();
+
+    if (error) {
+      router.replace(ROUTES.AUTH.LOGIN);
+      return;
+    }
+
+    // Log auth response as specified in the feature requirements
+    console.log(data);
   };
 
   // Use Effects
