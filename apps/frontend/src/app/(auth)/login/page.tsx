@@ -29,14 +29,14 @@ export default function LoginPage() {
   // Helper Functions
   /** Handles Google Sign-In logic */
   const handleGoogleSignIn = (): void => {
-    // TODO: Implement Google Sign-In logic here
-    router.push(ROUTES.APP.DASHBOARD);
+    // TODO: Implement Google Sign-In logic here.
+    router.replace(ROUTES.APP.DASHBOARD);
   };
 
   /** Handles Google Sign-Up logic */
   const handleGoogleSignUp = (): void => {
     // TODO: Implement Google Sign-Up logic here
-    router.push(ROUTES.APP.DASHBOARD);
+    router.replace(ROUTES.APP.DASHBOARD);
   };
 
   // Use Effects

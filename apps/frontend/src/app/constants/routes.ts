@@ -1,8 +1,9 @@
 // Routes for the application
 export const ROUTES = {
   APP: {
+    HOME: "/",
     COMPONENT_LIBRARY: "/component-library",
-    DASHBOARD: "/",
+    DASHBOARD: "/dashboard",
     PROJECTS: {
       DETAIL: (projectId: string): string => `/projects/${projectId}`,
       DETAIL_PATTERN: "/projects/[projectId]",
