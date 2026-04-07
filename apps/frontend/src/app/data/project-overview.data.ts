@@ -3,7 +3,7 @@ import type { InputActionCardData } from "@/components/ui/InputActionCard";
 import type { StatCardData } from "@/components/ui/StatCard";
 
 // CONSTANTS //
-import type { projectOverviewStatIconMap } from "@/app/constants/project-overview-stat-icons";
+import { projectOverviewStatIconMap } from "@/app/constants/project-overview-stat-icons";
 import { CONSTANTS } from "@/constants/constants";
 
 /**

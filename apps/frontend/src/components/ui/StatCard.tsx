@@ -4,15 +4,21 @@ import type { IconComponentData } from "@/types/icon";
 // OTHERS //
 import { cn } from "@/lib/utils";
 
-interface StatCardPropsData {
+// Data model for stat items (includes id for list rendering)
+export type StatCardData = {
+  id: string;
   accentLabel?: string;
   accentToneClassName?: string;
-  Icon: IconComponentData;
   iconBackgroundClassName: string;
   iconColorClassName: string;
   title: string;
   value: string;
-}
+};
+
+// Component props derived from data (excludes id, adds Icon)
+type StatCardPropsData = Omit<StatCardData, "id"> & {
+  Icon: IconComponentData;
+};
 
 /**
  * Renders a reusable project overview statistic card
