@@ -29,7 +29,7 @@ export default function LoginPage() {
   // Helper Functions
   /** Handles Google Sign-In logic */
   const handleGoogleSignIn = (): void => {
-    // TODO: Implement Google Sign-In logic here
+    // TODO: Implement Google Sign-In logic here.
     router.replace(ROUTES.APP.DASHBOARD);
   };
 
