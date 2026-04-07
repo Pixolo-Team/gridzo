@@ -1,8 +1,8 @@
-# 📦 Database Documentation — Grido
+# Database Documentation — Gridzo
 
-## 🧠 Overview
+## Overview
 
-This database powers **Grido**, a headless CMS built on top of Google Sheets.
+This database powers **Gridzo**, a headless CMS built on top of Google Sheets.
 
 Core principles:
 
@@ -13,18 +13,18 @@ Core principles:
 
 ---
 
-# 🧩 Core Entities
+# Core Entities
 
 - Users → authenticated via Google
 - Projects → main working unit
 - Project Members → access control
 - Project Invitations → invite system
 - Project Structures → schema (JSON/PHP)
-- Project Configs → Google credentials
+- Project Configs → Google credentials & Other Information
 
 ---
 
-# 👤 USERS
+# USERS
 
 ## Purpose
 
@@ -32,30 +32,31 @@ Stores all users allowed to access the system.
 
 ## Columns
 
-| Column        | Type          | Description       |
-| ------------- | ------------- | ----------------- |
-| id            | UUID (PK)     | Internal user ID  |
-| auth_id       | UUID          | Supabase user ID  |
-| email         | TEXT (UNIQUE) | User email        |
-| full_name     | TEXT          | User name         |
-| avatar_url    | TEXT          | Profile image     |
-| google_id     | TEXT          | Google identifier |
-| status        | ENUM          | User status       |
-| created_at    | TIMESTAMP     | Created time      |
-| updated_at    | TIMESTAMP     | Updated time      |
-| last_login_at | TIMESTAMP     | Last login        |
+| Column        | Type          | Description             |
+| ------------- | ------------- | ----------------------- |
+| id            | UUID (PK)     | Internal user ID        |
+| auth_id       | UUID          | Supabase user ID        |
+| email         | TEXT (UNIQUE) | User email              |
+| full_name     | TEXT          | User's name from Google |
+| avatar_url    | TEXT          | Profile image           |
+| google_id     | TEXT          | Google identifier       |
+| status        | ENUM          | user_status             |
+| created_at    | TIMESTAMP     | Created time            |
+| updated_at    | TIMESTAMP     | Updated time            |
+| last_login_at | TIMESTAMP     | Last login              |
 
-## Status Enum
+## user_status Enum
 
 ```text
 invited
 active
 disabled
+inactive
 ```
 
 ---
 
-# 📁 PROJECTS
+# PROJECTS
 
 ## Purpose
 
@@ -72,11 +73,11 @@ Represents a CMS project.
 | slug               | TEXT (UNIQUE) | Unique slug      |
 | created_by_user_id | UUID (FK)     | Creator          |
 | owner_user_id      | UUID (FK)     | Owner            |
-| status             | ENUM          | Project status   |
+| status             | ENUM          | project_status   |
 | created_at         | TIMESTAMP     | Created          |
 | updated_at         | TIMESTAMP     | Updated          |
 
-## Status Enum
+## project_status Enum
 
 ```text
 active
@@ -86,7 +87,7 @@ deleted
 
 ---
 
-# 👥 PROJECT MEMBERS (project_user)
+# PROJECT MEMBERS (project_user)
 
 ## Purpose
 
@@ -95,12 +96,12 @@ Defines which users have access to which projects.
 ## Columns
 
 | Column     | Type      |
-| ---------- | --------- |
+| ---------- | --------- | ------------- |
 | project_id | UUID (FK) |
 | user_id    | UUID (FK) |
-| role       | ENUM      |
+| role       | ENUM      | project_roles |
 
-## Role Enum
+## project_roles Enum
 
 ```text
 owner
@@ -117,7 +118,7 @@ viewer
 
 ---
 
-# ✉️ PROJECT INVITATIONS
+# PROJECT INVITATIONS
 
 ## Purpose
 
@@ -126,30 +127,31 @@ Handles invite-based access.
 ## Columns
 
 | Column             | Type                |
-| ------------------ | ------------------- |
+| ------------------ | ------------------- | ----------------- |
 | id                 | UUID (PK)           |
 | project_id         | UUID (FK)           |
 | invited_user_id    | UUID (FK, nullable) |
 | invited_by_user_id | UUID (FK)           |
-| role               | ENUM                |
-| status             | ENUM                |
+| role               | ENUM                | project_roles     |
+| status             | ENUM                | invitation_status |
 | responded_at       | TIMESTAMP           |
 | expires_at         | TIMESTAMP           |
 | created_at         | TIMESTAMP           |
 | updated_at         | TIMESTAMP           |
 
-## Status Enum
+## invitation_status Enum
 
 ```text
 pending
 accepted
+rejected
 expired
 revoked
 ```
 
 ---
 
-# 🧱 PROJECT STRUCTURE VERSIONS
+# PROJECT STRUCTURE VERSIONS
 
 ## Purpose
 
@@ -176,7 +178,7 @@ Stores schema definition (JSON + PHP).
 
 ---
 
-# 🔐 GOOGLE SHEETS CREDENTIALS
+# GOOGLE SHEETS CREDENTIALS
 
 ## Purpose
 
@@ -198,14 +200,14 @@ Stores Google API credentials per project.
 | created_at           | TIMESTAMP |
 | updated_at           | TIMESTAMP |
 
-## ⚠️ Security Note
+## Security Note
 
 - `private_key` must be encrypted before storage
 - Never expose full credentials to frontend after creation
 
 ---
 
-# 🔐 AUTHENTICATION FLOW
+# AUTHENTICATION FLOW
 
 1. User logs in via Google (Supabase)
 2. Backend verifies email exists in `users`
@@ -214,18 +216,18 @@ Stores Google API credentials per project.
 
 ---
 
-# ✉️ INVITE FLOW
+# INVITE FLOW
 
 1. Owner invites email
 2. Entry created in `project_invitations`
 3. If user doesn’t exist → create with `status = invited`
-4. On login:
+4. On Invitation Accept:
    - mark invite as accepted
    - add to `project_user`
 
 ---
 
-# 📊 PROJECT ACCESS RULE
+# PROJECT ACCESS RULE
 
 Users can only access projects where:
 
@@ -235,7 +237,7 @@ project_user.user_id = current_user.id
 
 ---
 
-# 🧱 PROJECT CREATION FLOW
+# PROJECT CREATION FLOW
 
 1. Create project
 2. Add creator as `owner` in project_user
@@ -244,7 +246,7 @@ project_user.user_id = current_user.id
 
 ---
 
-# 🚨 IMPORTANT RULES
+# IMPORTANT RULES
 
 ## DO
 
