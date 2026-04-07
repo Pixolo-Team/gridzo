@@ -12,7 +12,8 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE TYPE user_status AS ENUM (
 'invited',
 'active',
-'disabled'
+'disabled',
+'inactive'
 );
 
 CREATE TYPE project_status AS ENUM (
