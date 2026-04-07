@@ -69,6 +69,7 @@ website_url TEXT,
 slug TEXT UNIQUE NOT NULL,
 
 created_by_user_id UUID NOT NULL,
+owner_user_id UUID NOT NULL,
 
 status project_status NOT NULL DEFAULT 'active',
 
@@ -111,7 +112,7 @@ CREATE TABLE project_invitations (
 id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
 
 project_id UUID NOT NULL,
-invited_user_id UUID NOT NULL,
+invited_user_id UUID,
 invited_by_user_id UUID NOT NULL,
 
 role project_role NOT NULL DEFAULT 'viewer',
@@ -146,7 +147,7 @@ id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
 project_id UUID NOT NULL,
 version TEXT NOT NULL,
 
-json_code JSON NOT NULL,
+json_code TEXT NOT NULL,
 php_code TEXT,
 
 is_current BOOLEAN DEFAULT TRUE,
