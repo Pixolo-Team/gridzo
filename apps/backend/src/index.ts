@@ -1,8 +1,11 @@
 // TYPES //
-import type { HealthResponseData } from "./types/health-response.data.js";
+import type { HealthResponseData } from "@/types/health-response.data.js";
 
 // CONSTANTS //
-import { APP_NAME } from "./constants/app-name.constant.js";
+import { APP_NAME } from "@/constants/app-name.constant.js";
+
+// DB //
+import { testDatabaseConnectionRequest } from "@/db/queries.js";
 
 // OTHERS //
 import { createServer } from "node:http";
@@ -12,7 +15,9 @@ const BACKEND_PORT = 4000;
 /**
  * Starts the backend HTTP server
  */
-function startBackendServer(): void {
+async function startBackendServer(): Promise<void> {
+  await testDatabaseConnectionRequest();
+
   const server = createServer((_request, response) => {
     const healthResponseData: HealthResponseData = {
       appName: APP_NAME,
@@ -26,4 +31,4 @@ function startBackendServer(): void {
   server.listen(BACKEND_PORT);
 }
 
-startBackendServer();
+void startBackendServer();
