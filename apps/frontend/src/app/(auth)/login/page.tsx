@@ -12,6 +12,9 @@ import { Button } from "@/components/ui/button";
 // CONSTANTS //
 import { ROUTES } from "@/app/constants/routes";
 
+// REQUESTS //
+import { signInWithGoogleRequest } from "@/services/google-auth.request";
+
 // DATA //
 import { footerLinkItems } from "@/app/data/footer-links";
 
@@ -28,8 +31,13 @@ export default function LoginPage() {
 
   // Helper Functions
   /** Handles Google Auth logic */
-  const handleGoogleAuth = (): void => {
-    router.replace(ROUTES.APP.DASHBOARD);
+  const handleGoogleAuth = async (): Promise<void> => {
+    const redirectTo = `${window.location.origin}${ROUTES.AUTH.CALLBACK}`;
+    const { error } = await signInWithGoogleRequest(redirectTo);
+
+    if (error) {
+      router.replace(ROUTES.AUTH.LOGIN);
+    }
   };
 
   // Use Effects
