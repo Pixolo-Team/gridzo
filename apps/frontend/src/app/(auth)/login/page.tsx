@@ -1,7 +1,7 @@
 "use client";
 
 // REACT //
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 // SERVICES //
 import { signInWithGoogleRequest } from "@/services/auth.service";
@@ -13,36 +13,40 @@ import Database from "@/components/icons/neevo-icons/Database";
 import { Button } from "@/components/ui/button";
 
 // CONSTANTS //
-import { ROUTES } from "@/app/constants/routes";
-
-// DATA //
 import { footerLinkItems } from "@/app/data/footer-links";
 
 /** Login page */
 export default function LoginPage() {
   // Define Navigation
-  const router = useRouter();
 
   // Define Context
 
   // Define Refs
 
   // Define States
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   // Helper Functions
   /**
    * Handles Google Auth logic by triggering the OAuth flow
    */
   const handleGoogleAuth = async (): Promise<void> => {
+    setIsLoading(true);
+
     const { data, error } = await signInWithGoogleRequest();
 
     if (error) {
-      router.replace(ROUTES.AUTH.LOGIN);
+      setIsLoading(false);
       return;
     }
 
-    // Log auth response as specified in the feature requirements
-    console.log(data);
+    // Some browsers block automatic navigation in edge cases, so we fall back to direct URL navigation.
+    if (data?.url) {
+      window.location.assign(data.url);
+      return;
+    }
+
+    setIsLoading(false);
   };
 
   // Use Effects
@@ -85,6 +89,7 @@ export default function LoginPage() {
                 className="h-12 w-full gap-3 rounded-lg px-6 py-3 text-sm"
                 aria-label="Sign up with Google"
                 onClick={handleGoogleAuth}
+                disabled={isLoading}
               >
                 <span className="size-5 shrink-0">
                   <Image
@@ -96,7 +101,9 @@ export default function LoginPage() {
                     className="h-full w-full object-contain"
                   />
                 </span>
-                <span>Continue with Google</span>
+                <span>
+                  {isLoading ? "Opening Google..." : "Continue with Google"}
+                </span>
               </Button>
 
               {/* Description text */}

@@ -10,7 +10,7 @@ import { supabase } from "@/lib/supabase";
 // CONSTANTS //
 import { ROUTES } from "@/app/constants/routes";
 
-/** Auth callback page – handles OAuth redirect and logs session data */
+/** Auth callback page that exchanges OAuth code and redirects authenticated users */
 export default function AuthCallbackPage() {
   // Define Navigation
   const router = useRouter();
@@ -24,21 +24,30 @@ export default function AuthCallbackPage() {
 
   // Helper Functions
   /**
-   * Exchanges the OAuth code for a session and redirects to the dashboard
+   * Exchanges the OAuth code for a session and redirects home
    */
   const handleAuthCallback = async (): Promise<void> => {
-    // Retrieve the active session after OAuth redirect
-    const { data, error } = await supabase.auth.getSession();
+    try {
+      const searchParams = new URLSearchParams(window.location.search);
+      const code = searchParams.get("code");
 
-    if (error) {
+      if (!code) {
+        router.replace(ROUTES.AUTH.LOGIN);
+        return;
+      }
+
+      const { error } = await supabase.auth.exchangeCodeForSession(code);
+
+      if (error) {
+        router.replace(ROUTES.AUTH.LOGIN);
+        return;
+      }
+
+      router.replace(ROUTES.APP.HOME);
+    } catch {
+      // Any unexpected callback failure should safely return the user to login.
       router.replace(ROUTES.AUTH.LOGIN);
-      return;
     }
-
-    // Log auth response as specified in the feature requirements
-    console.log(data);
-
-    router.replace(ROUTES.APP.DASHBOARD);
   };
 
   // Use Effects
