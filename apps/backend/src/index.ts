@@ -1,29 +1,30 @@
-// TYPES //
-import type { HealthResponseData } from "./types/health-response.data.js";
+import { serve } from "@hono/node-server";
+import { OpenAPIHono } from "@hono/zod-openapi";
 
-// CONSTANTS //
-import { APP_NAME } from "./constants/app-name.constant.js";
+import { registerRoutes } from "@/routes";
 
-// OTHERS //
-import { createServer } from "node:http";
+const BACKEND_PORT = Number(process.env.BACKEND_PORT ?? 4000);
 
-const BACKEND_PORT = 4000;
+const openapiApp = new OpenAPIHono();
+
+openapiApp.doc("/openapi.json", {
+  openapi: "3.0.0",
+  info: {
+    title: "Gridzo Backend API",
+    version: "1.0.0",
+  },
+});
+
+registerRoutes(openapiApp);
 
 /**
- * Starts the backend HTTP server
+ * Starts the backend Hono server.
  */
-function startBackendServer(): void {
-  const server = createServer((_request, response) => {
-    const healthResponseData: HealthResponseData = {
-      appName: APP_NAME,
-      status: "ok",
-    };
-
-    response.writeHead(200, { "Content-Type": "application/json" });
-    response.end(JSON.stringify(healthResponseData));
+export function startBackendServer(): void {
+  serve({
+    fetch: openapiApp.fetch,
+    port: BACKEND_PORT,
   });
-
-  server.listen(BACKEND_PORT);
 }
 
 startBackendServer();
