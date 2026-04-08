@@ -15,6 +15,7 @@ export const ROUTES = {
   },
   AUTH: {
     LOGIN: "/login",
+    CALLBACK: "/auth/callback",
   },
   LEGAL: {
     PRIVACY_POLICY: "/privacy-policy",
