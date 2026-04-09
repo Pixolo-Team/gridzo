@@ -2,12 +2,12 @@
 import { logger } from "@/common/utils/logger.util";
 
 // OTHERS //
-import { Context, Next } from "hono";
+import type { Context, Next } from "hono";
 
 /**
  * Request logging middleware
  */
-export const requestLogger = async (c: Context, next: Next) => {
+export const requestLogger = async (c: Context, next: Next): Promise<void> => {
   const start = Date.now();
   const method = c.req.method;
   const path = c.req.path;

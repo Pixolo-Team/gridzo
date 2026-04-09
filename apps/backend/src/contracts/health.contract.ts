@@ -15,7 +15,17 @@ export const getHealthContract = createRoute({
       description: "Backend health payload",
       content: {
         "application/json": {
-          schema: z.any(),
+          schema: z.object({
+            status: z.literal(true),
+            status_code: z.literal(200),
+            message: z.string(),
+            error: z.null(),
+            data: z.object({
+              status: z.literal("ok"),
+              timestamp: z.string(),
+              uptime: z.number(),
+            }),
+          }),
         },
       },
     },

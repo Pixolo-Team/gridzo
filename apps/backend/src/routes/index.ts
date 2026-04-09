@@ -12,6 +12,4 @@ export function registerRoutes(): void {
   registerHealthRoutes(openapiApp);
 }
 
-registerRoutes();
-
 export const app = openapiApp;

@@ -1,14 +1,21 @@
-// TYPES //
-import type { QueryResponseData } from "@/common/types/query.response.type";
-import type { AuthSessionSuccessResponseData } from "@/models/auth-session-response.model";
+// MODELS //
+import type { AuthSessionPayloadData } from "@/models/auth-session-response.model";
 import type { UserData } from "@/models/user.model";
 
-// CONFIG //
-import { createSupabaseClientByTokenRequest } from "@/config/supabase";
+// TYPES //
+import type { QueryResponseData } from "@/common/types/query.response.type";
 
 // CONSTANTS //
 import { HTTP_STATUS } from "@/constants/api";
 import { tables } from "@/constants/database.constants";
+
+// UTILS //
+import { logger } from "@/common/utils/logger.util";
+
+// OTHERS //
+import { createSupabaseClientByTokenRequest } from "@/config/supabase";
+
+// CONFIG //
 
 type AuthSessionStatusCodeData =
   | typeof HTTP_STATUS.OK
@@ -17,7 +24,7 @@ type AuthSessionStatusCodeData =
   | typeof HTTP_STATUS.INTERNAL_SERVER_ERROR;
 
 type AuthSessionServiceResponseData =
-  QueryResponseData<AuthSessionSuccessResponseData> & {
+  QueryResponseData<AuthSessionPayloadData> & {
     statusCode: AuthSessionStatusCodeData;
   };
 
@@ -74,22 +81,16 @@ function mapAuthUserToInsertPayloadService(authUserData: {
 }
 
 /** Maps the user data and access token to the standardized auth session response format. */
-function mapUserToAuthSessionResponseService(
+function mapUserToAuthSessionPayloadService(
   userData: Pick<
     UserData,
     "id" | "email" | "full_name" | "avatar_url" | "status"
   >,
   accessTokenData: string,
-): AuthSessionSuccessResponseData {
+): AuthSessionPayloadData {
   return {
-    status: "success",
-    status_code: 200,
-    message: "User authenticated successfully",
-    error: null,
-    data: {
-      token: accessTokenData,
-      user: userData,
-    },
+    token: accessTokenData,
+    user: userData,
   };
 }
 
@@ -145,9 +146,13 @@ export async function createAuthSessionService(
       .maybeSingle();
 
     if (existingUserResponseData.error) {
+      logger.error(
+        "[auth-session.service] failed to fetch existing user",
+        existingUserResponseData.error,
+      );
       return {
         data: null,
-        error: new Error(existingUserResponseData.error.message),
+        error: new Error("Failed to fetch authenticated user."),
         statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
       };
     }
@@ -155,7 +160,7 @@ export async function createAuthSessionService(
     if (existingUserResponseData.data) {
       // Return existing user payload without re-creating records.
       return {
-        data: mapUserToAuthSessionResponseService(
+        data: mapUserToAuthSessionPayloadService(
           existingUserResponseData.data as Pick<
             UserData,
             "id" | "email" | "full_name" | "avatar_url" | "status"
@@ -180,17 +185,19 @@ export async function createAuthSessionService(
       .single();
 
     if (createdUserResponseData.error || !createdUserResponseData.data) {
+      logger.error(
+        "[auth-session.service] failed to create authenticated user",
+        createdUserResponseData.error,
+      );
       return {
         data: null,
-        error: new Error(
-          createdUserResponseData.error?.message ?? "Failed to create user.",
-        ),
+        error: new Error("Failed to create authenticated user."),
         statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
       };
     }
 
     return {
-      data: mapUserToAuthSessionResponseService(
+      data: mapUserToAuthSessionPayloadService(
         createdUserResponseData.data as Pick<
           UserData,
           "id" | "email" | "full_name" | "avatar_url" | "status"
@@ -200,7 +207,8 @@ export async function createAuthSessionService(
       error: null,
       statusCode: HTTP_STATUS.OK,
     };
-  } catch {
+  } catch (errorData: unknown) {
+    logger.error("[auth-session.service] unexpected error", errorData);
     return {
       data: null,
       error: new Error("Failed to create auth session."),

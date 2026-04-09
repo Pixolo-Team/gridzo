@@ -4,6 +4,9 @@ import { createAuthSessionService } from "@/services/auth-session.service";
 // CONSTANTS //
 import { HTTP_STATUS } from "@/constants/api";
 
+// UTILS //
+import { errorResponse, successResponse } from "@/common/utils/api.util";
+
 // OTHERS //
 import type { RouteHandler } from "@hono/zod-openapi";
 import { createAuthSessionContract } from "@/contracts/auth-session.contract";
@@ -26,21 +29,16 @@ export const createAuthSessionController: RouteHandler<
         ? authSessionResponseData.statusCode
         : HTTP_STATUS.INTERNAL_SERVER_ERROR;
 
-    return c.json(
-      {
-        status: "error",
-        status_code: errorStatusCodeData,
-        message:
-          authSessionResponseData.error?.message ??
-          "Failed to authenticate user.",
-        error:
-          authSessionResponseData.error?.message ??
-          "Failed to authenticate user.",
-        data: null,
-      },
-      errorStatusCodeData,
-    );
+    const errorMessage =
+      authSessionResponseData.error?.message ?? "Failed to authenticate user.";
+
+    return errorResponse(c, errorMessage, errorMessage, errorStatusCodeData);
   }
 
-  return c.json(authSessionResponseData.data, HTTP_STATUS.OK);
+  return successResponse(
+    c,
+    authSessionResponseData.data,
+    "User authenticated successfully",
+    HTTP_STATUS.OK,
+  );
 };
