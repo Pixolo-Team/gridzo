@@ -1,29 +1,100 @@
-// TYPES //
-import type { HealthResponseData } from "./types/health-response.data.js";
+// MODULES //
+import "dotenv/config";
+import { cors } from "hono/cors";
 
-// CONSTANTS //
-import { APP_NAME } from "./constants/app-name.constant.js";
+// ROUTES //
+import { registerRoutes } from "@/routes";
 
 // OTHERS //
-import { createServer } from "node:http";
+import { serve } from "@hono/node-server";
+import { OpenAPIHono } from "@hono/zod-openapi";
 
-const BACKEND_PORT = 4000;
+const BACKEND_PORT = Number(process.env.BACKEND_PORT ?? 4000);
+const NODE_ENV_DATA = process.env.NODE_ENV ?? "development";
+const CORS_ALLOWED_ORIGINS_DATA = (process.env.CORS_ALLOWED_ORIGINS ?? "")
+  .split(",")
+  .map((originData) => originData.trim())
+  .filter(Boolean);
 
 /**
- * Starts the backend HTTP server
+ * Resolves whether request origin is allowed for CORS.
  */
-function startBackendServer(): void {
-  const server = createServer((_request, response) => {
-    const healthResponseData: HealthResponseData = {
-      appName: APP_NAME,
-      status: "ok",
-    };
+function getCorsOriginService(requestOriginData?: string): string | null {
+  if (NODE_ENV_DATA !== "production") {
+    return requestOriginData ?? "*";
+  }
 
-    response.writeHead(200, { "Content-Type": "application/json" });
-    response.end(JSON.stringify(healthResponseData));
-  });
+  if (!requestOriginData) {
+    return null;
+  }
 
-  server.listen(BACKEND_PORT);
+  return CORS_ALLOWED_ORIGINS_DATA.includes(requestOriginData)
+    ? requestOriginData
+    : null;
+}
+
+const openapiApp = new OpenAPIHono();
+
+openapiApp.use(
+  "*",
+  cors({
+    origin: (requestOriginData) =>
+      getCorsOriginService(requestOriginData) ?? "",
+    credentials: true,
+  }),
+);
+
+openapiApp.doc("/openapi.json", {
+  openapi: "3.0.0",
+  info: {
+    title: "Gridzo Backend API",
+    version: "1.0.0",
+  },
+});
+
+registerRoutes(openapiApp);
+
+openapiApp.notFound((contextData) =>
+  contextData.json(
+    {
+      success: false,
+      error: "Route not found",
+    },
+    404,
+  ),
+);
+
+openapiApp.onError((errorData, contextData) =>
+  contextData.json(
+    {
+      success: false,
+      error: errorData.message || "Internal server error",
+    },
+    500,
+  ),
+);
+
+/**
+ * Starts the backend Hono server.
+ */
+export function startBackendServer(): void {
+  try {
+    serve(
+      {
+        fetch: openapiApp.fetch,
+        port: BACKEND_PORT,
+      },
+      (infoData) => {
+        process.stdout.write(
+          `🚀 Server running on http://localhost:${infoData.port}\n`,
+        );
+        process.stdout.write(`📝 Environment: ${NODE_ENV_DATA}\n`);
+      },
+    );
+  } catch {
+    process.stderr.write("Failed to start backend server.\n");
+    process.exit(1);
+  }
 }
 
 startBackendServer();
