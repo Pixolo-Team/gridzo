@@ -2,7 +2,7 @@
 import type { UserData } from "@/types/user";
 
 export type AuthSessionSuccessResponseData = {
-  status: "success";
+  status: true;
   status_code: 200;
   message: "User authenticated successfully";
   error: null;
@@ -13,7 +13,7 @@ export type AuthSessionSuccessResponseData = {
 };
 
 export type AuthSessionErrorResponseData = {
-  status: "error";
+  status: false;
   status_code: number;
   message: string;
   error: string;

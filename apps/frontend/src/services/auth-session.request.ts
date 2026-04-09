@@ -4,31 +4,45 @@ import type { AuthSessionResponseData } from "@/types/auth-session";
 // CONSTANTS //
 import { CONSTANTS } from "@/constants/constants";
 
+// LIBRARIES //
+import axios from "axios";
+import type { AxiosRequestConfig } from "axios";
+
 /**
  * Sends access token to backend auth session API and returns user session data.
  */
 export async function createAuthSessionRequest(
-  accessTokenData: string,
+  accessToken: string,
 ): Promise<AuthSessionResponseData | { data: null; error: Error }> {
   try {
-    const response = await fetch(`${CONSTANTS.LOCAL_API_URL}/auth/session`, {
-      method: "POST",
+    const config: AxiosRequestConfig = {
+      method: "post",
+      url: `${CONSTANTS.LOCAL_API_URL}/auth/session`,
       headers: {
-        Authorization: `Bearer ${accessTokenData}`,
+        Authorization: `Bearer ${accessToken}`,
       },
-    });
+    };
 
-    const responseData = (await response.json()) as AuthSessionResponseData;
+    const response = await axios.request<AuthSessionResponseData>(config);
 
-    if (!response.ok) {
+    return response.data;
+  } catch (errorData: unknown) {
+    if (axios.isAxiosError(errorData)) {
+      const responseMessageData =
+        typeof errorData.response?.data === "object" &&
+        errorData.response?.data !== null &&
+        "message" in errorData.response.data &&
+        typeof (errorData.response.data as { message?: unknown }).message ===
+          "string"
+          ? (errorData.response.data as { message: string }).message
+          : null;
+
       return {
         data: null,
-        error: new Error(responseData.message),
+        error: new Error(responseMessageData ?? "Failed to call auth/session API."),
       };
     }
 
-    return responseData;
-  } catch {
     return {
       data: null,
       error: new Error("Failed to call auth/session API."),

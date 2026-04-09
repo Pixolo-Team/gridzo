@@ -22,29 +22,34 @@ export default function HomePage() {
   const hasLoadedRef = useRef<boolean>(false);
 
   // Define States
-  const [userData, setUserData] = useState<UserData | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [authenticatedUser, setAuthenticatedUser] = useState<UserData | null>(
+    null,
+  );
+  const [isUserSessionLoading, setIsUserSessionLoading] =
+    useState<boolean>(true);
 
   // Helper Functions
   /**
    * Loads the authenticated user payload from local storage.
    */
   const loadStoredUserService = (): void => {
-    const storedUserData = window.localStorage.getItem(CONSTANTS.AUTH_USER_STORAGE_KEY);
+    const storedUserJson = window.localStorage.getItem(
+      CONSTANTS.AUTH_USER_STORAGE_KEY,
+    );
 
-    if (!storedUserData) {
-      setIsLoading(false);
+    if (!storedUserJson) {
+      setIsUserSessionLoading(false);
       router.replace(ROUTES.AUTH.LOGIN);
       return;
     }
 
     try {
-      const parsedUserData = JSON.parse(storedUserData) as UserData;
-      setUserData(parsedUserData);
-      setIsLoading(false);
+      const parsedUser = JSON.parse(storedUserJson) as UserData;
+      setAuthenticatedUser(parsedUser);
+      setIsUserSessionLoading(false);
     } catch {
       window.localStorage.removeItem(CONSTANTS.AUTH_USER_STORAGE_KEY);
-      setIsLoading(false);
+      setIsUserSessionLoading(false);
       router.replace(ROUTES.AUTH.LOGIN);
     }
   };
@@ -57,7 +62,7 @@ export default function HomePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (isLoading) {
+  if (isUserSessionLoading) {
     return (
       <section className="flex min-h-screen items-center justify-center">
         <p className="text-sm text-n-700">Loading user session...</p>
@@ -65,7 +70,7 @@ export default function HomePage() {
     );
   }
 
-  if (!userData) {
+  if (!authenticatedUser) {
     return null;
   }
 
@@ -76,13 +81,15 @@ export default function HomePage() {
         <div className="space-y-2 text-sm text-n-800">
           <p>
             <span className="font-medium text-n-900">Name:</span>{" "}
-            {userData.full_name ?? "N/A"}
+            {authenticatedUser.full_name ?? "N/A"}
           </p>
           <p>
-            <span className="font-medium text-n-900">Email:</span> {userData.email}
+            <span className="font-medium text-n-900">Email:</span>{" "}
+            {authenticatedUser.email}
           </p>
           <p>
-            <span className="font-medium text-n-900">Status:</span> {userData.status}
+            <span className="font-medium text-n-900">Status:</span>{" "}
+            {authenticatedUser.status}
           </p>
         </div>
       </div>

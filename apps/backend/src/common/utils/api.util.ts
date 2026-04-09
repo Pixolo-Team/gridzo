@@ -1,11 +1,11 @@
 // TYPES //
-import { ApiResponseData } from "../types/api.response.type";
+import type { ApiResponseData } from "@/common/types/api.response.type";
 
 // CONSTANTS //
 import { ERROR_MESSAGES, HTTP_STATUS } from "@/constants/api";
 
 // UTILS //
-import { ContentfulStatusCode } from "hono/utils/http-status";
+import type { ContentfulStatusCode } from "hono/utils/http-status";
 
 // OTHERS //
 import type { Context } from "hono";
