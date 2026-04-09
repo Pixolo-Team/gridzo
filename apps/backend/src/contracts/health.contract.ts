@@ -1,9 +1,9 @@
+// OTHERS //
 import { createRoute } from "@hono/zod-openapi";
-
-import { healthResponseSchema } from "@/validators/health.validator";
+import { z } from "zod";
 
 /**
- * OpenAPI contract for service health endpoint.
+ * Route definition for GET /health
  */
 export const getHealthContract = createRoute({
   method: "get",
@@ -15,9 +15,12 @@ export const getHealthContract = createRoute({
       description: "Backend health payload",
       content: {
         "application/json": {
-          schema: healthResponseSchema,
+          schema: z.any(),
         },
       },
+    },
+    500: {
+      description: "Internal server error",
     },
   },
 });

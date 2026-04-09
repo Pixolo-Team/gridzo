@@ -3,48 +3,32 @@ import "dotenv/config";
 import { cors } from "hono/cors";
 
 // ROUTES //
-import { registerRoutes } from "@/routes";
+import { app } from "@/routes";
+
+// UTILS //
+import { logger } from "@/common/utils/logger.util";
 
 // OTHERS //
 import { serve } from "@hono/node-server";
-import { OpenAPIHono } from "@hono/zod-openapi";
-
-const BACKEND_PORT = Number(process.env.BACKEND_PORT ?? 4000);
-const NODE_ENV_DATA = process.env.NODE_ENV ?? "development";
-const CORS_ALLOWED_ORIGINS_DATA = (process.env.CORS_ALLOWED_ORIGINS ?? "")
-  .split(",")
-  .map((originData) => originData.trim())
-  .filter(Boolean);
+import { config } from "@/config";
+import { requestLogger } from "@/middlewares";
 
 /**
- * Resolves whether request origin is allowed for CORS.
+ * Global middlewares
  */
-function getCorsOriginService(requestOriginData?: string): string | null {
-  if (NODE_ENV_DATA !== "production") {
-    return requestOriginData ?? "*";
-  }
+app.use("*", requestLogger);
 
-  if (!requestOriginData) {
-    return null;
-  }
-
-  return CORS_ALLOWED_ORIGINS_DATA.includes(requestOriginData)
-    ? requestOriginData
-    : null;
-}
-
-const openapiApp = new OpenAPIHono();
-
-openapiApp.use(
+// CORS
+app.use(
   "*",
   cors({
-    origin: (requestOriginData) =>
-      getCorsOriginService(requestOriginData) ?? "",
+    origin: config.nodeEnv === "production" ? [] : "*",
     credentials: true,
   }),
 );
 
-openapiApp.doc("/openapi.json", {
+// Documentation route
+app.doc("/openapi.json", {
   openapi: "3.0.0",
   info: {
     title: "Gridzo Backend API",
@@ -52,9 +36,8 @@ openapiApp.doc("/openapi.json", {
   },
 });
 
-registerRoutes(openapiApp);
-
-openapiApp.notFound((contextData) =>
+/** 404 handler */
+app.notFound((contextData) =>
   contextData.json(
     {
       success: false,
@@ -64,37 +47,40 @@ openapiApp.notFound((contextData) =>
   ),
 );
 
-openapiApp.onError((errorData, contextData) =>
-  contextData.json(
+// Global Error handling
+app.onError((errorData, contextData) => {
+  logger.error("Unhandled error:", errorData);
+  return contextData.json(
     {
       success: false,
       error: errorData.message || "Internal server error",
     },
     500,
-  ),
-);
+  );
+});
 
 /**
- * Starts the backend Hono server.
+ * Starts the backend Hono server
  */
 export function startBackendServer(): void {
   try {
     serve(
       {
-        fetch: openapiApp.fetch,
-        port: BACKEND_PORT,
+        fetch: app.fetch,
+        port: config.port,
       },
       (infoData) => {
-        process.stdout.write(
-          `🚀 Server running on http://localhost:${infoData.port}\n`,
-        );
-        process.stdout.write(`📝 Environment: ${NODE_ENV_DATA}\n`);
+        logger.info(`Server running on http://localhost:${infoData.port}`);
+        logger.info(`Environment: ${config.nodeEnv}`);
+        logger.info(`API Base: ${config.apiPrefix}/${config.apiVersion}`);
       },
     );
-  } catch {
-    process.stderr.write("Failed to start backend server.\n");
+  } catch (errorData) {
+    logger.error("Failed to start server:", errorData);
     process.exit(1);
   }
 }
 
 startBackendServer();
+
+export default app;

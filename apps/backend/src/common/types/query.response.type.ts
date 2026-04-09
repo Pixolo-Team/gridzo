@@ -1,7 +1,5 @@
-/**
- * Standard service response envelope for Supabase query operations.
- */
-export type QueryResponseData<T> = {
+// Type of Response from Supabase
+export interface QueryResponseData<T> {
   data: T | null;
   error: Error | null;
-};
+}

@@ -4,7 +4,11 @@
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
+// SERVICES //
+import { createAuthSessionRequest } from "@/services/auth-session.request";
+
 // CONSTANTS //
+import { CONSTANTS } from "@/constants/constants";
 import { ROUTES } from "@/app/constants/routes";
 
 // OTHERS //
@@ -53,7 +57,7 @@ export default function AuthCallbackPage() {
   /**
    * Finalizes OAuth callback by exchanging code or setting provided session tokens
    */
-  const finalizeOAuthCallbackService = async (): Promise<boolean> => {
+  const finalizeOAuthCallbackService = async (): Promise<string | null> => {
     const { codeData, accessTokenData, refreshTokenData } =
       getOAuthCallbackParamsService();
 
@@ -61,11 +65,11 @@ export default function AuthCallbackPage() {
       const { error } = await supabase.auth.exchangeCodeForSession(codeData);
 
       if (error) {
-        return false;
+        return null;
       }
 
       const { data } = await supabase.auth.getSession();
-      return Boolean(data.session?.access_token);
+      return data.session?.access_token ?? null;
     }
 
     if (accessTokenData && refreshTokenData) {
@@ -75,13 +79,40 @@ export default function AuthCallbackPage() {
       });
 
       if (error) {
-        return false;
+        return null;
       }
 
-      return true;
+      return accessTokenData;
     }
 
-    return false;
+    return null;
+  };
+
+  /**
+   * Creates backend auth session and stores authenticated user in local storage.
+   */
+  const createBackendAuthSessionService = async (
+    accessTokenData: string
+  ): Promise<boolean> => {
+    const authSessionResponseData = await createAuthSessionRequest(accessTokenData);
+
+    if (
+      "error" in authSessionResponseData &&
+      authSessionResponseData.error instanceof Error
+    ) {
+      return false;
+    }
+
+    if (authSessionResponseData.status === "error" || !authSessionResponseData.data) {
+      return false;
+    }
+
+    window.localStorage.setItem(
+      CONSTANTS.AUTH_USER_STORAGE_KEY,
+      JSON.stringify(authSessionResponseData.data.user)
+    );
+
+    return true;
   };
 
   /**
@@ -89,9 +120,17 @@ export default function AuthCallbackPage() {
    */
   const handleAuthCallback = async (): Promise<void> => {
     try {
-      const isSessionReadyData = await finalizeOAuthCallbackService();
+      const accessTokenData = await finalizeOAuthCallbackService();
 
-      if (!isSessionReadyData) {
+      if (!accessTokenData) {
+        router.replace(ROUTES.AUTH.LOGIN);
+        return;
+      }
+
+      const isAuthSessionCreatedData =
+        await createBackendAuthSessionService(accessTokenData);
+
+      if (!isAuthSessionCreatedData) {
         router.replace(ROUTES.AUTH.LOGIN);
         return;
       }

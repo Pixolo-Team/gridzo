@@ -1,7 +1,9 @@
-import type { OpenAPIHono } from "@hono/zod-openapi";
-
-import { getHealthContract } from "@/contracts/health.contract";
+// CONTROLLERS //
 import { getHealthController } from "@/controllers/health.controller";
+
+// OTHERS //
+import type { OpenAPIHono } from "@hono/zod-openapi";
+import { getHealthContract } from "@/contracts/health.contract";
 
 /**
  * Registers health route bindings on the OpenAPI app instance.

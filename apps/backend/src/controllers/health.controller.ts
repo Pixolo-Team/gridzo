@@ -1,21 +1,22 @@
-import type { Context } from "hono";
+// TYPES //
+import type { RouteHandler } from "@hono/zod-openapi";
 
-import { errorResponse, successResponse } from "@/common/utils/api.util";
-import { HTTP_STATUS } from "@/constants/http-status.constant";
-import { getHealthService } from "@/services/health.service";
+// CONTRACTS //
+import { getHealthContract } from "@/contracts/health.contract";
+
+// UTILS //
+import { successResponse } from "@/common/utils/api.util";
 
 /**
- * Handles the health endpoint response with standardized API format.
+ * Handles health check requests.
+ * @param c - Hono request context for the health endpoint.
+ * @returns Standardized health response payload.
  */
-export async function getHealthController(c: Context) {
-  const healthResponseData = await getHealthService();
-
-  if (healthResponseData.error) {
-    return c.json(
-      errorResponse("Failed to get health metrics", healthResponseData.error.message),
-      HTTP_STATUS.INTERNAL_SERVER_ERROR,
-    );
-  }
-
-  return c.json(successResponse(healthResponseData.data), HTTP_STATUS.OK);
-}
+export const getHealthController: RouteHandler<typeof getHealthContract> =
+  async (c) => {
+    return successResponse(c, {
+      status: "ok",
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+    });
+  };

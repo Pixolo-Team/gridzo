@@ -1,10 +1,17 @@
-import type { OpenAPIHono } from "@hono/zod-openapi";
-
+// ROUTES //
+import { registerAuthSessionRoutes } from "@/routes/auth-session.routes";
 import { registerHealthRoutes } from "@/routes/health.routes";
+import { openapiApp } from "@/routes/openapi.routes";
 
 /**
  * Registers every route module on app bootstrap.
+ * @returns Void.
  */
-export function registerRoutes(openapiApp: OpenAPIHono): void {
+export function registerRoutes(): void {
+  registerAuthSessionRoutes(openapiApp);
   registerHealthRoutes(openapiApp);
 }
+
+registerRoutes();
+
+export const app = openapiApp;
