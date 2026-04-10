@@ -1,10 +1,8 @@
 // COMPONENTS //
-import type { InputActionCardData } from "@/components/ui/InputActionCard";
 import type { StatCardData } from "@/components/ui/StatCard";
 
 // CONSTANTS //
 import { projectOverviewStatIconMap } from "@/app/constants/project-overview-stat-icons";
-import { CONSTANTS } from "@/constants/constants";
 
 /**
  * Provides the Project overview statistic card data
@@ -45,31 +43,3 @@ export const projectOverviewStatItems = [
 export type ProjectOverviewStatData = StatCardData & {
   iconName: keyof typeof projectOverviewStatIconMap;
 };
-
-/**
- * Builds the project overview API card content for the current project
- */
-export function getProjectOverviewInputActionCard(
-  projectId: string,
-): InputActionCardData {
-  return {
-    title: "Project API Endpoint",
-    description:
-      "This API endpoint provides access to your project's structured data for integrations and external applications.",
-    value: `${CONSTANTS.API_URL}/v1/projects/${projectId}/data`,
-    actionItems: [
-      {
-        id: "api-data",
-        label: "API Data",
-        variant: "secondary",
-        iconToneClassName: "text-n-600",
-      },
-      {
-        id: "api-url",
-        label: "API URL",
-        variant: "primary",
-        iconToneClassName: "text-n-50",
-      },
-    ],
-  };
-}

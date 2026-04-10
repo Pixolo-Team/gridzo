@@ -1,33 +1,51 @@
+"use client";
+
+// REACT //
+import type { HTMLInputTypeAttribute } from "react";
+
+// TYPES //
+import type { IconComponentData } from "@/types/icon";
+
 // COMPONENTS //
-import Copy1 from "@/components/icons/neevo-icons/Copy1";
-import CopyDocument from "@/components/icons/neevo-icons/CopyDocument";
 import { Button } from "@/components/ui/button";
+import { FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 
 // OTHERS //
 import { cn } from "@/lib/utils";
 
-export type InputActionCardActionData = {
-  iconToneClassName?: string;
-  id: string;
-  label: string;
-  variant: "primary" | "secondary";
-};
-
-export type InputActionCardData = {
-  actionItems: InputActionCardActionData[];
-  description: string;
+// Interface
+export interface InputActionCardData {
   title: string;
-  value: string;
-};
+  description: string;
+  inputIcon?: IconComponentData;
+  label?: string;
+  placeholder?: string;
+  type?: HTMLInputTypeAttribute;
+  value?: string;
+  buttonOneClick?: () => void;
+  buttonOneIcon?: IconComponentData;
+  buttonOneText: string;
+  buttonTwoClick?: () => void;
+  buttonTwoIcon?: IconComponentData;
+  buttonTwoText?: string;
+}
 
-/**
- * Renders a reusable project overview input card with side actions
- */
+/** InputActionCard Component */
 export default function InputActionCard({
-  actionItems,
-  description,
   title,
+  description,
+  inputIcon: InputIcon,
+  label,
+  placeholder = "",
+  type = "text",
   value,
+  buttonOneClick,
+  buttonOneIcon: ButtonOneIcon,
+  buttonOneText,
+  buttonTwoClick,
+  buttonTwoIcon: ButtonTwoIcon,
+  buttonTwoText,
 }: InputActionCardData) {
   // Define Navigation
 
@@ -38,26 +56,6 @@ export default function InputActionCard({
   // Define States
 
   // Helper Functions
-  /**
-   * Renders the correct action icon for the provided action item
-   */
-  const renderActionIcon = (actionItem: InputActionCardActionData) => {
-    if (actionItem.id === "api-url") {
-      return (
-        <Copy1
-          primaryColor="currentColor"
-          className={cn("size-4 md:size-5", actionItem.iconToneClassName)}
-        />
-      );
-    }
-
-    return (
-      <CopyDocument
-        primaryColor="currentColor"
-        className={cn("size-4 md:size-5", actionItem.iconToneClassName)}
-      />
-    );
-  };
 
   // Use Effects
 
@@ -68,32 +66,75 @@ export default function InputActionCard({
 
       {/* Card Container */}
       <div className="rounded-2xl border border-n-200 bg-n-50 px-[25px] py-[21px] md:rounded-[18.5px] md:p-[29px]">
-        {/* Endpoint Content */}
-        <div className="flex flex-col gap-3.5 2xl:flex-row 2xl:items-center 2xl:gap-3">
-          {/* Endpoint Value */}
-          <div className="flex min-h-[72px] w-full items-center rounded-lg bg-n-100 px-5 py-4 2xl:min-h-14 2xl:min-w-0 2xl:flex-1 2xl:px-[14px] 2xl:py-4">
-            <p className="w-full break-all font-mono text-sm leading-6 text-n-700 md:text-lg md:leading-normal">
-              {value}
-            </p>
-          </div>
+        <div className="flex flex-col gap-3">
+          {label ? (
+            <FieldLabel className="text-sm font-normal text-n-700">
+              {label}
+            </FieldLabel>
+          ) : null}
 
-          {/* Action Buttons */}
-          <div className="grid grid-cols-2 gap-2 2xl:flex 2xl:shrink-0 2xl:items-center">
-            {actionItems.map((actionItem) => (
+          <div className="flex flex-col gap-3 md:flex-row md:items-start">
+            <div className="relative flex-1">
+              {InputIcon ? (
+                <InputIcon
+                  primaryColor="var(--color-n-500)"
+                  className="pointer-events-none absolute left-5 top-1/2 size-[18px] -translate-y-1/2 md:size-6"
+                />
+              ) : null}
+
+              <Input
+                type={type}
+                value={value}
+                placeholder={placeholder}
+                readOnly={Boolean(value)}
+                className={cn(
+                  "h-14 border-n-100 bg-n-100 pr-5 text-base text-n-700 placeholder:text-n-500 focus-visible:border-n-200 focus-visible:ring-0 focus-visible:ring-offset-0 md:h-14 md:text-lg",
+                  InputIcon ? "pl-[52px]" : "pl-5",
+                  value ? "font-mono" : "",
+                )}
+              />
+            </div>
+
+            <div
+              className={cn(
+                "grid gap-2 md:flex md:shrink-0 md:items-center",
+                buttonTwoText ? "grid-cols-2 md:grid-cols-1" : "grid-cols-1",
+              )}
+            >
               <Button
-                key={actionItem.id}
                 type="button"
                 size="small"
-                variant={actionItem.variant}
-                className="h-12 w-full gap-2 px-6 text-sm md:text-base 2xl:h-14 2xl:w-auto 2xl:px-8 2xl:text-lg"
+                variant="primary"
+                className="h-12 w-full gap-2.5 px-8 text-sm md:h-14 md:w-auto md:min-w-[170px] md:text-lg"
+                onClick={buttonOneClick}
               >
-                {/* Action Icon */}
-                {renderActionIcon(actionItem)}
-
-                {/* Action Label */}
-                <span>{actionItem.label}</span>
+                {ButtonOneIcon ? (
+                  <ButtonOneIcon
+                    primaryColor="currentColor"
+                    className="size-4 md:size-5"
+                  />
+                ) : null}
+                <span>{buttonOneText}</span>
               </Button>
-            ))}
+
+              {Boolean(buttonTwoText) ? (
+                <Button
+                  type="button"
+                  size="small"
+                  variant="secondary"
+                  className="h-12 w-full gap-2.5 px-8 text-sm md:h-14 md:w-auto md:min-w-[170px] md:text-lg"
+                  onClick={buttonTwoClick}
+                >
+                  {ButtonTwoIcon ? (
+                    <ButtonTwoIcon
+                      primaryColor="currentColor"
+                      className="size-4 md:size-5"
+                    />
+                  ) : null}
+                  <span>{buttonTwoText}</span>
+                </Button>
+              ) : null}
+            </div>
           </div>
         </div>
       </div>
