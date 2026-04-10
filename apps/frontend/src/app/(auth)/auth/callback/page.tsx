@@ -5,7 +5,7 @@ import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 // SERVICES //
-import { createAuthSessionRequest } from "@/services/auth-session.request";
+import { createAuthSessionRequest } from "@/services/api/auth-session.api";
 import {
   parseOAuthCallbackParamsService,
   type OAuthCallbackParamsData,
@@ -80,7 +80,7 @@ export default function AuthCallbackPage() {
    * Creates backend auth session and stores authenticated user in local storage.
    */
   const createBackendAuthSessionService = async (
-    accessToken: string
+    accessToken: string,
   ): Promise<boolean> => {
     const authSessionResponse = await createAuthSessionRequest(accessToken);
 
@@ -92,7 +92,11 @@ export default function AuthCallbackPage() {
       return false;
     }
 
-    window.localStorage.setItem(
+    // Store access token in local storage
+    localStorage.setItem("access_token", authSessionResponse.data.token);
+
+    // Store authenticated User Data in local storage
+    localStorage.setItem(
       CONSTANTS.AUTH_USER_STORAGE_KEY,
       JSON.stringify(authSessionResponse.data.user),
     );
@@ -112,9 +116,8 @@ export default function AuthCallbackPage() {
         return;
       }
 
-      const isAuthSessionCreated = await createBackendAuthSessionService(
-        accessToken,
-      );
+      const isAuthSessionCreated =
+        await createBackendAuthSessionService(accessToken);
 
       if (!isAuthSessionCreated) {
         router.replace(ROUTES.AUTH.LOGIN);

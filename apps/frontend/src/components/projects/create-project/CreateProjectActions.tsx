@@ -2,15 +2,17 @@
 import { Button } from "@/components/ui/button";
 
 interface CreateProjectActionsPropsData {
+  isNextActionDisabled?: boolean;
   nextLabel: string;
   onBackAction?: () => void;
-  onNextAction: () => void;
+  onNextAction: () => void | Promise<void>;
 }
 
 /**
  * Renders the shared trailing actions for multi-step create-project states
  */
 export default function CreateProjectActions({
+  isNextActionDisabled = false,
   nextLabel,
   onBackAction,
   onNextAction,
@@ -29,6 +31,13 @@ export default function CreateProjectActions({
    */
   const getActionWidthClassName = (): string => {
     return "w-auto min-w-[32%] md:min-w-[24%] lg:min-w-[18%]";
+  };
+
+  /**
+   * Handles next action button click without exposing Promise to event handler
+   */
+  const handleNextActionClick = (): void => {
+    void onNextAction();
   };
 
   // Use Effects
@@ -54,7 +63,8 @@ export default function CreateProjectActions({
         size="small"
         variant="primary"
         className={`${getActionWidthClassName()} px-6 text-base md:px-8 md:text-lg`}
-        onClick={onNextAction}
+        disabled={isNextActionDisabled}
+        onClick={handleNextActionClick}
       >
         {nextLabel}
       </Button>
