@@ -1,6 +1,3 @@
-// TYPES //
-import type { ApiResponseData } from "@/common/types/api.response.type";
-
 // CONSTANTS //
 import { ERROR_MESSAGES, HTTP_STATUS } from "@/constants/api";
 
@@ -14,19 +11,19 @@ import type { Context } from "hono";
  * Send success response
  */
 export const successResponse = <
-  T = unknown,
+  T,
   S extends ContentfulStatusCode = typeof HTTP_STATUS.OK,
 >(
   c: Context,
-  data: T | null = null,
+  data: T,
   message: string = "Success",
   statusCode: S = HTTP_STATUS.OK as S,
 ) => {
-  const response: ApiResponseData<T> = {
-    status: true,
+  const response = {
+    status: true as const,
     status_code: statusCode,
     data,
-    error: null,
+    error: null as null,
     message,
   };
   return c.json(response, statusCode);
@@ -43,11 +40,11 @@ export const errorResponse = <
   message: string = ERROR_MESSAGES.INTERNAL_SERVER_ERROR,
   statusCode: S = HTTP_STATUS.INTERNAL_SERVER_ERROR as S,
 ) => {
-  const response: ApiResponseData<null> = {
-    status: false,
+  const response = {
+    status: false as const,
     status_code: statusCode,
     message,
-    data: null,
+    data: null as null,
     error,
   };
   return c.json(response, statusCode);
