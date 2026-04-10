@@ -19,7 +19,9 @@ export interface InputActionCardData {
   title: string;
   description: string;
   inputIcon?: IconComponentData;
+  isReadOnly?: boolean;
   label?: string;
+  onValueChange?: (value: string) => void;
   placeholder?: string;
   type?: HTMLInputTypeAttribute;
   value?: string;
@@ -36,7 +38,9 @@ export default function InputActionCard({
   title,
   description,
   inputIcon: InputIcon,
+  isReadOnly,
   label,
+  onValueChange,
   placeholder = "",
   type = "text",
   value,
@@ -56,6 +60,23 @@ export default function InputActionCard({
   // Define States
 
   // Helper Functions
+  /**
+   * Handles input value changes and forwards the normalized value to the parent callback
+   */
+  const handleInputValueChange = (value: string) => {
+    onValueChange?.(value);
+  };
+
+  /**
+   * Resolves the final read-only state for display and editable modes
+   */
+  const checkIsInputReadOnly = (): boolean => {
+    if (typeof isReadOnly === "boolean") {
+      return isReadOnly;
+    }
+
+    return typeof value === "string" && !onValueChange;
+  };
 
   // Use Effects
 
@@ -86,7 +107,8 @@ export default function InputActionCard({
                 type={type}
                 value={value}
                 placeholder={placeholder}
-                readOnly={Boolean(value)}
+                readOnly={checkIsInputReadOnly()}
+                onChange={() => handleInputValueChange}
                 className={cn(
                   "h-14 border-n-100 bg-n-100 pr-5 text-base text-n-700 placeholder:text-n-500 focus-visible:border-n-200 focus-visible:ring-0 focus-visible:ring-offset-0 md:h-14 md:text-lg",
                   InputIcon ? "pl-[52px]" : "pl-5",

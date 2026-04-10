@@ -1,5 +1,8 @@
 "use client";
 
+// REACT //
+import { useState } from "react";
+
 // COMPONENTS //
 import UsersTable from "@/components/projects/user-access/UsersTable";
 import InputActionCard from "@/components/ui/InputActionCard";
@@ -21,8 +24,14 @@ export default function UserAccessPage() {
   // Define Refs
 
   // Define States
+  const [inviteEmailAddress, setInviteEmailAddress] = useState<string>("");
 
   // Helper Functions
+  /** Function to handle invite email input changes */
+  const handleInviteEmailAddressChange = (value: string) => {
+    setInviteEmailAddress(value);
+  };
+
   /** Function to handle sending invite */
   const handleSendInviteClick = () => {
     // Logic to send invite would go here, such as form validation and API call
@@ -49,6 +58,8 @@ export default function UserAccessPage() {
         label={"Email Address"}
         placeholder={"example@company.com"}
         type={"email"}
+        value={inviteEmailAddress}
+        onValueChange={handleInviteEmailAddressChange}
         buttonOneClick={handleSendInviteClick}
         buttonOneIcon={MailSendEmailMessage}
         buttonOneText={"Send Invite"}

@@ -9,9 +9,6 @@ import CopyDocument from "@/components/icons/neevo-icons/CopyDocument";
 // CONSTANTS //
 import { projectOverviewStatIconMap } from "@/app/constants/project-overview-stat-icons";
 
-// NAVIGATION //
-import { useParams } from "next/navigation";
-
 // DATA //
 import { projectOverviewStatItems } from "@/app/data/project-overview.data";
 
@@ -20,10 +17,6 @@ import { projectOverviewStatItems } from "@/app/data/project-overview.data";
  */
 export default function ProjectPage() {
   // Define Navigation
-  const params = useParams();
-
-  // Define Tournament ID
-  const projectId = params.projectId as string;
 
   // Define Context
 
@@ -77,12 +70,13 @@ export default function ProjectPage() {
         title="Project API Endpoint"
         description="This API endpoint provides access to your project's structured data for integrations and external applications"
         value="https://api.pixolo.com/v1/projects/neelsiddhi-web/data"
+        isReadOnly
         buttonOneText="API URL"
         buttonOneIcon={Copy1}
         buttonTwoText="API Data"
         buttonTwoIcon={CopyDocument}
-        buttonOneClick={handleCopyApiDataClick}
-        buttonTwoClick={handleCopyApiUrlClick}
+        buttonOneClick={handleCopyApiUrlClick}
+        buttonTwoClick={handleCopyApiDataClick}
       />
     </section>
   );
