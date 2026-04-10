@@ -18,12 +18,12 @@ import type { User } from "@supabase/supabase-js";
 export const getProjectController: RouteHandler<typeof getProjectContract> =
   async (c) => {
     // Access user set by authenticateRequestMiddleware
-    const userItem = c.var as unknown as { user: User };
+    const authContextData = c.var as unknown as { user: User };
     const { project_id: projectIdData } = c.req.valid("param");
 
     const projectDetailsResponseData = await getProjectDetailsService(
       projectIdData,
-      userItem.user.id,
+      authContextData.user.id,
     );
 
     if (
