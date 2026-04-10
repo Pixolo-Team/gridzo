@@ -1,7 +1,7 @@
 "use client";
 
 // REACT //
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 // TYPES //
 import type { IconComponentData } from "@/types/icon";
@@ -21,6 +21,7 @@ import { ROUTES } from "@/app/constants/routes";
 
 // DATA //
 import { dashboardProjectData } from "@/app/data/dashboard-projects.data";
+import { getAllProjectsRequest } from "@/services/projects";
 
 /** Dashboard Page */
 export default function DashboardPage() {
@@ -32,6 +33,8 @@ export default function DashboardPage() {
 
   // Define States
   const [searchValue, setSearchValue] = useState<string>("");
+  const [projects, setProjects] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
   // Helper Functions
   /** Clears the dashboard search input value */
@@ -56,14 +59,42 @@ export default function DashboardPage() {
   /**
    * Filters the dashboard projects by title using the current search value
    */
-  const filteredDashboardProjectData = dashboardProjectData.filter(
-    (dashboardProjectItem) =>
-      dashboardProjectItem.title
-        .toLowerCase()
-        .includes(searchValue.trim().toLowerCase()),
+  const filteredProjects = projects.filter((project) =>
+    project.name.toLowerCase().includes(searchValue.trim().toLowerCase()),
   );
 
+  /** Get all projects from the API and set them in state */
+  const getAllProjects = () => {
+    // Set loading state
+    setLoading(true);
+
+    // Make API call to get projects
+    getAllProjectsRequest()
+      .then((response) => {
+        // Check if response is successful and has data
+        if (response.status_code === 200) {
+          setProjects(response.data);
+        } else {
+          console.error("Failed to fetch projects:", response.message);
+          setProjects([]);
+        }
+
+        // Set loading to false
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error fetching projects:", error);
+        setProjects([]);
+
+        // Set loading to false
+        setLoading(false);
+      });
+  };
+
   // Use Effects
+  useEffect(() => {
+    getAllProjects();
+  }, []);
 
   return (
     <section className="relative flex flex-col gap-8 px-6 py-5 pb-28 md:px-9 md:py-10 md:pb-32 xl:pb-10">
@@ -91,22 +122,20 @@ export default function DashboardPage() {
       {/* Project Grid */}
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-5 2xl:grid-cols-3">
         {/* Project Cards */}
-        {filteredDashboardProjectData.map((dashboardProjectItem) => {
+        {filteredProjects.map((projectItem) => {
           // Resolve the icon from dashboard data so each project can render its own visual.
-          const DashboardProjectIcon = getDashboardProjectIcon(
-            dashboardProjectItem.iconName,
-          );
+          const DashboardProjectIcon = getDashboardProjectIcon("ShoppingCart2");
 
           return (
             <ProjectCard
-              key={dashboardProjectItem.id}
-              badgeName={dashboardProjectItem.badgeName}
-              href={dashboardProjectItem.href}
-              backgroundClassName={dashboardProjectItem.backgroundClassName}
-              iconColorClassName={dashboardProjectItem.iconColorClassName}
+              key={projectItem.id}
+              badgeName={projectItem.badgeName}
+              href={projectItem.href}
+              backgroundClassName={projectItem.backgroundClassName}
+              iconColorClassName={projectItem.iconColorClassName}
               Icon={DashboardProjectIcon}
-              lastSyncLabel={dashboardProjectItem.lastSyncLabel}
-              title={dashboardProjectItem.title}
+              lastSyncLabel={projectItem.lastSyncLabel}
+              title={projectItem.title}
             />
           );
         })}
