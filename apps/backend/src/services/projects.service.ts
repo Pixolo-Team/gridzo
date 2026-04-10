@@ -1,5 +1,5 @@
 // MODELS //
-import type { ProjectWithRoleData } from "@/models/project.model";
+import type { ProjectData, ProjectWithRoleData } from "@/models/project.model";
 
 // TYPES //
 import type { QueryResponseData } from "@/common/types/query.response.type";
@@ -23,6 +23,10 @@ type ProjectsServiceResponseData = QueryResponseData<ProjectWithRoleData[]> & {
   statusCode: ProjectsStatusCodeData;
 };
 
+// Project fields to select from the projects table
+const PROJECT_SELECT_FIELDS =
+  "id, name, slug, category, website_url, status, created_at, updated_at";
+
 /**
  * Fetches all projects accessible to the authenticated user, including their role per project.
  */
@@ -34,7 +38,7 @@ export async function getAllProjectsService(
       await supabase
         .from(tables.PROJECT_USER)
         .select(
-          `role, projects:${tables.PROJECTS}(id, name, slug, category, website_url, status, created_at, updated_at)`,
+          `role, projects:${tables.PROJECTS}(${PROJECT_SELECT_FIELDS})`,
         )
         .eq("user_id", userIdData)
         .order(`${tables.PROJECTS}(created_at)`, { ascending: false });
@@ -55,16 +59,7 @@ export async function getAllProjectsService(
     const projectItems: ProjectWithRoleData[] = (
       projectMembershipItems ?? []
     ).map((membershipItem) => {
-      const projectRecord = membershipItem.projects as unknown as {
-        id: string;
-        name: string;
-        slug: string;
-        category: string | null;
-        website_url: string | null;
-        status: "active" | "archived" | "deleted";
-        created_at: string;
-        updated_at: string;
-      };
+      const projectRecord = membershipItem.projects as unknown as ProjectData;
 
       return {
         id: projectRecord.id,
