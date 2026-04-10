@@ -12,7 +12,7 @@ import Link from "next/link";
 import Database from "@/components/icons/neevo-icons/Database";
 import { Button } from "@/components/ui/button";
 
-// CONSTANTS //
+// DATA //
 import { footerLinkItems } from "@/app/data/footer-links";
 
 /** Login page */
