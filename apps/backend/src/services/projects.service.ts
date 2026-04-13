@@ -2,6 +2,7 @@
 import type {
   CreateProjectTransactionResultData,
   ProjectData,
+  ProjectByIdResultData,
   ProjectWithRoleData,
 } from "@/models/project.model";
 
@@ -26,9 +27,14 @@ const slugConflictMarker = "SLUG_CONFLICT";
 type ProjectsStatusCodeData =
   | typeof HTTP_STATUS.OK
   | typeof HTTP_STATUS.UNAUTHORIZED
+  | typeof HTTP_STATUS.NOT_FOUND
   | typeof HTTP_STATUS.INTERNAL_SERVER_ERROR;
 
 type ProjectsServiceResponseData = QueryResponseData<ProjectWithRoleData[]> & {
+  statusCode: ProjectsStatusCodeData;
+};
+
+type ProjectByIdServiceResponseData = QueryResponseData<ProjectByIdResultData> & {
   statusCode: ProjectsStatusCodeData;
 };
 
@@ -134,6 +140,42 @@ async function resolveUserIdByAuthIdService(
  */
 function checkIsSlugConflictErrorService(errorMessageData: string): boolean {
   return errorMessageData.includes(slugConflictMarker);
+}
+
+/**
+ * Checks if value is UUID.
+ */
+function checkIsUuidService(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    value,
+  );
+}
+
+/**
+ * Resolves project row id from uuid or slug identifier.
+ */
+async function resolveProjectIdByIdentifierService(
+  projectIdentifierData: string,
+): Promise<string | null> {
+  const isUuidIdentifier = checkIsUuidService(projectIdentifierData);
+
+  const projectResponseData = isUuidIdentifier
+    ? await supabase
+        .from(tables.PROJECTS)
+        .select("id")
+        .eq("id", projectIdentifierData)
+        .maybeSingle()
+    : await supabase
+        .from(tables.PROJECTS)
+        .select("id")
+        .eq("slug", projectIdentifierData)
+        .maybeSingle();
+
+  if (projectResponseData.error || !projectResponseData.data) {
+    return null;
+  }
+
+  return (projectResponseData.data as { id: string }).id;
 }
 
 /**
@@ -245,6 +287,173 @@ export async function getAllProjectsService(
     return {
       data: null,
       error: new Error("Internal server error"),
+      statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+    };
+  }
+}
+
+/**
+ * Fetches one accessible project by project ID.
+ */
+export async function getProjectByIdService(
+  authUserIdData: string,
+  projectIdentifierData: string,
+): Promise<ProjectByIdServiceResponseData> {
+  try {
+    const internalUserIdData =
+      await resolveInternalUserIdByAuthIdService(authUserIdData);
+
+    if (!internalUserIdData) {
+      return {
+        data: null,
+        error: new Error("Authenticated user not found."),
+        statusCode: HTTP_STATUS.UNAUTHORIZED,
+      };
+    }
+
+    const projectIdData = await resolveProjectIdByIdentifierService(
+      projectIdentifierData,
+    );
+
+    if (!projectIdData) {
+      return {
+        data: null,
+        error: new Error("Project not found."),
+        statusCode: HTTP_STATUS.NOT_FOUND,
+      };
+    }
+
+    const { data: projectMembershipItem, error: projectMembershipError } =
+      await supabase
+        .from(tables.PROJECT_USER)
+        .select("project_id")
+        .eq("project_id", projectIdData)
+        .or(`user_id.eq.${internalUserIdData},user_id.eq.${authUserIdData}`)
+        .maybeSingle();
+
+    if (projectMembershipError) {
+      logger.error(
+        "[projects.service] failed to verify project access",
+        projectMembershipError,
+      );
+      return {
+        data: null,
+        error: new Error("Failed to fetch project."),
+        statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+      };
+    }
+
+    if (!projectMembershipItem) {
+      const { data: ownedProjectItem, error: ownedProjectError } = await supabase
+        .from(tables.PROJECTS)
+        .select("id")
+        .eq("id", projectIdData)
+        .or(
+          [
+            `owner_user_id.eq.${internalUserIdData}`,
+            `owner_user_id.eq.${authUserIdData}`,
+            `created_by_user_id.eq.${internalUserIdData}`,
+            `created_by_user_id.eq.${authUserIdData}`,
+          ].join(","),
+        )
+        .maybeSingle();
+
+      if (ownedProjectError) {
+        logger.error(
+          "[projects.service] failed to verify owned project access",
+          ownedProjectError,
+        );
+        return {
+          data: null,
+          error: new Error("Failed to fetch project."),
+          statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+        };
+      }
+
+      if (!ownedProjectItem) {
+        return {
+          data: null,
+          error: new Error("Unauthorized"),
+          statusCode: HTTP_STATUS.UNAUTHORIZED,
+        };
+      }
+    }
+
+    const { data: projectItem, error: projectError } = await supabase
+      .from(tables.PROJECTS)
+      .select(
+        `id, name, slug, category, website_url, status, google_sheet_credentials(id, google_sheet_id, google_project_id, client_email), project_structure_versions(id, version, is_current, json_code, php_code)`,
+      )
+      .eq("id", projectIdData)
+      .eq("project_structure_versions.is_current", true)
+      .maybeSingle();
+
+    if (projectError) {
+      logger.error("[projects.service] failed to fetch project by id", projectError);
+      return {
+        data: null,
+        error: new Error("Failed to fetch project."),
+        statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+      };
+    }
+
+    if (!projectItem) {
+      return {
+        data: null,
+        error: new Error("Project not found."),
+        statusCode: HTTP_STATUS.NOT_FOUND,
+      };
+    }
+
+    const structureVersionItem = Array.isArray(projectItem.project_structure_versions)
+      ? projectItem.project_structure_versions[0]
+      : null;
+    const credentialsItem = Array.isArray(projectItem.google_sheet_credentials)
+      ? projectItem.google_sheet_credentials[0]
+      : projectItem.google_sheet_credentials;
+
+    if (!structureVersionItem || !credentialsItem) {
+      return {
+        data: null,
+        error: new Error("Project data is incomplete."),
+        statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+      };
+    }
+
+    return {
+      data: {
+        project: {
+          id: projectItem.id,
+          name: projectItem.name,
+          slug: projectItem.slug,
+          category: projectItem.category,
+          website_url: projectItem.website_url,
+          status: projectItem.status,
+          structure: {
+            current_version: {
+              id: structureVersionItem.id,
+              version: structureVersionItem.version,
+              is_current: structureVersionItem.is_current,
+              json_code: structureVersionItem.json_code,
+              php_code: structureVersionItem.php_code,
+            },
+          },
+          google_sheet_credentials: {
+            id: credentialsItem.id,
+            google_sheet_id: credentialsItem.google_sheet_id,
+            google_project_id: credentialsItem.google_project_id,
+            client_email: credentialsItem.client_email,
+          },
+        },
+      },
+      error: null,
+      statusCode: HTTP_STATUS.OK,
+    };
+  } catch (errorData: unknown) {
+    logger.error("[projects.service] unexpected error while fetching project", errorData);
+    return {
+      data: null,
+      error: new Error("Failed to fetch project."),
       statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
     };
   }

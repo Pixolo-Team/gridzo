@@ -1,5 +1,9 @@
 // SERVICES //
-import { createProjectService, getAllProjectsService } from "@/services/projects.service";
+import {
+  createProjectService,
+  getAllProjectsService,
+  getProjectByIdService,
+} from "@/services/projects.service";
 
 // CONSTANTS //
 import { HTTP_STATUS } from "@/constants/api";
@@ -13,7 +17,11 @@ import type { User } from "@supabase/supabase-js";
 import type { Context } from "hono";
 
 // CONTRACTS //
-import { createProjectContract, getAllProjectsContract } from "@/contracts/projects.contract";
+import {
+  createProjectContract,
+  getAllProjectsContract,
+  getProjectByIdContract,
+} from "@/contracts/projects.contract";
 
 /**
  * Controller for fetching all accessible projects for the authenticated user.
@@ -99,5 +107,53 @@ export const createProjectController: RouteHandler<typeof createProjectContract>
     projectResponseData.data,
     "Project created successfully",
     HTTP_STATUS.CREATED,
+  );
+};
+
+/**
+ * Controller for fetching a single accessible project by ID.
+ */
+export const getProjectByIdController: RouteHandler<typeof getProjectByIdContract> = async (
+  c,
+) => {
+  const userContextData = (
+    c as Context<{ Variables: { user: User; accessToken: string } }>
+  ).get("user");
+
+  if (!userContextData) {
+    return errorResponse(c, "Unauthorized", "Unauthorized", HTTP_STATUS.UNAUTHORIZED);
+  }
+
+  const { projectId } = c.req.valid("param");
+
+  const projectResponseData = await getProjectByIdService(
+    userContextData.id,
+    projectId,
+  );
+
+  if (projectResponseData.error || !projectResponseData.data) {
+    const errorStatusCodeData =
+      projectResponseData.statusCode === HTTP_STATUS.UNAUTHORIZED ||
+      projectResponseData.statusCode === HTTP_STATUS.NOT_FOUND ||
+      projectResponseData.statusCode === HTTP_STATUS.INTERNAL_SERVER_ERROR
+        ? projectResponseData.statusCode
+        : HTTP_STATUS.INTERNAL_SERVER_ERROR;
+
+    const errorMessageData =
+      projectResponseData.error?.message ?? "Failed to fetch project.";
+
+    return errorResponse(
+      c,
+      errorMessageData,
+      errorMessageData,
+      errorStatusCodeData,
+    );
+  }
+
+  return successResponse(
+    c,
+    projectResponseData.data,
+    "Project fetched successfully",
+    HTTP_STATUS.OK,
   );
 };

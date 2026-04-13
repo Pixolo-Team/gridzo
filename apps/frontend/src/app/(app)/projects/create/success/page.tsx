@@ -43,7 +43,12 @@ export default async function CreateProjectSuccessPage({
    * Gets the target dashboard route for the created project
    */
   const getProjectDashboardHref = (): string => {
+    const projectId = getSearchParamValue("projectId");
     const projectSlug = getSearchParamValue("slug");
+
+    if (projectId) {
+      return ROUTES.APP.PROJECTS.DETAIL(projectId);
+    }
 
     if (!projectSlug) {
       return ROUTES.APP.DASHBOARD;

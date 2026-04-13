@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 
 // TYPES //
 import type { IconComponentData } from "@/types/icon";
+import type { ProjectListItemData } from "@/types/projects";
 
 // COMPONENTS //
 import Link from "next/link";
@@ -15,8 +16,8 @@ import ProjectCard from "@/components/ui/ProjectCard";
 import SearchInput from "@/components/ui/SearchInput";
 import { Button } from "@/components/ui/button";
 
-// SERVICES //
-import { getAllProjectsRequest } from "@/services/projects";
+// API SERVICES //
+import { getAllProjectsRequest } from "@/services/api/projects.api";
 
 // CONSTANTS //
 import { dashboardProjectIconMap } from "@/app/constants/dashboard-project-icons";
@@ -25,11 +26,8 @@ import { ROUTES } from "@/app/constants/routes";
 // UTILS //
 import { getLastSyncLabelService } from "@/utils/get-last-sync-label.util";
 
-type DashboardProjectItemData = {
-  id: string;
-  name: string;
-  updated_at?: string;
-};
+// OTHERS //
+import { toast } from "sonner";
 
 /** Dashboard Page */
 export default function DashboardPage() {
@@ -41,8 +39,7 @@ export default function DashboardPage() {
 
   // Define States
   const [searchValue, setSearchValue] = useState<string>("");
-  const [projects, setProjects] = useState<DashboardProjectItemData[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [projects, setProjects] = useState<ProjectListItemData[]>([]);
   const [projectsErrorMessage, setProjectsErrorMessage] = useState<string>("");
 
   // Helper Functions
@@ -74,8 +71,6 @@ export default function DashboardPage() {
 
   /** Get all projects from the API and set them in state */
   const getAllProjects = (): void => {
-    // Set loading state
-    setLoading(true);
     setProjectsErrorMessage("");
 
     // Make API call to get projects
@@ -84,27 +79,27 @@ export default function DashboardPage() {
         // Check if response is successful and has data
         if (response.status_code === 200 && Array.isArray(response.data)) {
           // Set projects in state
-          setProjects(response.data as DashboardProjectItemData[]);
+          setProjects(response.data);
         } else {
           // If not successful, clear projects and set error message
           setProjects([]);
 
+          // Show error toast
+          toast.error(response.message);
+
           // Set error message from response or a default message
           setProjectsErrorMessage(response.message);
         }
-
-        // Set loading to false
-        setLoading(false);
       })
       .catch(() => {
         // On error, clear projects and set error message
         setProjects([]);
 
+        // Show error toast
+        toast.error("Error fetching projects.");
+
         // Set default error message
         setProjectsErrorMessage("Error fetching projects.");
-
-        // Set loading to false
-        setLoading(false);
       });
   };
 
@@ -157,7 +152,7 @@ export default function DashboardPage() {
             <ProjectCard
               key={projectItem.id}
               badgeName={projectItem.name}
-              href={ROUTES.APP.PROJECTS.DETAIL(projectItem.id)}
+              href={ROUTES.APP.PROJECTS.DETAIL(projectItem.slug)}
               backgroundClassName="bg-orange-100"
               iconColorClassName="text-orange-400"
               Icon={DashboardProjectIcon}
