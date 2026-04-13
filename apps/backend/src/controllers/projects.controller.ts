@@ -29,6 +29,7 @@ import {
 export const getAllProjectsController: RouteHandler<typeof getAllProjectsContract> = async (
   c,
 ) => {
+  // Read authenticated user injected by auth middleware.
   const userContextData = (
     c as Context<{ Variables: { user: User; accessToken: string } }>
   ).get("user");
@@ -126,6 +127,7 @@ export const getProjectByIdController: RouteHandler<typeof getProjectByIdContrac
 
   const { projectId } = c.req.valid("param");
 
+  // Delegate access validation and data loading to service layer.
   const projectResponseData = await getProjectByIdService(
     userContextData.id,
     projectId,
@@ -150,6 +152,7 @@ export const getProjectByIdController: RouteHandler<typeof getProjectByIdContrac
     );
   }
 
+  // Return standardized success response for a single project payload.
   return successResponse(
     c,
     projectResponseData.data,

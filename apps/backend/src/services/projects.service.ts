@@ -300,6 +300,7 @@ export async function getProjectByIdService(
   projectIdentifierData: string,
 ): Promise<ProjectByIdServiceResponseData> {
   try {
+    // Resolve internal user ID used across membership and ownership tables.
     const internalUserIdData =
       await resolveInternalUserIdByAuthIdService(authUserIdData);
 
@@ -323,6 +324,7 @@ export async function getProjectByIdService(
       };
     }
 
+    // Check project membership access first.
     const { data: projectMembershipItem, error: projectMembershipError } =
       await supabase
         .from(tables.PROJECT_USER)
@@ -344,6 +346,7 @@ export async function getProjectByIdService(
     }
 
     if (!projectMembershipItem) {
+      // Fall back to owner/creator access when membership row does not exist.
       const { data: ownedProjectItem, error: ownedProjectError } = await supabase
         .from(tables.PROJECTS)
         .select("id")
@@ -379,6 +382,7 @@ export async function getProjectByIdService(
       }
     }
 
+    // Load project with current structure and sheet credentials.
     const { data: projectItem, error: projectError } = await supabase
       .from(tables.PROJECTS)
       .select(
@@ -405,6 +409,7 @@ export async function getProjectByIdService(
       };
     }
 
+    // Normalize nested relation payloads to single objects.
     const structureVersionItem = Array.isArray(projectItem.project_structure_versions)
       ? projectItem.project_structure_versions[0]
       : null;
