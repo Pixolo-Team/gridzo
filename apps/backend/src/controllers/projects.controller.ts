@@ -1,5 +1,5 @@
 // SERVICES //
-import { getAllProjectsService } from "@/services/projects.service";
+import { createProjectService, getAllProjectsService } from "@/services/projects.service";
 
 // CONSTANTS //
 import { HTTP_STATUS } from "@/constants/api";
@@ -9,11 +9,14 @@ import { errorResponse, successResponse } from "@/common/utils/api.util";
 
 // OTHERS //
 import type { RouteHandler } from "@hono/zod-openapi";
-import { getAllProjectsContract } from "@/contracts/projects.contract";
-
-// TYPES //
 import type { User } from "@supabase/supabase-js";
 import type { Context } from "hono";
+
+// CONTRACTS //
+import {
+  createProjectContract,
+  getAllProjectsContract,
+} from "@/contracts/projects.contract";
 
 /**
  * Controller for fetching all accessible projects for the authenticated user.
@@ -37,12 +40,12 @@ export const getAllProjectsController: RouteHandler<
   const projectsResponseData = await getAllProjectsService(userContextData.id);
 
   if (projectsResponseData.error || !projectsResponseData.data) {
-    const errorMessage =
+    const errorMessageData =
       projectsResponseData.error?.message ?? "Failed to fetch projects.";
 
     return errorResponse(
       c,
-      errorMessage,
+      errorMessageData,
       "Internal server error",
       HTTP_STATUS.INTERNAL_SERVER_ERROR,
     );
@@ -53,5 +56,56 @@ export const getAllProjectsController: RouteHandler<
     projectsResponseData.data,
     "Projects fetched successfully",
     HTTP_STATUS.OK,
+  );
+};
+
+/**
+ * Controller for POST /projects – validates auth, parses body, and delegates to project service.
+ */
+export const createProjectController: RouteHandler<
+  typeof createProjectContract
+> = async (c) => {
+  const authorizationHeaderData = c.req.header("authorization") ?? "";
+  const accessTokenData = authorizationHeaderData.startsWith("Bearer ")
+    ? authorizationHeaderData.slice("Bearer ".length).trim()
+    : "";
+
+  if (!accessTokenData) {
+    return errorResponse(
+      c,
+      "Authorization header must contain a bearer token.",
+      "Authorization header must contain a bearer token.",
+      HTTP_STATUS.UNAUTHORIZED,
+    );
+  }
+
+  const bodyData = c.req.valid("json");
+
+  const projectResponseData = await createProjectService(bodyData, accessTokenData);
+
+  if (projectResponseData.error || !projectResponseData.data) {
+    const errorStatusCodeData =
+      projectResponseData.statusCode === HTTP_STATUS.CONFLICT ||
+      projectResponseData.statusCode === HTTP_STATUS.UNAUTHORIZED ||
+      projectResponseData.statusCode === HTTP_STATUS.INTERNAL_SERVER_ERROR
+        ? projectResponseData.statusCode
+        : HTTP_STATUS.INTERNAL_SERVER_ERROR;
+
+    const errorMessageData =
+      projectResponseData.error?.message ?? "Failed to create project.";
+
+    return errorResponse(
+      c,
+      errorMessageData,
+      errorMessageData,
+      errorStatusCodeData,
+    );
+  }
+
+  return successResponse(
+    c,
+    projectResponseData.data,
+    "Project created successfully",
+    HTTP_STATUS.CREATED,
   );
 };

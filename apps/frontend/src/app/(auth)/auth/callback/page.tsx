@@ -5,7 +5,7 @@ import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 // SERVICES //
-import { createAuthSessionRequest } from "@/services/auth-session.request";
+import { createAuthSessionRequest } from "@/services/api/auth-session.api";
 import {
   parseOAuthCallbackParamsService,
   type OAuthCallbackParamsData,

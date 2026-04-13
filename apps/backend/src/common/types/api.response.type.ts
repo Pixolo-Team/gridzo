@@ -3,9 +3,9 @@
  * @template T - The type of the data object
  */
 export interface ApiResponseData<T = unknown> {
-  data: T | null;
+  data: T;
   status: boolean;
   status_code: number;
   message: string;
-  error?: string | null;
+  error: string | null;
 }

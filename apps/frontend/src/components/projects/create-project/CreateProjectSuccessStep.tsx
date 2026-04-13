@@ -7,7 +7,6 @@ import AnnouncementMegaphone from "@/components/icons/neevo-icons/AnnouncementMe
 import { ROUTES } from "@/app/constants/routes";
 
 interface CreateProjectSuccessStepPropsData {
-  ownerName: string;
   projectDashboardHref: string;
   projectName: string;
   websiteUrl: string;
@@ -23,7 +22,6 @@ interface CreateProjectSummaryItemData {
  * Renders the success state shown after the create-project flow completes
  */
 export default function CreateProjectSuccessStep({
-  ownerName,
   projectDashboardHref,
   projectName,
   websiteUrl,
@@ -52,15 +50,6 @@ export default function CreateProjectSuccessStep({
         label: "Website URL",
         value: websiteUrl,
       },
-      ...(ownerName
-        ? [
-            {
-              id: "owner",
-              label: "Owner",
-              value: ownerName,
-            },
-          ]
-        : []),
     ];
   };
 

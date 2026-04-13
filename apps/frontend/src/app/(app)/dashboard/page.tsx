@@ -15,11 +15,14 @@ import ProjectCard from "@/components/ui/ProjectCard";
 import SearchInput from "@/components/ui/SearchInput";
 import { Button } from "@/components/ui/button";
 
+// SERVICES //
+import { getAllProjectsRequest } from "@/services/projects";
+
 // CONSTANTS //
 import { dashboardProjectIconMap } from "@/app/constants/dashboard-project-icons";
 import { ROUTES } from "@/app/constants/routes";
 
-import { getAllProjectsRequest } from "@/services/projects";
+// UTILS //
 import { getLastSyncLabelService } from "@/utils/get-last-sync-label.util";
 
 type DashboardProjectItemData = {
