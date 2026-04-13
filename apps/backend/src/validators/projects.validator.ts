@@ -1,4 +1,4 @@
-// OTHERS //
+// LIBRARIES //
 import { z } from "@hono/zod-openapi";
 
 /**

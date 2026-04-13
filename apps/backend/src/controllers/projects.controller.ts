@@ -7,8 +7,10 @@ import { HTTP_STATUS } from "@/constants/api";
 // UTILS //
 import { errorResponse, successResponse } from "@/common/utils/api.util";
 
-// OTHERS //
+// LIBRARIES //
 import type { RouteHandler } from "@hono/zod-openapi";
+
+// CONTRACTS //
 import { inviteUserToProjectContract } from "@/contracts/projects.contract";
 
 /**

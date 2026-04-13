@@ -1,5 +1,7 @@
-// OTHERS //
+// LIBRARIES //
 import { createRoute } from "@hono/zod-openapi";
+
+// VALIDATORS //
 import {
   inviteUserBodySchema,
   inviteUserErrorResponseSchema,

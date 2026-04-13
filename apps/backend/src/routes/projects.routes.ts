@@ -4,8 +4,10 @@ import { inviteUserToProjectController } from "@/controllers/projects.controller
 // MIDDLEWARES //
 import { authenticateRequestMiddleware } from "@/middlewares";
 
-// OTHERS //
+// LIBRARIES //
 import type { OpenAPIHono } from "@hono/zod-openapi";
+
+// CONTRACTS //
 import { inviteUserToProjectContract } from "@/contracts/projects.contract";
 
 /**
