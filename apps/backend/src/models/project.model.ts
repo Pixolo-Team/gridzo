@@ -5,13 +5,20 @@ export interface ProjectData {
   id: string;
   name: string;
   slug: string;
-  category: string;
+  category: string | null;
   website_url: string | null;
   created_by_user_id: string;
   owner_user_id: string;
   status: "active" | "archived" | "deleted";
   created_at: string;
   updated_at: string;
+}
+
+/**
+ * Project with role payload returned for authenticated clients.
+ */
+export interface ProjectWithRoleData extends ProjectData {
+  role: "owner" | "admin" | "editor" | "viewer";
 }
 
 /**
