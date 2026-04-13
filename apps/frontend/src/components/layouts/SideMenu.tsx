@@ -10,6 +10,8 @@ import BrandLogo from "@/components/ui/BrandLogo";
 import Close from "@/components/icons/neevo-icons/Close";
 import Cog from "@/components/icons/neevo-icons/Cog";
 import DashboardSquare from "@/components/icons/neevo-icons/DashboardSquare";
+import DeployRules from "@/components/icons/neevo-icons/DeployRules";
+import PortraitSetting from "@/components/icons/neevo-icons/PortraitSetting";
 
 // CONSTANTS //
 import { ROUTES } from "@/app/constants/routes";
@@ -102,6 +104,21 @@ export function SideMenu({
         label: "Dashboard",
       },
       {
+        id: "project-structure",
+        href: ROUTES.APP.PROJECTS.STRUCTURE(projectId),
+        backgroundColor: "bg-purple-100",
+        iconColor: "text-purple-500",
+        Icon: DeployRules,
+        label: "Structure",
+      },
+      {
+        id: "project-user-access",
+        backgroundColor: "bg-blue-100",
+        iconColor: "text-blue-600",
+        Icon: PortraitSetting,
+        label: "User Access",
+      },
+      {
         id: "project-settings",
         href: ROUTES.APP.PROJECTS.EDIT(projectId),
         backgroundColor: "bg-green-100",
@@ -125,6 +142,10 @@ export function SideMenu({
     }
 
     if (sidebarNavigationItem.id === "project-dashboard") {
+      return pathname === sidebarNavigationItem.href;
+    }
+
+    if (sidebarNavigationItem.id === "project-structure") {
       return pathname === sidebarNavigationItem.href;
     }
 

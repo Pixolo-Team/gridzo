@@ -7,6 +7,9 @@ export const ROUTES = {
     PROJECTS: {
       DETAIL: (projectId: string): string => `/projects/${projectId}`,
       DETAIL_PATTERN: "/projects/[projectId]",
+      STRUCTURE: (projectId: string): string =>
+        `/projects/${projectId}/structure`,
+      STRUCTURE_PATTERN: "/projects/[projectId]/structure",
       EDIT: (projectId: string): string => `/projects/${projectId}/edit`,
       EDIT_PATTERN: "/projects/[projectId]/edit",
       CREATE: "/projects/create",
