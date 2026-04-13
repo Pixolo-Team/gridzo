@@ -1,3 +1,6 @@
+// TYPES //
+import type { UserRoleData, UserData } from "@/types/user";
+
 // COMPONENTS //
 import VerticalMenu from "@/components/icons/neevo-icons/VerticalMenu";
 import { Button } from "@/components/ui/button";
@@ -12,12 +15,6 @@ import {
 
 // OTHERS //
 import { cn } from "@/lib/utils";
-
-// TYPES //
-import type {
-  UserRoleData,
-  UserData,
-} from "@/types/user";
 
 interface UsersTablePropsData {
   memberItems: UserData[];
@@ -44,9 +41,7 @@ export default function UsersTable({ memberItems }: UsersTablePropsData) {
   /**
    * Returns the status dot tone for mobile member rows
    */
-  const getStatusDotToneClassName = (
-    status: UserData["status"],
-  ): string => {
+  const getStatusDotToneClassName = (status: UserData["status"]): string => {
     return statusDotToneClassNameMap[status] ?? "bg-n-300";
   };
 
@@ -75,7 +70,7 @@ export default function UsersTable({ memberItems }: UsersTablePropsData) {
       <div className="overflow-hidden rounded-3xl border border-n-200 bg-n-50 md:border">
         <Table className="table-fixed border-collapse md:table-auto">
           <TableHeader className="hidden md:table-header-group">
-            <TableRow className="border-b border-n-100 hover:bg-transparent">
+            <TableRow className="border-b border-n-100 hover:bg-n-50">
               <TableHead className="h-auto whitespace-nowrap px-3 py-3 text-left text-sm font-normal text-n-700 md:px-6 md:py-4">
                 User
               </TableHead>
