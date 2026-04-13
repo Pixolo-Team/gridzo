@@ -19,6 +19,11 @@ type EnvData = {
 };
 
 /**
+ * Shared authentication environment type for context variable access.
+ */
+export type AuthEnvData = EnvData;
+
+/**
  * Extracts Bearer token from Authorization header.
  * @param authorizationHeaderData - Raw Authorization header value.
  * @returns Access token value when valid; otherwise null.
