@@ -1,7 +1,7 @@
 "use client";
 
 // REACT //
-import { useMemo, useState } from "react";
+import { CSSProperties, useCallback, useMemo, useState } from "react";
 import CodeMirror from "@uiw/react-codemirror";
 
 // STYLES //
@@ -12,16 +12,15 @@ import CompareArrow from "@/components/icons/neevo-icons/CompareArrow";
 import TextFile from "@/components/icons/neevo-icons/TextFile";
 import { Button } from "@/components/ui/button";
 
-// OTHERS //
+// LIBRARIES //
 import { json } from "@codemirror/lang-json";
 import { php } from "@codemirror/lang-php";
 import { EditorView } from "@codemirror/view";
 import { tags as t } from "@lezer/highlight";
-
-// LIBRARIES //
+import { cn } from "@/lib/utils";
 
 interface CodeEditorPropsData {
-  data: string;
+  textItem: string;
   onEditorChange: (nextEditorValue: string) => void;
   onSaveClick: () => void;
   onViewInJsonClick: () => void;
@@ -86,30 +85,37 @@ const codeEditorLayoutTheme = EditorView.theme({
   ".cm-editor": {
     backgroundColor: "var(--color-n-50)",
     color: codeEditorTextColor,
+    height: "100%",
   },
   ".cm-scroller": {
     backgroundColor: "var(--color-n-50)",
     fontFamily:
       "var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace",
+    minHeight: "100%",
   },
   ".cm-content": {
     backgroundColor: "var(--color-n-50)",
     color: codeEditorTextColor,
+    border:
+      "2px solid var(--editor-validation-color, var(--color-success-500))",
+    boxSizing: "border-box",
     fontSize: "16px",
-    lineHeight: "2.3125rem",
+    height: "100%",
+    lineHeight: "28px",
     minHeight: "100%",
-    padding: "1.625rem 1.5rem",
+    padding: "20px",
   },
   ".cm-line": {
     color: "var(--color-n-600)",
   },
   ".cm-gutters": {
     borderRight: "1px solid var(--color-n-200)",
+    minHeight: "100%",
   },
   ".cm-lineNumbers .cm-gutterElement": {
-    fontSize: "0.875rem",
-    minWidth: "2rem",
-    padding: "0 0.75rem",
+    fontSize: "14px",
+    minWidth: "32px",
+    padding: "0 12px",
   },
   ".cm-activeLineGutter": {
     color: "var(--color-n-800)",
@@ -225,7 +231,7 @@ function checkEditorValidityService(editorValue: string): boolean {
  * Renders the full project code editor with internal styling and validation.
  */
 export default function CodeEditor({
-  data,
+  textItem,
   onEditorChange,
   onSaveClick,
   onViewInJsonClick,
@@ -246,7 +252,7 @@ export default function CodeEditor({
   /**
    * Updates line and column status from the current editor selection.
    */
-  const updateCursorPosition = (view: EditorView): void => {
+  const updateCursorPosition = useCallback((view: EditorView): void => {
     const activeSelection = view.state.selection.main.head;
     const activeLine = view.state.doc.lineAt(activeSelection);
 
@@ -254,9 +260,15 @@ export default function CodeEditor({
       line: activeLine.number,
       column: activeSelection - activeLine.from + 1,
     });
-  };
+  }, []);
 
-  const isJsonMode = checkIsJsonModeService(data);
+  const isJsonMode = checkIsJsonModeService(textItem);
+  const isEditorValid = useMemo(() => {
+    return checkEditorValidityService(textItem);
+  }, [textItem]);
+  const editorValidationColor = isEditorValid
+    ? "var(--color-success-500)"
+    : "var(--color-red-500)";
 
   /** Memoizes editor extensions based on the current mode (PHP or JSON) and theme. */
   const editorExtensions = useMemo(() => {
@@ -276,7 +288,7 @@ export default function CodeEditor({
         updateCursorPosition(update.view);
       }),
     ];
-  }, [isJsonMode]);
+  }, [isJsonMode, updateCursorPosition]);
 
   // Use Effects
 
@@ -302,7 +314,12 @@ export default function CodeEditor({
 
           <button
             type="button"
-            className="inline-flex items-center gap-1.5 text-sm text-n-600 transition-colors hover:text-n-800 md:gap-2"
+            className={cn(
+              "inline-flex cursor-pointer items-center gap-1.5 text-sm transition-colors md:gap-2",
+              isJsonMode
+                ? "text-n-900 hover:text-n-900"
+                : "text-n-600 hover:text-n-800",
+            )}
             onClick={onViewInJsonClick}
           >
             {/* Icon */}
@@ -326,15 +343,18 @@ export default function CodeEditor({
       </div>
 
       {/* Editor Body */}
-      <div
-        className={`relative h-[664px] border-2 ${checkEditorValidityService(data) ? "border-green-500" : "border-red-500"} md:h-[860px] xl:h-[980px]`}
-      >
+      <div className="relative min-h-[450px]">
         <CodeMirror
-          value={data}
+          value={textItem}
           basicSetup={codeEditorBasicSetup}
           extensions={editorExtensions}
           onChange={onEditorChange}
           className="h-full"
+          style={
+            {
+              "--editor-validation-color": editorValidationColor,
+            } as CSSProperties
+          }
         />
 
         {/* Save Button */}

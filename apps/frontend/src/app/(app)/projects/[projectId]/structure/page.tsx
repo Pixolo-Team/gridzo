@@ -116,7 +116,7 @@ export default function ProjectStructurePage() {
 
       {/* Code Editor Component */}
       <CodeEditor
-        data={activeEditor}
+        textItem={activeEditor}
         onEditorChange={handleEditorChange}
         onSaveClick={handleSaveClick}
         onViewInJsonClick={handleViewInJsonClick}
