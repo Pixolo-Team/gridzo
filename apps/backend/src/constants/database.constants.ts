@@ -3,4 +3,5 @@
  */
 export const tables = {
   USERS: "users",
+  PROJECT_INVITATIONS: "project_invitations",
 } as const;
