@@ -1,4 +1,4 @@
-// OTHERS //
+// LIBRARIES //
 import { createRoute } from "@hono/zod-openapi";
 import {
   deployProjectErrorResponseSchema,

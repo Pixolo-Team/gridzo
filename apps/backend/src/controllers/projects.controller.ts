@@ -19,38 +19,30 @@ import { deployProjectContract } from "@/contracts/projects.contract";
 export const deployProjectController: RouteHandler<
   typeof deployProjectContract
 > = async (c) => {
-  const { project_id: projectIdData } = c.req.valid("param");
+  const { project_id: projectId } = c.req.valid("param");
 
   // User is guaranteed by authenticateRequestMiddleware defined in the contract
   const userItem = c.var.user;
 
-  const deployResponseData = await deployProjectService(
-    projectIdData,
-    userItem.id,
-  );
+  const deployResponse = await deployProjectService(projectId, userItem.id);
 
-  if (deployResponseData.error || !deployResponseData.data) {
-    const errorStatusCodeData =
-      deployResponseData.statusCode === HTTP_STATUS.FORBIDDEN ||
-      deployResponseData.statusCode === HTTP_STATUS.NOT_FOUND ||
-      deployResponseData.statusCode === HTTP_STATUS.INTERNAL_SERVER_ERROR
-        ? deployResponseData.statusCode
+  if (deployResponse.error || !deployResponse.data) {
+    const errorStatusCode =
+      deployResponse.statusCode === HTTP_STATUS.FORBIDDEN ||
+      deployResponse.statusCode === HTTP_STATUS.NOT_FOUND ||
+      deployResponse.statusCode === HTTP_STATUS.INTERNAL_SERVER_ERROR
+        ? deployResponse.statusCode
         : HTTP_STATUS.INTERNAL_SERVER_ERROR;
 
-    const errorMessageData =
-      deployResponseData.error?.message ?? "Failed to trigger deployment.";
+    const errorMessage =
+      deployResponse.error?.message ?? "Failed to trigger deployment.";
 
-    return errorResponse(
-      c,
-      errorMessageData,
-      errorMessageData,
-      errorStatusCodeData,
-    );
+    return errorResponse(c, errorMessage, errorMessage, errorStatusCode);
   }
 
   return successResponse(
     c,
-    deployResponseData.data,
+    deployResponse.data,
     "Deployed successfully",
     HTTP_STATUS.OK,
   );

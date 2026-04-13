@@ -1,8 +1,10 @@
+// TYPES //
+import type { OpenAPIHono } from "@hono/zod-openapi";
+
 // CONTROLLERS //
 import { deployProjectController } from "@/controllers/projects.controller";
 
-// OTHERS //
-import type { OpenAPIHono } from "@hono/zod-openapi";
+// CONTRACTS //
 import { deployProjectContract } from "@/contracts/projects.contract";
 
 /**

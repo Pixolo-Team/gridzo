@@ -8,7 +8,7 @@ import { tables } from "@/constants/database.constants";
 // UTILS //
 import { logger } from "@/common/utils/logger.util";
 
-// OTHERS //
+// LIBRARIES //
 import { supabase } from "@/config/supabase";
 
 /**
@@ -87,9 +87,9 @@ export async function deployProjectService(
 ): Promise<DeployProjectServiceResponseData> {
   try {
     // Check user project membership before allowing deployment
-    const hasAccessData = await checkProjectAccessService(projectId, userId);
+    const hasAccess = await checkProjectAccessService(projectId, userId);
 
-    if (!hasAccessData) {
+    if (!hasAccess) {
       return {
         data: null,
         error: new Error("You do not have access to this project."),
@@ -98,9 +98,9 @@ export async function deployProjectService(
     }
 
     // Confirm the project exists before queuing the deployment
-    const projectExistsData = await checkProjectExistsService(projectId);
+    const projectExists = await checkProjectExistsService(projectId);
 
-    if (!projectExistsData) {
+    if (!projectExists) {
       return {
         data: null,
         error: new Error("Project not found."),
