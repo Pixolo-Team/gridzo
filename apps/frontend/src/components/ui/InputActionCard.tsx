@@ -108,7 +108,9 @@ export default function InputActionCard({
                 value={value}
                 placeholder={placeholder}
                 readOnly={checkIsInputReadOnly()}
-                onChange={() => handleInputValueChange}
+                onChange={(event) =>
+                  handleInputValueChange(event?.target.value)
+                }
                 className={cn(
                   "h-14 border-n-100 bg-n-100 pr-5 text-base text-n-700 placeholder:text-n-500 focus-visible:border-n-200 focus-visible:ring-0 focus-visible:ring-offset-0 md:h-14 md:text-lg",
                   InputIcon ? "pl-[52px]" : "pl-5",
