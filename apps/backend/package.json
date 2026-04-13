@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsc && tsc-alias --resolveFullPaths --resolveFullExtension .js",
+    "build": "tsc",
     "start": "node dist/index.js",
     "type-check": "tsc --noEmit --project tsconfig.json"
   },
@@ -18,8 +18,8 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@types/node": "^25.6.0",
     "tsc-alias": "^1.8.16",
-    "@types/node": "^25.5.2",
     "tsx": "^4.20.6",
     "typescript": "^5"
   }

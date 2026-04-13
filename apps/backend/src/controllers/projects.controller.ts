@@ -1,5 +1,5 @@
 // SERVICES //
-import { getProjectDetailsService } from "@/services/projects.service";
+import { createProjectService, getAllProjectsService } from "@/services/projects.service";
 
 // CONSTANTS //
 import { HTTP_STATUS } from "@/constants/api";
@@ -7,53 +7,97 @@ import { HTTP_STATUS } from "@/constants/api";
 // UTILS //
 import { errorResponse, successResponse } from "@/common/utils/api.util";
 
-// CONTRACTS //
-import { getProjectContract } from "@/contracts/projects.contract";
-
 // OTHERS //
 import type { RouteHandler } from "@hono/zod-openapi";
 import type { User } from "@supabase/supabase-js";
+import type { Context } from "hono";
 
-/** Controller for fetching full project details for an authenticated project member */
-export const getProjectController: RouteHandler<typeof getProjectContract> =
-  async (c) => {
-    // Access user set by authenticateRequestMiddleware
-    const authContextData = c.var as unknown as { user: User };
-    const { project_id: projectIdData } = c.req.valid("param");
+// CONTRACTS //
+import { createProjectContract, getAllProjectsContract } from "@/contracts/projects.contract";
 
-    const projectDetailsResponseData = await getProjectDetailsService(
-      projectIdData,
-      authContextData.user.id,
-    );
+/**
+ * Controller for fetching all accessible projects for the authenticated user.
+ */
+export const getAllProjectsController: RouteHandler<typeof getAllProjectsContract> = async (
+  c,
+) => {
+  const userContextData = (
+    c as Context<{ Variables: { user: User; accessToken: string } }>
+  ).get("user");
 
-    if (
-      projectDetailsResponseData.error ||
-      !projectDetailsResponseData.data
-    ) {
-      const errorStatusCodeData =
-        projectDetailsResponseData.statusCode === HTTP_STATUS.FORBIDDEN ||
-        projectDetailsResponseData.statusCode === HTTP_STATUS.NOT_FOUND ||
-        projectDetailsResponseData.statusCode ===
-          HTTP_STATUS.INTERNAL_SERVER_ERROR
-          ? projectDetailsResponseData.statusCode
-          : HTTP_STATUS.INTERNAL_SERVER_ERROR;
+  if (!userContextData) {
+    return errorResponse(c, "Unauthorized", "Unauthorized", HTTP_STATUS.UNAUTHORIZED);
+  }
 
-      const errorMessageData =
-        projectDetailsResponseData.error?.message ??
-        "Failed to fetch project details";
+  const projectsResponseData = await getAllProjectsService(userContextData.id);
 
-      return errorResponse(
-        c,
-        errorMessageData,
-        errorMessageData,
-        errorStatusCodeData,
-      );
-    }
+  if (projectsResponseData.error || !projectsResponseData.data) {
+    const errorMessageData =
+      projectsResponseData.error?.message ?? "Failed to fetch projects.";
 
-    return successResponse(
+    return errorResponse(
       c,
-      projectDetailsResponseData.data,
-      "Project fetched successfully",
-      HTTP_STATUS.OK,
+      errorMessageData,
+      "Internal server error",
+      HTTP_STATUS.INTERNAL_SERVER_ERROR,
     );
-  };
+  }
+
+  return successResponse(
+    c,
+    projectsResponseData.data,
+    "Projects fetched successfully",
+    HTTP_STATUS.OK,
+  );
+};
+
+/**
+ * Controller for POST /projects – validates auth, parses body, and delegates to project service.
+ */
+export const createProjectController: RouteHandler<typeof createProjectContract> = async (
+  c,
+) => {
+  const authorizationHeaderData = c.req.header("authorization") ?? "";
+  const accessTokenData = authorizationHeaderData.startsWith("Bearer ")
+    ? authorizationHeaderData.slice("Bearer ".length).trim()
+    : "";
+
+  if (!accessTokenData) {
+    return errorResponse(
+      c,
+      "Authorization header must contain a bearer token.",
+      "Authorization header must contain a bearer token.",
+      HTTP_STATUS.UNAUTHORIZED,
+    );
+  }
+
+  const bodyData = c.req.valid("json");
+
+  const projectResponseData = await createProjectService(bodyData, accessTokenData);
+
+  if (projectResponseData.error || !projectResponseData.data) {
+    const errorStatusCodeData =
+      projectResponseData.statusCode === HTTP_STATUS.CONFLICT ||
+      projectResponseData.statusCode === HTTP_STATUS.UNAUTHORIZED ||
+      projectResponseData.statusCode === HTTP_STATUS.INTERNAL_SERVER_ERROR
+        ? projectResponseData.statusCode
+        : HTTP_STATUS.INTERNAL_SERVER_ERROR;
+
+    const errorMessageData =
+      projectResponseData.error?.message ?? "Failed to create project.";
+
+    return errorResponse(
+      c,
+      errorMessageData,
+      errorMessageData,
+      errorStatusCodeData,
+    );
+  }
+
+  return successResponse(
+    c,
+    projectResponseData.data,
+    "Project created successfully",
+    HTTP_STATUS.CREATED,
+  );
+};

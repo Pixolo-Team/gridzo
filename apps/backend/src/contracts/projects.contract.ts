@@ -3,57 +3,41 @@ import { createRoute } from "@hono/zod-openapi";
 
 // VALIDATORS //
 import {
-  getProjectErrorResponseSchema,
-  getProjectSuccessResponseSchema,
-  projectsPathParamsSchema,
+  createProjectErrorResponseSchema,
+  createProjectRequestBodySchema,
+  createProjectRequestHeadersSchema,
+  createProjectSuccessResponseSchema,
+  getAllProjectsErrorResponseSchema,
+  getAllProjectsSuccessResponseSchema,
+  projectsRequestHeadersSchema,
 } from "@/validators/projects.validator";
 
-// MIDDLEWARES //
-import { authenticateRequestMiddleware } from "@/middlewares/auth.middleware";
-
 /**
- * OpenAPI contract for GET /projects/:project_id.
+ * OpenAPI contract for fetching all accessible projects for the authenticated user.
  */
-export const getProjectContract = createRoute({
+export const getAllProjectsContract = createRoute({
   method: "get",
-  path: "/projects/:project_id",
+  path: "/projects/all",
   tags: ["Projects"],
-  summary: "Get project details by project ID",
-  security: [{ bearerAuth: [] }],
-  middleware: [authenticateRequestMiddleware] as const,
+  summary: "Get all projects accessible to the authenticated user",
+  security: [{ Bearer: [] }],
   request: {
-    params: projectsPathParamsSchema,
+    headers: projectsRequestHeadersSchema,
   },
   responses: {
     200: {
-      description: "Project details fetched successfully",
+      description: "Projects fetched successfully",
       content: {
         "application/json": {
-          schema: getProjectSuccessResponseSchema,
+          schema: getAllProjectsSuccessResponseSchema,
         },
       },
     },
     401: {
-      description: "Unauthorized",
+      description: "Unauthorized request",
       content: {
         "application/json": {
-          schema: getProjectErrorResponseSchema,
-        },
-      },
-    },
-    403: {
-      description: "Access denied to this project",
-      content: {
-        "application/json": {
-          schema: getProjectErrorResponseSchema,
-        },
-      },
-    },
-    404: {
-      description: "Project not found",
-      content: {
-        "application/json": {
-          schema: getProjectErrorResponseSchema,
+          schema: getAllProjectsErrorResponseSchema,
         },
       },
     },
@@ -61,7 +45,70 @@ export const getProjectContract = createRoute({
       description: "Internal server error",
       content: {
         "application/json": {
-          schema: getProjectErrorResponseSchema,
+          schema: getAllProjectsErrorResponseSchema,
+        },
+      },
+    },
+  },
+});
+
+/**
+ * OpenAPI contract for POST /projects – creates a new project transactionally.
+ */
+export const createProjectContract = createRoute({
+  method: "post",
+  path: "/projects",
+  tags: ["Projects"],
+  summary: "Create a new project with credentials and initial structure",
+  request: {
+    headers: createProjectRequestHeadersSchema,
+    body: {
+      content: {
+        "application/json": {
+          schema: createProjectRequestBodySchema,
+        },
+      },
+      required: true,
+    },
+  },
+  responses: {
+    201: {
+      description: "Project created successfully",
+      content: {
+        "application/json": {
+          schema: createProjectSuccessResponseSchema,
+        },
+      },
+    },
+    400: {
+      description: "Validation error",
+      content: {
+        "application/json": {
+          schema: createProjectErrorResponseSchema,
+        },
+      },
+    },
+    401: {
+      description: "Unauthorized",
+      content: {
+        "application/json": {
+          schema: createProjectErrorResponseSchema,
+        },
+      },
+    },
+    409: {
+      description: "Slug conflict",
+      content: {
+        "application/json": {
+          schema: createProjectErrorResponseSchema,
+        },
+      },
+    },
+    500: {
+      description: "Internal server error",
+      content: {
+        "application/json": {
+          schema: createProjectErrorResponseSchema,
         },
       },
     },

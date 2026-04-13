@@ -1,11 +1,20 @@
 // CONSTANTS //
 import { ERROR_MESSAGES, HTTP_STATUS } from "@/constants/api";
+import type { ApiResponseData } from "@/common/types/api.response.type";
 
 // UTILS //
 import type { ContentfulStatusCode } from "hono/utils/http-status";
 
 // OTHERS //
 import type { Context } from "hono";
+
+interface ErrorApiResponseData extends Omit<ApiResponseData<null>, "error"> {
+  error: string;
+}
+
+interface SuccessApiResponseData<T> extends Omit<ApiResponseData<T>, "error"> {
+  error: null;
+}
 
 /**
  * Send success response
@@ -15,17 +24,18 @@ export const successResponse = <
   S extends ContentfulStatusCode = typeof HTTP_STATUS.OK,
 >(
   c: Context,
-  data: T,
+  data: T = null as T,
   message: string = "Success",
   statusCode: S = HTTP_STATUS.OK as S,
 ) => {
-  const response = {
-    status: true as const,
+  const response: SuccessApiResponseData<T> = {
+    status: true,
     status_code: statusCode,
     data,
-    error: null as null,
+    error: null,
     message,
   };
+
   return c.json(response, statusCode);
 };
 
@@ -40,12 +50,13 @@ export const errorResponse = <
   message: string = ERROR_MESSAGES.INTERNAL_SERVER_ERROR,
   statusCode: S = HTTP_STATUS.INTERNAL_SERVER_ERROR as S,
 ) => {
-  const response = {
-    status: false as const,
+  const response: ErrorApiResponseData = {
+    status: false,
     status_code: statusCode,
     message,
-    data: null as null,
+    data: null,
     error,
   };
+
   return c.json(response, statusCode);
 };

@@ -1,9 +1,8 @@
 // MODELS //
 import type {
-  GoogleSheetCredentialData,
+  CreateProjectTransactionResultData,
   ProjectData,
-  ProjectDetailsPayloadData,
-  ProjectStructureVersionData,
+  ProjectWithRoleData,
 } from "@/models/project.model";
 
 // TYPES //
@@ -11,173 +10,335 @@ import type { QueryResponseData } from "@/common/types/query.response.type";
 
 // CONSTANTS //
 import { HTTP_STATUS } from "@/constants/api";
-import { tables } from "@/constants/database.constants";
+import { rpcFunctions, tables } from "@/constants/database.constants";
 
 // UTILS //
 import { logger } from "@/common/utils/logger.util";
 
 // CONFIG //
-import { supabase } from "@/config/supabase";
+import {
+  createSupabaseClientByTokenRequest,
+  supabase,
+} from "@/config/supabase";
 
-type ProjectDetailsStatusCodeData =
+const slugConflictMarker = "SLUG_CONFLICT";
+
+type ProjectsStatusCodeData =
   | typeof HTTP_STATUS.OK
-  | typeof HTTP_STATUS.FORBIDDEN
-  | typeof HTTP_STATUS.NOT_FOUND
+  | typeof HTTP_STATUS.UNAUTHORIZED
   | typeof HTTP_STATUS.INTERNAL_SERVER_ERROR;
 
-type ProjectDetailsServiceResponseData =
-  QueryResponseData<ProjectDetailsPayloadData> & {
-    statusCode: ProjectDetailsStatusCodeData;
+type ProjectsServiceResponseData = QueryResponseData<ProjectWithRoleData[]> & {
+  statusCode: ProjectsStatusCodeData;
+};
+
+type CreateProjectStatusCodeData =
+  | typeof HTTP_STATUS.CREATED
+  | typeof HTTP_STATUS.UNAUTHORIZED
+  | typeof HTTP_STATUS.CONFLICT
+  | typeof HTTP_STATUS.INTERNAL_SERVER_ERROR;
+
+type CreateProjectServiceResponseData =
+  QueryResponseData<CreateProjectTransactionResultData> & {
+    statusCode: CreateProjectStatusCodeData;
   };
 
-/** Verifies that the given user is a member of the given project. */
-async function verifyProjectMembershipService(
-  projectIdData: string,
-  userIdData: string,
-): Promise<boolean> {
-  const membershipResponseData = await supabase
-    .from(tables.PROJECT_USER)
-    .select("role")
-    .eq("project_id", projectIdData)
-    .eq("user_id", userIdData)
-    .maybeSingle();
+const projectSelectFields =
+  "id, name, slug, category, website_url, status, created_at, updated_at, created_by_user_id, owner_user_id";
 
-  if (membershipResponseData.error) {
-    logger.error(
-      "[projects.service] failed to verify project membership",
-      membershipResponseData.error,
-    );
-    return false;
-  }
+const projectOwnerSelectFields =
+  "id, name, slug, category, website_url, status, created_at, updated_at, created_by_user_id, owner_user_id";
 
-  return membershipResponseData.data !== null;
-}
-
-/** Fetches the project row by ID. */
-async function fetchProjectByIdService(
-  projectIdData: string,
-): Promise<ProjectData | null> {
-  const projectResponseData = await supabase
-    .from(tables.PROJECTS)
-    .select(
-      "id, name, slug, category, website_url, status, created_at, updated_at",
-    )
-    .eq("id", projectIdData)
-    .maybeSingle();
-
-  if (projectResponseData.error) {
-    logger.error(
-      "[projects.service] failed to fetch project",
-      projectResponseData.error,
-    );
-    return null;
-  }
-
-  return projectResponseData.data as ProjectData | null;
-}
-
-/** Fetches the current structure version for the given project. */
-async function fetchCurrentStructureVersionService(
-  projectIdData: string,
-): Promise<ProjectStructureVersionData | null> {
-  const structureResponseData = await supabase
-    .from(tables.PROJECT_STRUCTURE_VERSIONS)
-    .select("id, version, is_current, json_code, php_code")
-    .eq("project_id", projectIdData)
-    .eq("is_current", true)
-    .limit(1)
-    .maybeSingle();
-
-  if (structureResponseData.error) {
-    logger.error(
-      "[projects.service] failed to fetch current structure version",
-      structureResponseData.error,
-    );
-    return null;
-  }
-
-  return structureResponseData.data as ProjectStructureVersionData | null;
-}
-
-/** Fetches safe Google Sheet credentials (no secrets) for the given project. */
-async function fetchGoogleSheetCredentialsService(
-  projectIdData: string,
-): Promise<GoogleSheetCredentialData | null> {
-  const credentialsResponseData = await supabase
-    .from(tables.GOOGLE_SHEETS_CREDENTIALS)
-    .select("id, google_sheet_id, google_project_id, client_email")
-    .eq("project_id", projectIdData)
-    .maybeSingle();
-
-  if (credentialsResponseData.error) {
-    logger.error(
-      "[projects.service] failed to fetch google sheet credentials",
-      credentialsResponseData.error,
-    );
-    return null;
-  }
-
-  return credentialsResponseData.data as GoogleSheetCredentialData | null;
+/**
+ * Input payload for creating a project.
+ */
+export interface CreateProjectPayloadData {
+  name: string;
+  slug: string;
+  category?: string;
+  website_url?: string;
+  google_sheet_credentials: {
+    google_sheet_id: string;
+    google_project_id?: string;
+    private_key_id?: string;
+    client_email: string;
+    client_id?: string;
+    client_x509_cert_url?: string;
+    private_key: string;
+  };
+  structure: {
+    php_code?: string;
+    json_code: Record<string, unknown>;
+  };
 }
 
 /**
- * Fetches full project details for an authenticated project member.
- * @param projectIdData - UUID of the project to fetch.
- * @param userIdData - UUID of the authenticated user.
- * @returns Service envelope containing project details payload and status metadata.
+ * Resolves internal user ID from Supabase auth ID.
  */
-export async function getProjectDetailsService(
-  projectIdData: string,
-  userIdData: string,
-): Promise<ProjectDetailsServiceResponseData> {
+async function resolveInternalUserIdByAuthIdService(
+  authUserIdData: string,
+): Promise<string | null> {
+  const { data: userData, error: userError } = await supabase
+    .from(tables.USERS)
+    .select("id")
+    .eq("auth_id", authUserIdData)
+    .maybeSingle();
+
+  if (userError || !userData) {
+    return null;
+  }
+
+  return (userData as { id: string }).id;
+}
+
+/**
+ * Validates bearer token and returns auth user ID.
+ */
+async function resolveAuthUserIdByTokenService(
+  accessTokenData: string,
+): Promise<string | null> {
+  const supabaseClient = createSupabaseClientByTokenRequest(accessTokenData);
+  const authUserResponseData = await supabaseClient.auth.getUser(accessTokenData);
+
+  if (authUserResponseData.error || !authUserResponseData.data.user) {
+    return null;
+  }
+
+  return authUserResponseData.data.user.id;
+}
+
+/**
+ * Resolves internal user ID by auth ID.
+ */
+async function resolveUserIdByAuthIdService(
+  authIdData: string,
+  accessTokenData: string,
+): Promise<string | null> {
+  const supabaseClient = createSupabaseClientByTokenRequest(accessTokenData);
+
+  const userResponseData = await supabaseClient
+    .from(tables.USERS)
+    .select("id")
+    .eq("auth_id", authIdData)
+    .maybeSingle();
+
+  if (userResponseData.error || !userResponseData.data) {
+    return null;
+  }
+
+  return (userResponseData.data as { id: string }).id;
+}
+
+/**
+ * Checks if RPC error is slug conflict.
+ */
+function checkIsSlugConflictErrorService(errorMessageData: string): boolean {
+  return errorMessageData.includes(slugConflictMarker);
+}
+
+/**
+ * Fetches all projects accessible to authenticated user.
+ */
+export async function getAllProjectsService(
+  authUserIdData: string,
+): Promise<ProjectsServiceResponseData> {
   try {
-    // Verify membership before returning any project data.
-    const isMemberData = await verifyProjectMembershipService(
-      projectIdData,
-      userIdData,
+    const internalUserIdData =
+      await resolveInternalUserIdByAuthIdService(authUserIdData);
+
+    if (!internalUserIdData) {
+      return {
+        data: null,
+        error: new Error("Authenticated user not found."),
+        statusCode: HTTP_STATUS.UNAUTHORIZED,
+      };
+    }
+
+    const { data: projectMembershipItems, error: projectMembershipError } =
+      await supabase
+        .from(tables.PROJECT_USER)
+        .select(`role, projects:${tables.PROJECTS}(${projectSelectFields})`)
+        .eq("user_id", internalUserIdData)
+        .order(`${tables.PROJECTS}(created_at)`, { ascending: false });
+
+    if (projectMembershipError) {
+      logger.error(
+        "[projects.service] failed to fetch project memberships",
+        projectMembershipError,
+      );
+      return {
+        data: null,
+        error: new Error("Failed to fetch projects."),
+        statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+      };
+    }
+
+    const projectItems: ProjectWithRoleData[] = (projectMembershipItems ?? []).map(
+      (membershipItem) => {
+        const projectRecord = membershipItem.projects as unknown as ProjectData;
+
+        return {
+          id: projectRecord.id,
+          name: projectRecord.name,
+          slug: projectRecord.slug,
+          category: projectRecord.category,
+          website_url: projectRecord.website_url,
+          status: projectRecord.status,
+          created_at: projectRecord.created_at,
+          updated_at: projectRecord.updated_at,
+          created_by_user_id: projectRecord.created_by_user_id,
+          owner_user_id: projectRecord.owner_user_id,
+          role: membershipItem.role as "owner" | "admin" | "editor" | "viewer",
+        };
+      },
     );
 
-    if (!isMemberData) {
+    if (projectItems.length > 0) {
       return {
-        data: null,
-        error: new Error("Access denied to this project"),
-        statusCode: HTTP_STATUS.FORBIDDEN,
+        data: projectItems,
+        error: null,
+        statusCode: HTTP_STATUS.OK,
       };
     }
 
-    // Fetch core project record.
-    const projectData = await fetchProjectByIdService(projectIdData);
+    const { data: ownedProjectItems, error: ownedProjectError } = await supabase
+      .from(tables.PROJECTS)
+      .select(projectOwnerSelectFields)
+      .eq("owner_user_id", internalUserIdData)
+      .order("created_at", { ascending: false });
 
-    if (!projectData) {
+    if (ownedProjectError) {
+      logger.error(
+        "[projects.service] failed to fetch owned projects fallback",
+        ownedProjectError,
+      );
       return {
         data: null,
-        error: new Error("Project not found"),
-        statusCode: HTTP_STATUS.NOT_FOUND,
+        error: new Error("Failed to fetch projects."),
+        statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
       };
     }
 
-    // Fetch current structure version and credentials in parallel.
-    const [currentVersionData, googleSheetCredentialData] = await Promise.all([
-      fetchCurrentStructureVersionService(projectIdData),
-      fetchGoogleSheetCredentialsService(projectIdData),
-    ]);
+    const ownedProjectWithRoleItems: ProjectWithRoleData[] = (
+      ownedProjectItems ?? []
+    ).map((projectItem) => ({
+      id: projectItem.id,
+      name: projectItem.name,
+      slug: projectItem.slug,
+      category: projectItem.category,
+      website_url: projectItem.website_url,
+      status: projectItem.status,
+      created_at: projectItem.created_at,
+      updated_at: projectItem.updated_at,
+      created_by_user_id: projectItem.created_by_user_id,
+      owner_user_id: projectItem.owner_user_id,
+      role: "owner",
+    }));
 
     return {
-      data: {
-        project: projectData,
-        structure: {
-          current_version: currentVersionData,
-        },
-        google_sheet_credentials: googleSheetCredentialData,
-      },
+      data: ownedProjectWithRoleItems,
       error: null,
       statusCode: HTTP_STATUS.OK,
+    };
+  } catch {
+    logger.error("[projects.service] unexpected error while fetching projects");
+    return {
+      data: null,
+      error: new Error("Internal server error"),
+      statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+    };
+  }
+}
+
+/**
+ * Creates project transaction using RPC.
+ */
+export async function createProjectService(
+  payloadData: CreateProjectPayloadData,
+  accessTokenData: string,
+): Promise<CreateProjectServiceResponseData> {
+  try {
+    const authIdData = await resolveAuthUserIdByTokenService(accessTokenData);
+
+    if (!authIdData) {
+      return {
+        data: null,
+        error: new Error("Invalid or expired access token."),
+        statusCode: HTTP_STATUS.UNAUTHORIZED,
+      };
+    }
+
+    const userIdData = await resolveUserIdByAuthIdService(
+      authIdData,
+      accessTokenData,
+    );
+
+    if (!userIdData) {
+      return {
+        data: null,
+        error: new Error("Authenticated user not found."),
+        statusCode: HTTP_STATUS.UNAUTHORIZED,
+      };
+    }
+
+    const supabaseClient = createSupabaseClientByTokenRequest(accessTokenData);
+
+    const rpcResponseData = await supabaseClient.rpc(
+      rpcFunctions.CREATE_PROJECT_TRANSACTION,
+      {
+        p_name: payloadData.name,
+        p_category: payloadData.category ?? "web-app",
+        p_website_url: payloadData.website_url ?? null,
+        p_slug: payloadData.slug,
+        p_user_id: userIdData,
+        p_google_sheet_id: payloadData.google_sheet_credentials.google_sheet_id,
+        p_google_project_id:
+          payloadData.google_sheet_credentials.google_project_id ?? null,
+        p_private_key_id: payloadData.google_sheet_credentials.private_key_id ?? null,
+        p_client_email: payloadData.google_sheet_credentials.client_email,
+        p_client_id: payloadData.google_sheet_credentials.client_id ?? null,
+        p_client_x509_cert_url:
+          payloadData.google_sheet_credentials.client_x509_cert_url ?? null,
+        p_private_key: payloadData.google_sheet_credentials.private_key,
+        p_php_code: payloadData.structure.php_code ?? null,
+        p_json_code: payloadData.structure.json_code,
+      },
+    );
+
+    if (rpcResponseData.error) {
+      const errorMessageData = rpcResponseData.error.message ?? "";
+
+      if (checkIsSlugConflictErrorService(errorMessageData)) {
+        return {
+          data: null,
+          error: new Error("Slug already exists"),
+          statusCode: HTTP_STATUS.CONFLICT,
+        };
+      }
+
+      logger.error("[projects.service] RPC create_project_transaction failed", {
+        message: errorMessageData,
+      });
+
+      return {
+        data: null,
+        error: new Error("Failed to create project."),
+        statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+      };
+    }
+
+    const resultData = rpcResponseData.data as CreateProjectTransactionResultData;
+
+    return {
+      data: resultData,
+      error: null,
+      statusCode: HTTP_STATUS.CREATED,
     };
   } catch (errorData: unknown) {
     logger.error("[projects.service] unexpected error", errorData);
     return {
       data: null,
-      error: new Error("Failed to fetch project details"),
+      error: new Error("Failed to create project."),
       statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
     };
   }

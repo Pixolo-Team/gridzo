@@ -3,6 +3,7 @@ import "./globals.css";
 
 // COMPONENTS //
 import { Inter, Geist } from "next/font/google";
+import { Toaster } from "@/components/ui/sonner";
 
 // DATA //
 import type { Metadata } from "next";
@@ -44,6 +45,7 @@ export default function RootLayout({
     <html lang="en" className={cn("font-sans", geist.variable)}>
       <body className="antialiased font-sans min-h-screen bg-n-100">
         {children}
+        <Toaster richColors position="top-right" />
       </body>
     </html>
   );
