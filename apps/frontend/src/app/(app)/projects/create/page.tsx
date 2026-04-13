@@ -12,14 +12,17 @@ import type { CreateProjectRequestData } from "@/types/projects";
 import { CreateProjectProgress } from "@/components/projects/create-project/CreateProjectProgress";
 import CreateProjectStepContent from "@/components/projects/create-project/CreateProjectStepContent";
 
+// API SERVICES //
+import { createProjectRequest } from "@/services/api/projects.api";
+
 // CONTEXTS //
 import { useCreateProjectFlowContext } from "@/contexts/create-project-flow.context";
 
-// SERVICES //
-import { createProjectRequest } from "@/services/api/projects.api";
-
 // CONSTANTS //
 import { ROUTES } from "@/app/constants/routes";
+
+// OTHERS //
+import { toast } from "sonner";
 
 // DATA //
 import { createProjectStepItems } from "@/app/data/create-project";
@@ -170,20 +173,22 @@ export default function CreateProjectPage() {
       .then((response) => {
         // If project creation was successful, return true to proceed to success page
         if (response.status_code === 201 && response.status) {
+          // Show success message in Toast
+          toast.success(response.message);
           return true;
         }
 
         // Set Create project submission error message to response message
-        setCreateProjectSubmissionErrorMessage(
-          response.message || "Failed to create project.",
-        );
+        setCreateProjectSubmissionErrorMessage(response.message);
+        toast.error(response.message);
         return false;
       })
       .catch(() => {
+        const errorMessage = "Failed to create project. Please try again.";
+
         // Set Create project submission error message to response message
-        setCreateProjectSubmissionErrorMessage(
-          "Failed to create project. Please try again.",
-        );
+        setCreateProjectSubmissionErrorMessage(errorMessage);
+        toast.error(errorMessage);
         return false;
       })
       .finally(() => {

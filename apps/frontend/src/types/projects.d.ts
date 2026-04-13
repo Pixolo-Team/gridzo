@@ -31,6 +31,10 @@ export type CreateProjectRequestGoogleSheetCredentialsData = {
   google_sheet_id: string;
   google_project_id?: string;
   private_key: string;
+  private_key_id?: string;
+  client_email: string;
+  client_id?: string;
+  client_x509_cert_url: string | undefined;
 };
 
 // Type for Create Project Request Structure Data
