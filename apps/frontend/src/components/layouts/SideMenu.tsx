@@ -10,6 +10,11 @@ import BrandLogo from "@/components/ui/BrandLogo";
 import Close from "@/components/icons/neevo-icons/Close";
 import Cog from "@/components/icons/neevo-icons/Cog";
 import DashboardSquare from "@/components/icons/neevo-icons/DashboardSquare";
+import DeployRules from "@/components/icons/neevo-icons/DeployRules";
+import PortraitSetting from "@/components/icons/neevo-icons/PortraitSetting";
+
+// CONTEXTS //
+import { useAuthContext } from "@/contexts/AuthContext";
 
 // CONSTANTS //
 import { ROUTES } from "@/app/constants/routes";
@@ -57,6 +62,7 @@ export function SideMenu({
   const pathname = usePathname();
 
   // Define Context
+  const { user } = useAuthContext();
 
   // Define Refs
 
@@ -102,6 +108,22 @@ export function SideMenu({
         label: "Dashboard",
       },
       {
+        id: "project-structure",
+        href: ROUTES.APP.PROJECTS.STRUCTURE(projectId),
+        backgroundColor: "bg-purple-100",
+        iconColor: "text-purple-500",
+        Icon: DeployRules,
+        label: "Structure",
+      },
+      {
+        id: "project-user-access",
+        href: ROUTES.APP.PROJECTS.USER_ACCESS(projectId),
+        backgroundColor: "bg-blue-100",
+        iconColor: "text-blue-500",
+        Icon: PortraitSetting,
+        label: "User Access",
+      },
+      {
         id: "project-settings",
         href: ROUTES.APP.PROJECTS.EDIT(projectId),
         backgroundColor: "bg-green-100",
@@ -125,6 +147,14 @@ export function SideMenu({
     }
 
     if (sidebarNavigationItem.id === "project-dashboard") {
+      return pathname === sidebarNavigationItem.href;
+    }
+
+    if (sidebarNavigationItem.id === "project-structure") {
+      return pathname === sidebarNavigationItem.href;
+    }
+
+    if (sidebarNavigationItem.id === "project-user-access") {
       return pathname === sidebarNavigationItem.href;
     }
 
@@ -197,8 +227,12 @@ export function SideMenu({
         <div className="flex items-center gap-[18px]">
           <div className="size-12 overflow-hidden rounded-full">
             <Image
-              src={"/images/dummy-profile.png"}
-              alt="Deven Bhagtani"
+              src={user?.avatar_url ?? "/images/dummy-profile.png"}
+              alt={
+                user?.full_name
+                  ? `${user.full_name}'s profile`
+                  : "Guest profile"
+              }
               className="h-full w-full object-cover"
               width={48}
               height={48}
@@ -206,10 +240,14 @@ export function SideMenu({
           </div>
 
           <div className="flex flex-col gap-0.5">
+            {/* User Name */}
             <p className="text-lg font-semibold leading-normal text-n-950">
-              Deven Bhagtani
+              {user ? user.full_name : "Guest"}
             </p>
-            <p className="text-sm leading-normal text-n-500">Pro Plan</p>
+            {/* User Email */}
+            <p className="text-sm leading-normal text-n-500">
+              {user ? user.email : "guest@gmail.com"}
+            </p>
           </div>
         </div>
       </div>
