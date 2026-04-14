@@ -25,11 +25,11 @@ async function getAccessTokenForApiRequestService(): Promise<string> {
     sessionResponseData.data.session?.access_token ?? null;
 
   if (sessionAccessTokenData) {
-    localStorage.setItem("access_token", sessionAccessTokenData);
+    localStorage.setItem(CONSTANTS.ACCESS_TOKEN_KEY, sessionAccessTokenData);
     return sessionAccessTokenData;
   }
 
-  const localAccessTokenData = localStorage.getItem("access_token");
+  const localAccessTokenData = localStorage.getItem(CONSTANTS.ACCESS_TOKEN_KEY);
 
   if (!localAccessTokenData) {
     throw new Error("Missing access token. Please sign in again.");

@@ -5,11 +5,16 @@ import "./globals.css";
 import { Inter, Geist } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 
-// DATA //
-import type { Metadata } from "next";
+// CONTEXTS //
+import { AuthProvider } from "@/contexts/AuthContext";
+
+// OTHERS //
 import { cn } from "@/lib/utils";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+// DATA //
+import type { Metadata } from "next";
+
+const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
 const interSans = Inter({
   variable: "--font-inter-sans",
@@ -44,7 +49,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={cn("font-sans", geist.variable)}>
       <body className="antialiased font-sans min-h-screen bg-n-100">
-        {children}
+        <AuthProvider>{children}</AuthProvider>
         <Toaster richColors position="top-right" />
       </body>
     </html>

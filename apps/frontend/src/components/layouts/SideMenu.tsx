@@ -1,11 +1,7 @@
 "use client";
 
-// REACT //
-import { useCallback, useEffect, useState } from "react";
-
 // TYPES //
 import type { IconComponentData } from "@/types/icon";
-import type { UserData } from "@/types/user";
 
 // COMPONENTS //
 import Image from "next/image";
@@ -14,11 +10,14 @@ import BrandLogo from "@/components/ui/BrandLogo";
 import Close from "@/components/icons/neevo-icons/Close";
 import Cog from "@/components/icons/neevo-icons/Cog";
 import DashboardSquare from "@/components/icons/neevo-icons/DashboardSquare";
+import DeployRules from "@/components/icons/neevo-icons/DeployRules";
 import PortraitSetting from "@/components/icons/neevo-icons/PortraitSetting";
+
+// CONTEXTS //
+import { useAuthContext } from "@/contexts/AuthContext";
 
 // CONSTANTS //
 import { ROUTES } from "@/app/constants/routes";
-import { CONSTANTS } from "@/constants/constants";
 
 // NAVIGATION //
 import { usePathname } from "next/navigation";
@@ -63,13 +62,11 @@ export function SideMenu({
   const pathname = usePathname();
 
   // Define Context
+  const { user } = useAuthContext();
 
   // Define Refs
 
   // Define States
-  const [authenticatedUser, setAuthenticatedUser] = useState<UserData | null>(
-    null,
-  );
 
   // Helper Functions
   /** Checks whether the current route is within a project details area */
@@ -111,6 +108,14 @@ export function SideMenu({
         label: "Dashboard",
       },
       {
+        id: "project-structure",
+        href: ROUTES.APP.PROJECTS.STRUCTURE(projectId),
+        backgroundColor: "bg-purple-100",
+        iconColor: "text-purple-500",
+        Icon: DeployRules,
+        label: "Structure",
+      },
+      {
         id: "project-user-access",
         href: ROUTES.APP.PROJECTS.USER_ACCESS(projectId),
         backgroundColor: "bg-blue-100",
@@ -145,6 +150,10 @@ export function SideMenu({
       return pathname === sidebarNavigationItem.href;
     }
 
+    if (sidebarNavigationItem.id === "project-structure") {
+      return pathname === sidebarNavigationItem.href;
+    }
+
     if (sidebarNavigationItem.id === "project-user-access") {
       return pathname === sidebarNavigationItem.href;
     }
@@ -155,28 +164,6 @@ export function SideMenu({
 
     return false;
   };
-
-  /**
-   * Loads authenticated user details from local storage.
-   */
-  const getAuthenticatedUser = useCallback((): void => {
-    // Get User from Local Storage
-    const storedUserItem = window.localStorage.getItem(
-      CONSTANTS.AUTH_USER_STORAGE_KEY,
-    );
-
-    if (!storedUserItem) {
-      setAuthenticatedUser(null);
-      return;
-    }
-
-    try {
-      const parsedUser = JSON.parse(storedUserItem) as UserData;
-      setAuthenticatedUser(parsedUser);
-    } catch {
-      setAuthenticatedUser(null);
-    }
-  }, []);
 
   const sideMenuNavigationContent = (
     <>
@@ -240,10 +227,10 @@ export function SideMenu({
         <div className="flex items-center gap-[18px]">
           <div className="size-12 overflow-hidden rounded-full">
             <Image
-              src={authenticatedUser?.avatar_url ?? "/images/dummy-profile.png"}
+              src={user?.avatar_url ?? "/images/dummy-profile.png"}
               alt={
-                authenticatedUser?.full_name
-                  ? `${authenticatedUser.full_name}'s profile`
+                user?.full_name
+                  ? `${user.full_name}'s profile`
                   : "Guest profile"
               }
               className="h-full w-full object-cover"
@@ -255,11 +242,11 @@ export function SideMenu({
           <div className="flex flex-col gap-0.5">
             {/* User Name */}
             <p className="text-lg font-semibold leading-normal text-n-950">
-              {authenticatedUser ? authenticatedUser.full_name : "Guest"}
+              {user ? user.full_name : "Guest"}
             </p>
             {/* User Email */}
             <p className="text-sm leading-normal text-n-500">
-              {authenticatedUser ? authenticatedUser.email : "guest@gmail.com"}
+              {user ? user.email : "guest@gmail.com"}
             </p>
           </div>
         </div>
@@ -268,9 +255,6 @@ export function SideMenu({
   );
 
   // Use Effects
-  useEffect(() => {
-    getAuthenticatedUser();
-  }, [getAuthenticatedUser]);
 
   return (
     <>
