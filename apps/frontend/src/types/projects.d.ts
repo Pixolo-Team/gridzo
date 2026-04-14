@@ -4,7 +4,7 @@ export type ProjectStructureData = {
   version: string;
   php_code: string | null;
   is_current: boolean;
-  json_code: Record<string, unknown>;
+  json_code: string | Record<string, unknown>;
 };
 
 // Type for Project Google Sheet Credentials Data

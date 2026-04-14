@@ -1,11 +1,17 @@
 "use client";
 
 // REACT //
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 // COMPONENTS //
 import CodeEditor from "@/components/ui/CodeEditor";
 import PageIntro from "@/components/ui/PageIntro";
+
+// TYPES //
+import type { ProjectStructureData } from "@/types/projects";
+
+// CONTEXTS //
+import { useProjectDetailsContext } from "@/contexts/ProjectContext";
 
 type StructureEditorModeData = "php" | "json";
 
@@ -15,44 +21,33 @@ interface StructureEditorContentData {
 }
 
 const structureEditorContent = {
-  php: `<?php
-return [
-    'app_name' => 'Structure Editor',
-    'version' => '2.1.0',
-    'core' => [
-        'mode' => 'production',
-        'debug' => false,
-        'architecture' => 'monolith-first',
-        'scaling' => [
-            'auto' => true,
-            'threshold' => 75
-        ]
-    ],
-    'definitions' => [
-        'routes' => 'api/v1',
-        'controllers' => 'src/Controllers',
-        'models' => 'src/Models'
-    ]
-];`,
-  json: `{
-  "app_name": "Structure Editor",
-  "version": "2.1.0",
-  "core": {
-    "mode": "production",
-    "debug": false,
-    "architecture": "monolith-first",
-    "scaling": {
-      "auto": true,
-      "threshold": 75
-    }
-  },
-  "definitions": {
-    "routes": "api/v1",
-    "controllers": "src/Controllers",
-    "models": "src/Models"
-  }
-}`,
+  php: "",
+  json: "{}",
 };
+
+/**
+ * Normalizes structure JSON into a display-safe string.
+ */
+function getStructureJsonTextService(
+  jsonCodeData: ProjectStructureData["json_code"],
+): string {
+  if (typeof jsonCodeData === "string") {
+    const trimmedJsonData = jsonCodeData.trim();
+
+    if (!trimmedJsonData) {
+      return "{}";
+    }
+
+    try {
+      const parsedJsonData = JSON.parse(trimmedJsonData);
+      return JSON.stringify(parsedJsonData, null, 2);
+    } catch {
+      return trimmedJsonData;
+    }
+  }
+
+  return JSON.stringify(jsonCodeData ?? {}, null, 2);
+}
 
 /**
  * Renders the project structure editor page.
@@ -61,6 +56,11 @@ export default function ProjectStructurePage() {
   // Define Navigation
 
   // Define Context
+  const {
+    projectDetails,
+    isProjectDetailsLoading,
+    projectDetailsErrorMessage,
+  } = useProjectDetailsContext();
 
   // Define Refs
 
@@ -104,8 +104,21 @@ export default function ProjectStructurePage() {
   };
 
   const activeEditor = editorContent[editorMode];
+  const currentStructureVersion = useMemo(() => {
+    return projectDetails?.project.structure.current_version ?? null;
+  }, [projectDetails]);
 
   // Use Effects
+  useEffect(() => {
+    if (!currentStructureVersion) {
+      return;
+    }
+
+    setEditorContent({
+      php: currentStructureVersion.php_code ?? "",
+      json: getStructureJsonTextService(currentStructureVersion.json_code),
+    });
+  }, [currentStructureVersion]);
 
   return (
     <section className="flex min-h-full flex-col gap-8 bg-n-100 px-6 py-8 md:px-9 md:py-10">
@@ -113,6 +126,14 @@ export default function ProjectStructurePage() {
         title="Edit structure.php"
         description="Modify the core architectural definition of your project. Ensure syntax is valid before saving."
       />
+
+      {isProjectDetailsLoading ? (
+        <p className="text-sm text-n-600">Loading structure...</p>
+      ) : null}
+
+      {projectDetailsErrorMessage ? (
+        <p className="text-sm text-red-600">{projectDetailsErrorMessage}</p>
+      ) : null}
 
       {/* Code Editor Component */}
       <CodeEditor
