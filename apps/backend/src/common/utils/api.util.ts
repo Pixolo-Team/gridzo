@@ -1,8 +1,6 @@
-// TYPES //
-import type { ApiResponseData } from "@/common/types/api.response.type";
-
 // CONSTANTS //
 import { ERROR_MESSAGES, HTTP_STATUS } from "@/constants/api";
+import type { ApiResponseData } from "@/common/types/api.response.type";
 
 // UTILS //
 import type { ContentfulStatusCode } from "hono/utils/http-status";
@@ -22,7 +20,7 @@ interface SuccessApiResponseData<T> extends Omit<ApiResponseData<T>, "error"> {
  * Send success response
  */
 export const successResponse = <
-  T = unknown,
+  T,
   S extends ContentfulStatusCode = typeof HTTP_STATUS.OK,
 >(
   c: Context,
@@ -37,6 +35,7 @@ export const successResponse = <
     error: null,
     message,
   };
+
   return c.json(response, statusCode);
 };
 
@@ -58,5 +57,6 @@ export const errorResponse = <
     data: null,
     error,
   };
+
   return c.json(response, statusCode);
 };

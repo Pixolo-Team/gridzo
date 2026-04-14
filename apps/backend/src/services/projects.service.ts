@@ -1,31 +1,114 @@
 // MODELS //
+import type { ProjectInvitationData } from "@/models/project-invitation.model";
 import type {
-  ProjectInvitationData,
+  CreateProjectTransactionResultData,
+  ProjectByIdResultData,
+  ProjectData,
+  ProjectPendingInvitationData,
   ProjectUserData,
   ProjectUsersPayloadData,
-} from "@/models/project.model.js";
+  ProjectWithRoleData,
+} from "@/models/project.model";
 
 // TYPES //
-import type { QueryResponseData } from "@/common/types/query.response.type.js";
+import type { QueryResponseData } from "@/common/types/query.response.type";
 
 // CONSTANTS //
-import { tables } from "@/constants/database.constants.js";
+import { HTTP_STATUS } from "@/constants/api";
+import { rpcFunctions, tables } from "@/constants/database.constants";
 
 // UTILS //
-import { logger } from "@/common/utils/logger.util.js";
+import { logger } from "@/common/utils/logger.util";
 
 // CONFIG //
-import { supabase } from "@/config/supabase.js";
+import {
+  createSupabaseClientByTokenRequest,
+  supabase,
+} from "@/config/supabase";
+
+const slugConflictMarker = "SLUG_CONFLICT";
 
 type GetAllProjectUsersServiceResponseData =
   QueryResponseData<ProjectUsersPayloadData> & {
-    statusCode: 200 | 401 | 403 | 404 | 500;
+    statusCode:
+      | typeof HTTP_STATUS.OK
+      | typeof HTTP_STATUS.UNAUTHORIZED
+      | typeof HTTP_STATUS.FORBIDDEN
+      | typeof HTTP_STATUS.NOT_FOUND
+      | typeof HTTP_STATUS.INTERNAL_SERVER_ERROR;
   };
+
+type InviteUserStatusCodeData =
+  | typeof HTTP_STATUS.OK
+  | typeof HTTP_STATUS.UNAUTHORIZED
+  | typeof HTTP_STATUS.NOT_FOUND
+  | typeof HTTP_STATUS.INTERNAL_SERVER_ERROR;
+
+type InviteUserServiceResponseData = QueryResponseData<
+  Pick<
+    ProjectInvitationData,
+    "id" | "project_id" | "invited_user_id" | "role" | "status" | "expires_at"
+  >
+> & {
+  statusCode: InviteUserStatusCodeData;
+};
+
+type ProjectsStatusCodeData =
+  | typeof HTTP_STATUS.OK
+  | typeof HTTP_STATUS.UNAUTHORIZED
+  | typeof HTTP_STATUS.NOT_FOUND
+  | typeof HTTP_STATUS.INTERNAL_SERVER_ERROR;
+
+type ProjectsServiceResponseData = QueryResponseData<ProjectWithRoleData[]> & {
+  statusCode: ProjectsStatusCodeData;
+};
+
+type ProjectByIdServiceResponseData = QueryResponseData<ProjectByIdResultData> & {
+  statusCode: ProjectsStatusCodeData;
+};
+
+type CreateProjectStatusCodeData =
+  | typeof HTTP_STATUS.CREATED
+  | typeof HTTP_STATUS.UNAUTHORIZED
+  | typeof HTTP_STATUS.CONFLICT
+  | typeof HTTP_STATUS.INTERNAL_SERVER_ERROR;
+
+type CreateProjectServiceResponseData =
+  QueryResponseData<CreateProjectTransactionResultData> & {
+    statusCode: CreateProjectStatusCodeData;
+  };
+
+const projectSelectFields =
+  "id, name, slug, category, website_url, status, created_at, updated_at, created_by_user_id, owner_user_id";
+
+const projectOwnerSelectFields =
+  "id, name, slug, category, website_url, status, created_at, updated_at, created_by_user_id, owner_user_id";
+
+/**
+ * Input payload for creating a project.
+ */
+export interface CreateProjectPayloadData {
+  name: string;
+  slug: string;
+  category?: string;
+  website_url?: string;
+  google_sheet_credentials: {
+    google_sheet_id: string;
+    google_project_id?: string;
+    private_key_id?: string;
+    client_email: string;
+    client_id?: string;
+    client_x509_cert_url?: string;
+    private_key: string;
+  };
+  structure: {
+    php_code?: string;
+    json_code: Record<string, unknown>;
+  };
+}
 
 /**
  * Extracts the bearer token from a raw Authorization header value.
- * @param authorizationHeaderData - Raw Authorization header string.
- * @returns Access token string or null when the header is missing or malformed.
  */
 function extractBearerTokenService(
   authorizationHeaderData: string | undefined,
@@ -42,70 +125,160 @@ function extractBearerTokenService(
 }
 
 /**
- * Resolves the Supabase auth UUID to the internal users table UUID.
- * @param accessTokenData - Supabase access token to identify the auth user.
- * @returns Internal users table UUID or null when the user record is not found.
+ * Resolves internal user ID from Supabase auth ID.
  */
-async function resolveInternalUserIdService(
-  accessTokenData: string,
+async function resolveInternalUserIdByAuthIdService(
+  authUserIdData: string,
 ): Promise<string | null> {
-  const authUserResponseData = await supabase.auth.getUser(accessTokenData);
-
-  if (authUserResponseData.error || !authUserResponseData.data.user) {
-    return null;
-  }
-
-  const authUserIdData = authUserResponseData.data.user.id;
-
-  const { data, error } = await supabase
+  const { data: userData, error: userError } = await supabase
     .from(tables.USERS)
     .select("id")
     .eq("auth_id", authUserIdData)
     .maybeSingle();
 
-  if (error) {
-    logger.error(
-      "[projects.service] failed to resolve internal user id",
-      error,
-    );
+  if (userError || !userData) {
     return null;
   }
 
-  return (data as { id: string } | null)?.id ?? null;
+  return (userData as { id: string }).id;
 }
 
 /**
- * Checks whether the given user is a member of the given project.
- * @param projectIdData - UUID of the project.
- * @param userIdData - Internal users table UUID of the authenticated user.
- * @returns True when membership exists; false otherwise.
+ * Validates bearer token and returns auth user ID.
  */
-async function checkProjectMembershipService(
-  projectIdData: string,
-  userIdData: string,
-): Promise<boolean> {
-  const { data, error } = await supabase
-    .from(tables.PROJECT_USER)
-    .select("role")
-    .eq("project_id", projectIdData)
-    .eq("user_id", userIdData)
+async function resolveAuthUserIdByTokenService(
+  accessTokenData: string,
+): Promise<string | null> {
+  const supabaseClient = createSupabaseClientByTokenRequest(accessTokenData);
+  const authUserResponseData = await supabaseClient.auth.getUser(accessTokenData);
+
+  if (authUserResponseData.error || !authUserResponseData.data.user) {
+    return null;
+  }
+
+  return authUserResponseData.data.user.id;
+}
+
+/**
+ * Resolves internal user ID by auth ID.
+ */
+async function resolveUserIdByAuthIdService(
+  authIdData: string,
+  accessTokenData: string,
+): Promise<string | null> {
+  const supabaseClient = createSupabaseClientByTokenRequest(accessTokenData);
+
+  const userResponseData = await supabaseClient
+    .from(tables.USERS)
+    .select("id")
+    .eq("auth_id", authIdData)
     .maybeSingle();
 
-  if (error) {
+  if (userResponseData.error || !userResponseData.data) {
+    return null;
+  }
+
+  return (userResponseData.data as { id: string }).id;
+}
+
+/**
+ * Checks if RPC error is slug conflict.
+ */
+function checkIsSlugConflictErrorService(errorMessageData: string): boolean {
+  return errorMessageData.includes(slugConflictMarker);
+}
+
+/**
+ * Checks if value is UUID.
+ */
+function checkIsUuidService(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    value,
+  );
+}
+
+/**
+ * Resolves project row id from uuid or slug identifier.
+ */
+async function resolveProjectIdByIdentifierService(
+  projectIdentifierData: string,
+): Promise<string | null> {
+  const isUuidIdentifier = checkIsUuidService(projectIdentifierData);
+
+  const projectResponseData = isUuidIdentifier
+    ? await supabase
+        .from(tables.PROJECTS)
+        .select("id")
+        .eq("id", projectIdentifierData)
+        .maybeSingle()
+    : await supabase
+        .from(tables.PROJECTS)
+        .select("id")
+        .eq("slug", projectIdentifierData)
+        .maybeSingle();
+
+  if (projectResponseData.error || !projectResponseData.data) {
+    return null;
+  }
+
+  return (projectResponseData.data as { id: string }).id;
+}
+
+/**
+ * Checks whether the given user has access to the given project.
+ */
+async function checkProjectAccessService(
+  projectIdData: string,
+  internalUserIdData: string,
+  authUserIdData: string,
+): Promise<boolean> {
+  const { data: projectMembershipItem, error: projectMembershipError } =
+    await supabase
+      .from(tables.PROJECT_USER)
+      .select("project_id")
+      .eq("project_id", projectIdData)
+      .or(`user_id.eq.${internalUserIdData},user_id.eq.${authUserIdData}`)
+      .maybeSingle();
+
+  if (projectMembershipError) {
     logger.error(
-      "[projects.service] failed to check project membership",
-      error,
+      "[projects.service] failed to verify project membership access",
+      projectMembershipError,
     );
     return false;
   }
 
-  return data !== null;
+  if (projectMembershipItem) {
+    return true;
+  }
+
+  const { data: ownedProjectItem, error: ownedProjectError } = await supabase
+    .from(tables.PROJECTS)
+    .select("id")
+    .eq("id", projectIdData)
+    .or(
+      [
+        `owner_user_id.eq.${internalUserIdData}`,
+        `owner_user_id.eq.${authUserIdData}`,
+        `created_by_user_id.eq.${internalUserIdData}`,
+        `created_by_user_id.eq.${authUserIdData}`,
+      ].join(","),
+    )
+    .maybeSingle();
+
+  if (ownedProjectError) {
+    logger.error(
+      "[projects.service] failed to verify owned project access",
+      ownedProjectError,
+    );
+    return false;
+  }
+
+  return Boolean(ownedProjectItem);
 }
 
 /**
  * Fetches all active members of a project from project_user joined with users.
- * @param projectIdData - UUID of the project.
- * @returns Array of project user records or null on error.
  */
 async function fetchProjectUsersService(
   projectIdData: string,
@@ -120,7 +293,6 @@ async function fetchProjectUsersService(
     return null;
   }
 
-  // Supabase may return joined one-to-one relations as arrays or objects; normalize to objects
   return (data ?? []).map(
     (rowItem: {
       role: string;
@@ -136,6 +308,7 @@ async function fetchProjectUsersService(
       const userRowData = Array.isArray(rowItem.users)
         ? rowItem.users[0]
         : rowItem.users;
+
       return {
         id: userRowData?.id ?? "",
         email: userRowData?.email ?? "",
@@ -149,15 +322,13 @@ async function fetchProjectUsersService(
 
 /**
  * Fetches all pending invitations for a project from project_invitations joined with users.
- * @param projectIdData - UUID of the project.
- * @returns Array of project invitation records or null on error.
  */
 async function fetchPendingInvitationsService(
   projectIdData: string,
-): Promise<ProjectInvitationData[] | null> {
+): Promise<ProjectPendingInvitationData[] | null> {
   const { data, error } = await supabase
     .from(tables.PROJECT_INVITATIONS)
-    .select("id, role, status, users(email)")
+    .select("id, role, status, invited_user_id")
     .eq("project_id", projectIdData)
     .eq("status", "pending");
 
@@ -169,70 +340,132 @@ async function fetchPendingInvitationsService(
     return null;
   }
 
-  // Supabase may return joined one-to-one relations as arrays or objects; normalize to objects
-  return (data ?? []).map(
-    (rowItem: {
-      id: string;
-      role: string;
-      status: string;
-      users: { email: string }[] | null;
-    }) => {
-      const userRowData = Array.isArray(rowItem.users)
-        ? rowItem.users[0]
-        : rowItem.users;
-      return {
-        id: rowItem.id,
-        email: userRowData?.email ?? "",
-        role: rowItem.role as ProjectInvitationData["role"],
-        status: "pending" as const,
-      };
-    },
-  );
+  const invitationItemsData = (data ?? []) as {
+    id: string;
+    role: string;
+    status: string;
+    invited_user_id: string | null;
+  }[];
+
+  const invitedUserIdItemsData = invitationItemsData
+    .map((invitationItemData) => invitationItemData.invited_user_id)
+    .filter((invitedUserIdData): invitedUserIdData is string => {
+      return Boolean(invitedUserIdData);
+    });
+
+  const invitedUserEmailMapData = new Map<string, string>();
+
+  if (invitedUserIdItemsData.length > 0) {
+    const { data: invitedUserItemsData, error: invitedUserItemsError } =
+      await supabase
+        .from(tables.USERS)
+        .select("id, email")
+        .in("id", invitedUserIdItemsData);
+
+    if (invitedUserItemsError) {
+      logger.error(
+        "[projects.service] failed to fetch invited user emails",
+        invitedUserItemsError,
+      );
+      return null;
+    }
+
+    (invitedUserItemsData ?? []).forEach((invitedUserItemData) => {
+      invitedUserEmailMapData.set(invitedUserItemData.id, invitedUserItemData.email);
+    });
+  }
+
+  return invitationItemsData.map((invitationItemData) => {
+    const invitationEmailData = invitationItemData.invited_user_id
+      ? invitedUserEmailMapData.get(invitationItemData.invited_user_id) ?? ""
+      : "";
+
+    return {
+      id: invitationItemData.id,
+      email: invitationEmailData,
+      role: invitationItemData.role as ProjectPendingInvitationData["role"],
+      status: "pending",
+    };
+  });
 }
 
 /**
  * Fetches all active project members and pending invitations for a project.
- * @param projectIdData - UUID of the project from path params.
- * @param authorizationHeaderData - Raw Authorization header value from the request.
- * @returns Service envelope containing combined users and invitations payload.
  */
 export async function getAllProjectUsersService(
   projectIdData: string,
   authorizationHeaderData: string | undefined,
 ): Promise<GetAllProjectUsersServiceResponseData> {
-  // Extract and validate the bearer token from the Authorization header
   const accessTokenData = extractBearerTokenService(authorizationHeaderData);
 
   if (!accessTokenData) {
     return {
       data: null,
       error: new Error("Authorization header must contain a bearer token."),
-      statusCode: 401,
+      statusCode: HTTP_STATUS.UNAUTHORIZED,
     };
   }
 
-  // Resolve the Supabase auth UUID to the internal users table UUID
-  const internalUserIdData = await resolveInternalUserIdService(accessTokenData);
+  const authUserIdData = await resolveAuthUserIdByTokenService(accessTokenData);
+
+  if (!authUserIdData) {
+    return {
+      data: null,
+      error: new Error("Invalid or expired access token."),
+      statusCode: HTTP_STATUS.UNAUTHORIZED,
+    };
+  }
+
+  const internalUserIdData = await resolveUserIdByAuthIdService(
+    authUserIdData,
+    accessTokenData,
+  );
 
   if (!internalUserIdData) {
     return {
       data: null,
       error: new Error("Authenticated user not found."),
-      statusCode: 401,
+      statusCode: HTTP_STATUS.UNAUTHORIZED,
     };
   }
 
-  // Verify the requesting user is a member of this project before returning data
-  const isMemberData = await checkProjectMembershipService(
+  const projectExistsResponseData = await supabase
+    .from(tables.PROJECTS)
+    .select("id")
+    .eq("id", projectIdData)
+    .maybeSingle();
+
+  if (projectExistsResponseData.error) {
+    logger.error(
+      "[projects.service] failed to verify project existence",
+      projectExistsResponseData.error,
+    );
+    return {
+      data: null,
+      error: new Error("Failed to fetch project users."),
+      statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+    };
+  }
+
+  if (!projectExistsResponseData.data) {
+    return {
+      data: null,
+      error: new Error("Project not found"),
+      statusCode: HTTP_STATUS.NOT_FOUND,
+    };
+  }
+
+  const hasProjectAccessData = await checkProjectAccessService(
     projectIdData,
     internalUserIdData,
+    authUserIdData,
   );
 
-  if (!isMemberData) {
+  if (!hasProjectAccessData) {
     return {
       data: null,
       error: new Error("You do not have access to this project."),
-      statusCode: 403,
+      statusCode: HTTP_STATUS.FORBIDDEN,
     };
   }
 
@@ -245,7 +478,7 @@ export async function getAllProjectUsersService(
     return {
       data: null,
       error: new Error("Failed to fetch project users."),
-      statusCode: 500,
+      statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
     };
   }
 
@@ -255,6 +488,464 @@ export async function getAllProjectUsersService(
       invitations: pendingInvitationsData,
     },
     error: null,
-    statusCode: 200,
+    statusCode: HTTP_STATUS.OK,
   };
+}
+
+/**
+ * Invites an existing user to a project by creating a pending invitation record.
+ */
+export async function inviteUserToProjectService(
+  accessTokenData: string,
+  projectIdData: string,
+  emailData: string,
+): Promise<InviteUserServiceResponseData> {
+  try {
+    const supabaseClient = createSupabaseClientByTokenRequest(accessTokenData);
+    const inviterAuthUserIdData = await resolveAuthUserIdByTokenService(
+      accessTokenData,
+    );
+
+    if (!inviterAuthUserIdData) {
+      return {
+        data: null,
+        error: new Error("Invalid or expired access token."),
+        statusCode: HTTP_STATUS.UNAUTHORIZED,
+      };
+    }
+
+    const inviterUserIdData = await resolveUserIdByAuthIdService(
+      inviterAuthUserIdData,
+      accessTokenData,
+    );
+
+    if (!inviterUserIdData) {
+      return {
+        data: null,
+        error: new Error("Authenticated user not found."),
+        statusCode: HTTP_STATUS.UNAUTHORIZED,
+      };
+    }
+
+    const hasProjectAccessData = await checkProjectAccessService(
+      projectIdData,
+      inviterUserIdData,
+      inviterAuthUserIdData,
+    );
+
+    if (!hasProjectAccessData) {
+      return {
+        data: null,
+        error: new Error("You do not have access to this project."),
+        statusCode: HTTP_STATUS.UNAUTHORIZED,
+      };
+    }
+
+    const existingUserResponseData = await supabaseClient
+      .from(tables.USERS)
+      .select("id")
+      .eq("email", emailData)
+      .maybeSingle();
+
+    if (existingUserResponseData.error) {
+      logger.error(
+        "[projects.service] failed to fetch user by email",
+        existingUserResponseData.error,
+      );
+      return {
+        data: null,
+        error: new Error("Failed to look up invited user."),
+        statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+      };
+    }
+
+    if (!existingUserResponseData.data) {
+      return {
+        data: null,
+        error: new Error("User does not exist"),
+        statusCode: HTTP_STATUS.NOT_FOUND,
+      };
+    }
+
+    const invitedUserIdData = existingUserResponseData.data.id as string;
+
+    const createdInvitationResponseData = await supabaseClient
+      .from(tables.PROJECT_INVITATIONS)
+      .insert({
+        project_id: projectIdData,
+        invited_user_id: invitedUserIdData,
+        invited_by_user_id: inviterUserIdData,
+        role: "viewer",
+        status: "pending",
+        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      })
+      .select("id, project_id, invited_user_id, role, status, expires_at")
+      .single();
+
+    if (
+      createdInvitationResponseData.error ||
+      !createdInvitationResponseData.data
+    ) {
+      logger.error(
+        "[projects.service] failed to create project invitation",
+        createdInvitationResponseData.error,
+      );
+      return {
+        data: null,
+        error: new Error("Failed to create project invitation."),
+        statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+      };
+    }
+
+    const invitationData = createdInvitationResponseData.data as Pick<
+      ProjectInvitationData,
+      "id" | "project_id" | "invited_user_id" | "role" | "status" | "expires_at"
+    >;
+
+    return {
+      data: invitationData,
+      error: null,
+      statusCode: HTTP_STATUS.OK,
+    };
+  } catch (errorData: unknown) {
+    logger.error("[projects.service] unexpected error", errorData);
+    return {
+      data: null,
+      error: new Error("Failed to invite user to project."),
+      statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+    };
+  }
+}
+
+/**
+ * Fetches all projects accessible to authenticated user.
+ */
+export async function getAllProjectsService(
+  authUserIdData: string,
+): Promise<ProjectsServiceResponseData> {
+  try {
+    const internalUserIdData =
+      await resolveInternalUserIdByAuthIdService(authUserIdData);
+
+    if (!internalUserIdData) {
+      return {
+        data: null,
+        error: new Error("Authenticated user not found."),
+        statusCode: HTTP_STATUS.UNAUTHORIZED,
+      };
+    }
+
+    const { data: projectMembershipItems, error: projectMembershipError } =
+      await supabase
+        .from(tables.PROJECT_USER)
+        .select(`role, projects:${tables.PROJECTS}(${projectSelectFields})`)
+        .eq("user_id", internalUserIdData)
+        .order(`${tables.PROJECTS}(created_at)`, { ascending: false });
+
+    if (projectMembershipError) {
+      logger.error(
+        "[projects.service] failed to fetch project memberships",
+        projectMembershipError,
+      );
+      return {
+        data: null,
+        error: new Error("Failed to fetch projects."),
+        statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+      };
+    }
+
+    const projectItems: ProjectWithRoleData[] = (projectMembershipItems ?? []).map(
+      (membershipItem) => {
+        const projectRecord = membershipItem.projects as unknown as ProjectData;
+
+        return {
+          id: projectRecord.id,
+          name: projectRecord.name,
+          slug: projectRecord.slug,
+          category: projectRecord.category,
+          website_url: projectRecord.website_url,
+          status: projectRecord.status,
+          created_at: projectRecord.created_at,
+          updated_at: projectRecord.updated_at,
+          created_by_user_id: projectRecord.created_by_user_id,
+          owner_user_id: projectRecord.owner_user_id,
+          role: membershipItem.role as "owner" | "admin" | "editor" | "viewer",
+        };
+      },
+    );
+
+    if (projectItems.length > 0) {
+      return {
+        data: projectItems,
+        error: null,
+        statusCode: HTTP_STATUS.OK,
+      };
+    }
+
+    const { data: ownedProjectItems, error: ownedProjectError } = await supabase
+      .from(tables.PROJECTS)
+      .select(projectOwnerSelectFields)
+      .eq("owner_user_id", internalUserIdData)
+      .order("created_at", { ascending: false });
+
+    if (ownedProjectError) {
+      logger.error(
+        "[projects.service] failed to fetch owned projects fallback",
+        ownedProjectError,
+      );
+      return {
+        data: null,
+        error: new Error("Failed to fetch projects."),
+        statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+      };
+    }
+
+    const ownedProjectWithRoleItems: ProjectWithRoleData[] = (
+      ownedProjectItems ?? []
+    ).map((projectItem) => ({
+      id: projectItem.id,
+      name: projectItem.name,
+      slug: projectItem.slug,
+      category: projectItem.category,
+      website_url: projectItem.website_url,
+      status: projectItem.status,
+      created_at: projectItem.created_at,
+      updated_at: projectItem.updated_at,
+      created_by_user_id: projectItem.created_by_user_id,
+      owner_user_id: projectItem.owner_user_id,
+      role: "owner",
+    }));
+
+    return {
+      data: ownedProjectWithRoleItems,
+      error: null,
+      statusCode: HTTP_STATUS.OK,
+    };
+  } catch {
+    logger.error("[projects.service] unexpected error while fetching projects");
+    return {
+      data: null,
+      error: new Error("Internal server error"),
+      statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+    };
+  }
+}
+
+/**
+ * Fetches one accessible project by project ID.
+ */
+export async function getProjectByIdService(
+  authUserIdData: string,
+  projectIdentifierData: string,
+): Promise<ProjectByIdServiceResponseData> {
+  try {
+    const internalUserIdData =
+      await resolveInternalUserIdByAuthIdService(authUserIdData);
+
+    if (!internalUserIdData) {
+      return {
+        data: null,
+        error: new Error("Authenticated user not found."),
+        statusCode: HTTP_STATUS.UNAUTHORIZED,
+      };
+    }
+
+    const projectIdData = await resolveProjectIdByIdentifierService(
+      projectIdentifierData,
+    );
+
+    if (!projectIdData) {
+      return {
+        data: null,
+        error: new Error("Project not found."),
+        statusCode: HTTP_STATUS.NOT_FOUND,
+      };
+    }
+
+    const hasProjectAccessData = await checkProjectAccessService(
+      projectIdData,
+      internalUserIdData,
+      authUserIdData,
+    );
+
+    if (!hasProjectAccessData) {
+      return {
+        data: null,
+        error: new Error("Unauthorized"),
+        statusCode: HTTP_STATUS.UNAUTHORIZED,
+      };
+    }
+
+    const { data: projectItem, error: projectError } = await supabase
+      .from(tables.PROJECTS)
+      .select(
+        "id, name, slug, category, website_url, status, google_sheet_credentials(id, google_sheet_id, google_project_id, client_email), project_structure_versions(id, version, is_current, json_code, php_code)",
+      )
+      .eq("id", projectIdData)
+      .eq("project_structure_versions.is_current", true)
+      .maybeSingle();
+
+    if (projectError) {
+      logger.error("[projects.service] failed to fetch project by id", projectError);
+      return {
+        data: null,
+        error: new Error("Failed to fetch project."),
+        statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+      };
+    }
+
+    if (!projectItem) {
+      return {
+        data: null,
+        error: new Error("Project not found."),
+        statusCode: HTTP_STATUS.NOT_FOUND,
+      };
+    }
+
+    const structureVersionItem = Array.isArray(projectItem.project_structure_versions)
+      ? projectItem.project_structure_versions[0]
+      : null;
+    const credentialsItem = Array.isArray(projectItem.google_sheet_credentials)
+      ? projectItem.google_sheet_credentials[0]
+      : projectItem.google_sheet_credentials;
+
+    if (!structureVersionItem || !credentialsItem) {
+      return {
+        data: null,
+        error: new Error("Project data is incomplete."),
+        statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+      };
+    }
+
+    return {
+      data: {
+        project: {
+          id: projectItem.id,
+          name: projectItem.name,
+          slug: projectItem.slug,
+          category: projectItem.category,
+          website_url: projectItem.website_url,
+          status: projectItem.status,
+          structure: {
+            current_version: {
+              id: structureVersionItem.id,
+              version: structureVersionItem.version,
+              is_current: structureVersionItem.is_current,
+              json_code: structureVersionItem.json_code,
+              php_code: structureVersionItem.php_code,
+            },
+          },
+          google_sheet_credentials: {
+            id: credentialsItem.id,
+            google_sheet_id: credentialsItem.google_sheet_id,
+            google_project_id: credentialsItem.google_project_id,
+            client_email: credentialsItem.client_email,
+          },
+        },
+      },
+      error: null,
+      statusCode: HTTP_STATUS.OK,
+    };
+  } catch (errorData: unknown) {
+    logger.error("[projects.service] unexpected error while fetching project", errorData);
+    return {
+      data: null,
+      error: new Error("Failed to fetch project."),
+      statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+    };
+  }
+}
+
+/**
+ * Creates project transaction using RPC.
+ */
+export async function createProjectService(
+  payloadData: CreateProjectPayloadData,
+  accessTokenData: string,
+): Promise<CreateProjectServiceResponseData> {
+  try {
+    const authIdData = await resolveAuthUserIdByTokenService(accessTokenData);
+
+    if (!authIdData) {
+      return {
+        data: null,
+        error: new Error("Invalid or expired access token."),
+        statusCode: HTTP_STATUS.UNAUTHORIZED,
+      };
+    }
+
+    const userIdData = await resolveUserIdByAuthIdService(
+      authIdData,
+      accessTokenData,
+    );
+
+    if (!userIdData) {
+      return {
+        data: null,
+        error: new Error("Authenticated user not found."),
+        statusCode: HTTP_STATUS.UNAUTHORIZED,
+      };
+    }
+
+    const supabaseClient = createSupabaseClientByTokenRequest(accessTokenData);
+
+    const rpcResponseData = await supabaseClient.rpc(
+      rpcFunctions.CREATE_PROJECT_TRANSACTION,
+      {
+        p_name: payloadData.name,
+        p_category: payloadData.category ?? "web-app",
+        p_website_url: payloadData.website_url ?? null,
+        p_slug: payloadData.slug,
+        p_user_id: userIdData,
+        p_google_sheet_id: payloadData.google_sheet_credentials.google_sheet_id,
+        p_google_project_id:
+          payloadData.google_sheet_credentials.google_project_id ?? null,
+        p_private_key_id: payloadData.google_sheet_credentials.private_key_id ?? null,
+        p_client_email: payloadData.google_sheet_credentials.client_email,
+        p_client_id: payloadData.google_sheet_credentials.client_id ?? null,
+        p_client_x509_cert_url:
+          payloadData.google_sheet_credentials.client_x509_cert_url ?? null,
+        p_private_key: payloadData.google_sheet_credentials.private_key,
+        p_php_code: payloadData.structure.php_code ?? null,
+        p_json_code: payloadData.structure.json_code,
+      },
+    );
+
+    if (rpcResponseData.error) {
+      const errorMessageData = rpcResponseData.error.message ?? "";
+
+      if (checkIsSlugConflictErrorService(errorMessageData)) {
+        return {
+          data: null,
+          error: new Error("Slug already exists"),
+          statusCode: HTTP_STATUS.CONFLICT,
+        };
+      }
+
+      logger.error("[projects.service] RPC create_project_transaction failed", {
+        message: errorMessageData,
+      });
+
+      return {
+        data: null,
+        error: new Error("Failed to create project."),
+        statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+      };
+    }
+
+    const resultData = rpcResponseData.data as CreateProjectTransactionResultData;
+
+    return {
+      data: resultData,
+      error: null,
+      statusCode: HTTP_STATUS.CREATED,
+    };
+  } catch (errorData: unknown) {
+    logger.error("[projects.service] unexpected error", errorData);
+    return {
+      data: null,
+      error: new Error("Failed to create project."),
+      statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+    };
+  }
 }

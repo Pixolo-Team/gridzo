@@ -1,10 +1,26 @@
 // OTHERS //
 import { createRoute } from "@hono/zod-openapi";
+
+// VALIDATORS //
 import {
+  createProjectErrorResponseSchema,
+  createProjectRequestBodySchema,
+  createProjectRequestHeadersSchema,
+  createProjectSuccessResponseSchema,
+  getAllProjectsErrorResponseSchema,
+  getAllProjectsSuccessResponseSchema,
   getAllUsersSuccessResponseSchema,
+  getProjectByIdRequestParamsSchema,
+  getProjectByIdSuccessResponseSchema,
+  inviteUserBodySchema,
+  inviteUserErrorResponseSchema,
+  inviteUserParamsSchema,
+  inviteUserRequestHeadersSchema,
+  inviteUserSuccessResponseSchema,
   projectErrorResponseSchema,
   projectIdParamSchema,
   projectRequestHeadersSchema,
+  projectsRequestHeadersSchema,
 } from "@/validators/projects.validator";
 
 /**
@@ -57,6 +73,221 @@ export const getAllProjectUsersContract = createRoute({
       content: {
         "application/json": {
           schema: projectErrorResponseSchema,
+        },
+      },
+    },
+  },
+});
+
+/**
+ * OpenAPI contract for inviting an existing user to a project.
+ */
+export const inviteUserToProjectContract = createRoute({
+  method: "post",
+  path: "/project/{project_id}/invite-user",
+  tags: ["Projects"],
+  summary: "Invite an existing user to a project",
+  request: {
+    headers: inviteUserRequestHeadersSchema,
+    params: inviteUserParamsSchema,
+    body: {
+      content: {
+        "application/json": {
+          schema: inviteUserBodySchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: "Invitation sent successfully",
+      content: {
+        "application/json": {
+          schema: inviteUserSuccessResponseSchema,
+        },
+      },
+    },
+    400: {
+      description: "Bad request",
+      content: {
+        "application/json": {
+          schema: inviteUserErrorResponseSchema,
+        },
+      },
+    },
+    401: {
+      description: "Unauthorized",
+      content: {
+        "application/json": {
+          schema: inviteUserErrorResponseSchema,
+        },
+      },
+    },
+    404: {
+      description: "User not found",
+      content: {
+        "application/json": {
+          schema: inviteUserErrorResponseSchema,
+        },
+      },
+    },
+    500: {
+      description: "Internal server error",
+      content: {
+        "application/json": {
+          schema: inviteUserErrorResponseSchema,
+        },
+      },
+    },
+  },
+});
+
+/**
+ * OpenAPI contract for fetching all accessible projects for the authenticated user.
+ */
+export const getAllProjectsContract = createRoute({
+  method: "get",
+  path: "/projects/all",
+  tags: ["Projects"],
+  summary: "Get all projects accessible to the authenticated user",
+  security: [{ Bearer: [] }],
+  request: {
+    headers: projectsRequestHeadersSchema,
+  },
+  responses: {
+    200: {
+      description: "Projects fetched successfully",
+      content: {
+        "application/json": {
+          schema: getAllProjectsSuccessResponseSchema,
+        },
+      },
+    },
+    401: {
+      description: "Unauthorized request",
+      content: {
+        "application/json": {
+          schema: getAllProjectsErrorResponseSchema,
+        },
+      },
+    },
+    500: {
+      description: "Internal server error",
+      content: {
+        "application/json": {
+          schema: getAllProjectsErrorResponseSchema,
+        },
+      },
+    },
+  },
+});
+
+/**
+ * OpenAPI contract for POST /projects – creates a new project transactionally.
+ */
+export const createProjectContract = createRoute({
+  method: "post",
+  path: "/projects",
+  tags: ["Projects"],
+  summary: "Create a new project with credentials and initial structure",
+  request: {
+    headers: createProjectRequestHeadersSchema,
+    body: {
+      content: {
+        "application/json": {
+          schema: createProjectRequestBodySchema,
+        },
+      },
+      required: true,
+    },
+  },
+  responses: {
+    201: {
+      description: "Project created successfully",
+      content: {
+        "application/json": {
+          schema: createProjectSuccessResponseSchema,
+        },
+      },
+    },
+    400: {
+      description: "Validation error",
+      content: {
+        "application/json": {
+          schema: createProjectErrorResponseSchema,
+        },
+      },
+    },
+    401: {
+      description: "Unauthorized",
+      content: {
+        "application/json": {
+          schema: createProjectErrorResponseSchema,
+        },
+      },
+    },
+    409: {
+      description: "Slug conflict",
+      content: {
+        "application/json": {
+          schema: createProjectErrorResponseSchema,
+        },
+      },
+    },
+    500: {
+      description: "Internal server error",
+      content: {
+        "application/json": {
+          schema: createProjectErrorResponseSchema,
+        },
+      },
+    },
+  },
+});
+
+/**
+ * OpenAPI contract for GET /project/{projectId} – fetches one accessible project.
+ */
+export const getProjectByIdContract = createRoute({
+  method: "get",
+  path: "/project/{projectId}",
+  tags: ["Projects"],
+  summary: "Get a single project by project ID",
+  security: [{ Bearer: [] }],
+  request: {
+    headers: projectsRequestHeadersSchema,
+    params: getProjectByIdRequestParamsSchema,
+  },
+  responses: {
+    200: {
+      description: "Project fetched successfully",
+      content: {
+        "application/json": {
+          schema: getProjectByIdSuccessResponseSchema,
+        },
+      },
+    },
+    401: {
+      description: "Unauthorized request",
+      content: {
+        "application/json": {
+          schema: getAllProjectsErrorResponseSchema,
+        },
+      },
+    },
+    404: {
+      description: "Project not found",
+      content: {
+        "application/json": {
+          schema: getAllProjectsErrorResponseSchema,
+        },
+      },
+    },
+    500: {
+      description: "Internal server error",
+      content: {
+        "application/json": {
+          schema: getAllProjectsErrorResponseSchema,
         },
       },
     },

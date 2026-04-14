@@ -7,8 +7,9 @@ import CreateProjectStepFields from "@/components/projects/create-project/Create
 
 interface CreateProjectStepContentPropsData {
   createProjectFormData: Record<string, string>;
+  isNextActionDisabled?: boolean;
   onBackAction?: () => void;
-  onNextAction: () => void;
+  onNextAction: () => void | Promise<void>;
   onValueChange: (fieldId: string, value: string) => void;
   stepData: CreateProjectStepData;
 }
@@ -18,6 +19,7 @@ interface CreateProjectStepContentPropsData {
  */
 export default function CreateProjectStepContent({
   createProjectFormData,
+  isNextActionDisabled,
   onBackAction,
   onNextAction,
   onValueChange,
@@ -46,6 +48,7 @@ export default function CreateProjectStepContent({
 
       {/* Step Actions */}
       <CreateProjectActions
+        isNextActionDisabled={isNextActionDisabled}
         nextLabel={stepData.nextLabel}
         onBackAction={stepData.showBackAction ? onBackAction : undefined}
         onNextAction={onNextAction}

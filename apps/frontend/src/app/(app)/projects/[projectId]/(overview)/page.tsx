@@ -1,41 +1,60 @@
+"use client";
+
+// REACT //
+import { useMemo } from "react";
+
 // COMPONENTS //
 import InputActionCard from "@/components/ui/InputActionCard";
 import StatCard from "@/components/ui/StatCard";
+import Copy1 from "@/components/icons/neevo-icons/Copy1";
+import CopyDocument from "@/components/icons/neevo-icons/CopyDocument";
 
 // CONSTANTS //
 import { projectOverviewStatIconMap } from "@/app/constants/project-overview-stat-icons";
 
 // DATA //
-import {
-  getProjectOverviewInputActionCard,
-  projectOverviewStatItems,
-} from "@/app/data/project-overview.data";
+import { projectOverviewStatItems } from "@/app/data/project-overview.data";
 
-interface ProjectPagePropsData {
-  params: {
-    projectId: string;
-  };
-}
+// CONTEXTS //
+import { useProjectDetailsContext } from "@/contexts/ProjectContext";
+
+// NAVIGATION //
 
 /**
  * Renders the project overview page
  */
-export default async function ProjectPage({ params }: ProjectPagePropsData) {
+export default function ProjectPage() {
   // Define Navigation
-  const { projectId } = await params;
 
   // Define Context
+  const {
+    projectDetails,
+    projectDetailsErrorMessage,
+    isProjectDetailsLoading,
+  } = useProjectDetailsContext();
 
   // Define Refs
 
   // Define States
 
   // Helper Functions
-  /**
-   * Builds the API endpoint card content for the current project
-   */
-  const projectOverviewInputActionCard =
-    getProjectOverviewInputActionCard(projectId);
+  /** Function to handle copying API Data */
+  const handleCopyApiDataClick = () => {
+    // Logic to copy API Data to clipboard would go here
+  };
+
+  /** Function to handle copying API URL */
+  const handleCopyApiUrlClick = () => {
+    // Logic to copy API URL to clipboard would go here
+  };
+
+  const projectApiUrl = useMemo(() => {
+    if (!projectDetails?.project.slug) {
+      return "";
+    }
+
+    return `https://api.pixolo.com/v1/projects/${projectDetails.project.slug}/data`;
+  }, [projectDetails]);
 
   // Use Effects
 
@@ -65,12 +84,26 @@ export default async function ProjectPage({ params }: ProjectPagePropsData) {
         })}
       </div>
 
+      {isProjectDetailsLoading ? (
+        <p className="text-sm text-n-600">Loading project details...</p>
+      ) : null}
+
+      {projectDetailsErrorMessage ? (
+        <p className="text-sm text-red-600">{projectDetailsErrorMessage}</p>
+      ) : null}
+
       {/* API Endpoint Section */}
       <InputActionCard
-        actionItems={projectOverviewInputActionCard.actionItems}
-        description={projectOverviewInputActionCard.description}
-        title={projectOverviewInputActionCard.title}
-        value={projectOverviewInputActionCard.value}
+        title="Project API Endpoint"
+        description="This API endpoint provides access to your project's structured data for integrations and external applications"
+        value={projectApiUrl}
+        isReadOnly
+        buttonOneText="API URL"
+        buttonOneIcon={Copy1}
+        buttonTwoText="API Data"
+        buttonTwoIcon={CopyDocument}
+        buttonOneClick={handleCopyApiUrlClick}
+        buttonTwoClick={handleCopyApiDataClick}
       />
     </section>
   );

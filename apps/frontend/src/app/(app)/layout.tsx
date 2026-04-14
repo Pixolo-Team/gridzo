@@ -3,11 +3,18 @@
 // REACT //
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 // COMPONENTS //
 import { Header } from "@/components/layouts/Header";
 import { SideMenu } from "@/components/layouts/SideMenu";
+
+// CONTEXTS //
+import { useAuthContext } from "@/contexts/AuthContext";
 import { CreateProjectFlowProvider } from "@/contexts/create-project-flow.context";
+
+// CONSTANTS //
+import { ROUTES } from "@/app/constants/routes";
 
 /**
  * Renders the protected application layout
@@ -18,8 +25,10 @@ export default function AppLayout({
   children: ReactNode;
 }>) {
   // Define Navigation
+  const router = useRouter();
 
   // Define Context
+  const { session, user, isLoading } = useAuthContext();
 
   // Define Refs
 
@@ -44,6 +53,15 @@ export default function AppLayout({
   };
 
   // Use Effects
+  useEffect(() => {
+    if (isLoading) {
+      return;
+    }
+
+    if (!session || !user) {
+      router.replace(ROUTES.AUTH.LOGIN);
+    }
+  }, [isLoading, session, user, router]);
 
   useEffect(() => {
     // Lock body scroll while the mobile menu is open so the overlay stays fixed.
@@ -53,6 +71,10 @@ export default function AppLayout({
       document.body.style.overflow = "";
     };
   }, [isMobileMenuOpen]);
+
+  if (isLoading || !session || !user) {
+    return null;
+  }
 
   return (
     <CreateProjectFlowProvider>
