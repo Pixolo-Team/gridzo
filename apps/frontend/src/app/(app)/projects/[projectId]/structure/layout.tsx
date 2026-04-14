@@ -8,9 +8,9 @@ import NotificationButton from "@/components/ui/NotificationButton";
 import { Button } from "@/components/ui/button";
 
 /**
- * Renders the overview route layout with mobile-only project actions
+ * Renders the structure route layout with bottom project actions on mobile and tablet.
  */
-export default function ProjectOverviewLayout({
+export default function ProjectStructureLayout({
   children,
 }: Readonly<{
   children: ReactNode;
@@ -29,12 +29,11 @@ export default function ProjectOverviewLayout({
 
   return (
     <>
-      {/* Overview Content */}
+      {/* Structure Content */}
       <div className="min-h-full pb-36 xl:pb-0">{children}</div>
 
-      {/* Mobile Bottom Actions */}
+      {/* Bottom Actions */}
       <MobileBottomActions>
-        {/* Deploy Now Button */}
         <Button
           type="button"
           size="small"
@@ -45,9 +44,9 @@ export default function ProjectOverviewLayout({
           <span>Deploy Now</span>
         </Button>
 
-        {/* Notification Button */}
         <NotificationButton />
       </MobileBottomActions>
     </>
   );
 }
+
