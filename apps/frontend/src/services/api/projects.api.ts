@@ -6,6 +6,8 @@ import { ApiResponseData } from "@/types/app";
 import type {
   CreateProjectRequestData,
   CreateProjectResponseData,
+  GetProjectByIdResponseData,
+  ProjectListItemData,
 } from "@/types/projects";
 
 // CONSTANTS //
@@ -58,5 +60,49 @@ export const createProjectRequest = async (
   // Make API Call
   const response =
     await axios.request<ApiResponseData<CreateProjectResponseData>>(config);
+  return response.data;
+};
+
+/** API Call: Fetch All Projects */
+export const getAllProjectsRequest = async (): Promise<
+  ApiResponseData<ProjectListItemData[]>
+> => {
+  // Resolve latest token for authorized request
+  const token = await getAccessTokenForApiRequestService();
+
+  // Set up the API Call Config
+  const config: AxiosRequestConfig = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    method: "get",
+    url: `${CONSTANTS.LOCAL_API_URL}/projects/all`,
+  };
+
+  // Make API Call
+  const response =
+    await axios.request<ApiResponseData<ProjectListItemData[]>>(config);
+  return response.data;
+};
+
+/** API Call: Fetch Project Details by ID */
+export const getProjectByIdRequest = async (
+  projectId: string,
+): Promise<ApiResponseData<GetProjectByIdResponseData>> => {
+  // Resolve latest token for authorized request
+  const token = await getAccessTokenForApiRequestService();
+
+  // Set up the API Call Config
+  const config: AxiosRequestConfig = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    method: "get",
+    url: `${CONSTANTS.LOCAL_API_URL}/project/${projectId}`,
+  };
+
+  // Make API Call
+  const response =
+    await axios.request<ApiResponseData<GetProjectByIdResponseData>>(config);
   return response.data;
 };

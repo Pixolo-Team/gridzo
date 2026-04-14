@@ -159,29 +159,30 @@ export default function CreateProjectPage() {
     return new URLSearchParams({
       projectName: createProjectFormField["project-name"] ?? "",
       slug: createProjectFormField.slug ?? "",
+      projectId: "",
       websiteUrl: createProjectFormField["website-url"] ?? "",
     });
   };
 
   /** Function to create a project via API */
-  const createProjectService = (): Promise<boolean> => {
+  const createProjectService = (): Promise<string | null> => {
     // Set submitting to true
     setIsSubmittingProject(true);
 
     // Make API call to create project with form values as payload
     return createProjectRequest(getCreateProjectPayloadService())
       .then((response) => {
-        // If project creation was successful, return true to proceed to success page
+        // If project creation was successful, return created project ID
         if (response.status_code === 201 && response.status) {
           // Show success message in Toast
           toast.success(response.message);
-          return true;
+          return response.data?.project?.id ?? null;
         }
 
         // Set Create project submission error message to response message
         setCreateProjectSubmissionErrorMessage(response.message);
         toast.error(response.message);
-        return false;
+        return null;
       })
       .catch(() => {
         const errorMessage = "Failed to create project. Please try again.";
@@ -189,7 +190,7 @@ export default function CreateProjectPage() {
         // Set Create project submission error message to response message
         setCreateProjectSubmissionErrorMessage(errorMessage);
         toast.error(errorMessage);
-        return false;
+        return null;
       })
       .finally(() => {
         setIsSubmittingProject(false);
@@ -207,14 +208,15 @@ export default function CreateProjectPage() {
 
       setCreateProjectSubmissionErrorMessage("");
 
-      const isProjectCreated = await createProjectService();
+      const createdProjectId = await createProjectService();
 
-      if (!isProjectCreated) {
+      if (!createdProjectId) {
         return;
       }
 
       const createProjectSuccessSearchParams =
         getCreateProjectSuccessSearchParamsService();
+      createProjectSuccessSearchParams.set("projectId", createdProjectId);
 
       router.push(
         `${ROUTES.APP.PROJECTS.CREATE_SUCCESS}?${createProjectSuccessSearchParams.toString()}`,

@@ -5,15 +5,23 @@ import { z } from "@hono/zod-openapi";
  * OpenAPI schema for projects request headers.
  */
 export const projectsRequestHeadersSchema = z.object({
-  authorization: z.string().openapi({
-    example: "Bearer eyJhbGciOi...",
-  }),
+  authorization: z.string().openapi({ example: "Bearer eyJhbGciOi..." }),
 });
 
 /**
  * OpenAPI schema for POST /projects request headers.
  */
 export const createProjectRequestHeadersSchema = projectsRequestHeadersSchema;
+
+/**
+ * OpenAPI schema for GET /project/{projectId} request params.
+ */
+export const getProjectByIdRequestParamsSchema = z.object({
+  projectId: z.string().min(1).openapi({
+    example: "c0d95e7e-fc8a-4096-9e35-fd4eb42bcb9e",
+    description: "Project UUID or slug",
+  }),
+});
 
 /**
  * OpenAPI schema for a single project item with role.
@@ -70,9 +78,7 @@ export const createProjectRequestBodySchema = z.object({
     }),
   }),
   structure: z.object({
-    php_code: z.string().optional().openapi({
-      example: "<?php return [];",
-    }),
+    php_code: z.string().optional().openapi({ example: "<?php return [];" }),
     json_code: z.record(z.unknown()).openapi({
       example: { sheet_name: "Inventory_Q1" },
     }),
@@ -113,6 +119,41 @@ export const createProjectSuccessResponseSchema = z.object({
 });
 
 /**
+ * OpenAPI schema for GET /project/{projectId} success response.
+ */
+export const getProjectByIdSuccessResponseSchema = z.object({
+  status: z.boolean(),
+  status_code: z.number(),
+  message: z.string(),
+  error: z.null(),
+  data: z.object({
+    project: z.object({
+      id: z.string().uuid(),
+      name: z.string(),
+      slug: z.string(),
+      category: z.string().nullable(),
+      website_url: z.string().nullable(),
+      status: z.enum(["active", "archived", "deleted"]),
+      structure: z.object({
+        current_version: z.object({
+          id: z.string().uuid(),
+          version: z.string(),
+          is_current: z.boolean(),
+          json_code: z.record(z.unknown()),
+          php_code: z.string().nullable(),
+        }),
+      }),
+      google_sheet_credentials: z.object({
+        id: z.string().uuid(),
+        google_sheet_id: z.string().nullable(),
+        google_project_id: z.string().nullable(),
+        client_email: z.string().nullable(),
+      }),
+    }),
+  }),
+});
+
+/**
  * OpenAPI schema for projects error response.
  */
 export const getAllProjectsErrorResponseSchema = z.object({
@@ -126,4 +167,5 @@ export const getAllProjectsErrorResponseSchema = z.object({
 /**
  * OpenAPI schema for POST /projects error response.
  */
-export const createProjectErrorResponseSchema = getAllProjectsErrorResponseSchema;
+export const createProjectErrorResponseSchema =
+  getAllProjectsErrorResponseSchema;

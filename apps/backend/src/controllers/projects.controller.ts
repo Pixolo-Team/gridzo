@@ -1,5 +1,9 @@
 // SERVICES //
-import { createProjectService, getAllProjectsService } from "@/services/projects.service";
+import {
+  createProjectService,
+  getAllProjectsService,
+  getProjectByIdService,
+} from "@/services/projects.service";
 
 // CONSTANTS //
 import { HTTP_STATUS } from "@/constants/api";
@@ -16,25 +20,22 @@ import type { Context } from "hono";
 import {
   createProjectContract,
   getAllProjectsContract,
+  getProjectByIdContract,
 } from "@/contracts/projects.contract";
 
 /**
  * Controller for fetching all accessible projects for the authenticated user.
  */
-export const getAllProjectsController: RouteHandler<
-  typeof getAllProjectsContract
-> = async (c) => {
+export const getAllProjectsController: RouteHandler<typeof getAllProjectsContract> = async (
+  c,
+) => {
+  // Read authenticated user injected by auth middleware.
   const userContextData = (
     c as Context<{ Variables: { user: User; accessToken: string } }>
   ).get("user");
 
   if (!userContextData) {
-    return errorResponse(
-      c,
-      "Unauthorized",
-      "Unauthorized",
-      HTTP_STATUS.UNAUTHORIZED,
-    );
+    return errorResponse(c, "Unauthorized", "Unauthorized", HTTP_STATUS.UNAUTHORIZED);
   }
 
   const projectsResponseData = await getAllProjectsService(userContextData.id);
@@ -62,9 +63,9 @@ export const getAllProjectsController: RouteHandler<
 /**
  * Controller for POST /projects – validates auth, parses body, and delegates to project service.
  */
-export const createProjectController: RouteHandler<
-  typeof createProjectContract
-> = async (c) => {
+export const createProjectController: RouteHandler<typeof createProjectContract> = async (
+  c,
+) => {
   const authorizationHeaderData = c.req.header("authorization") ?? "";
   const accessTokenData = authorizationHeaderData.startsWith("Bearer ")
     ? authorizationHeaderData.slice("Bearer ".length).trim()
@@ -107,5 +108,55 @@ export const createProjectController: RouteHandler<
     projectResponseData.data,
     "Project created successfully",
     HTTP_STATUS.CREATED,
+  );
+};
+
+/**
+ * Controller for fetching a single accessible project by ID.
+ */
+export const getProjectByIdController: RouteHandler<typeof getProjectByIdContract> = async (
+  c,
+) => {
+  const userContextData = (
+    c as Context<{ Variables: { user: User; accessToken: string } }>
+  ).get("user");
+
+  if (!userContextData) {
+    return errorResponse(c, "Unauthorized", "Unauthorized", HTTP_STATUS.UNAUTHORIZED);
+  }
+
+  const { projectId } = c.req.valid("param");
+
+  // Delegate access validation and data loading to service layer.
+  const projectResponseData = await getProjectByIdService(
+    userContextData.id,
+    projectId,
+  );
+
+  if (projectResponseData.error || !projectResponseData.data) {
+    const errorStatusCodeData =
+      projectResponseData.statusCode === HTTP_STATUS.UNAUTHORIZED ||
+      projectResponseData.statusCode === HTTP_STATUS.NOT_FOUND ||
+      projectResponseData.statusCode === HTTP_STATUS.INTERNAL_SERVER_ERROR
+        ? projectResponseData.statusCode
+        : HTTP_STATUS.INTERNAL_SERVER_ERROR;
+
+    const errorMessageData =
+      projectResponseData.error?.message ?? "Failed to fetch project.";
+
+    return errorResponse(
+      c,
+      errorMessageData,
+      errorMessageData,
+      errorStatusCodeData,
+    );
+  }
+
+  // Return standardized success response for a single project payload.
+  return successResponse(
+    c,
+    projectResponseData.data,
+    "Project fetched successfully",
+    HTTP_STATUS.OK,
   );
 };

@@ -70,3 +70,32 @@ export interface CreateProjectTransactionResultData {
     "id" | "google_sheet_id" | "google_project_id" | "client_email"
   >;
 }
+
+/**
+ * Payload returned by GET /project/{projectId}.
+ */
+export interface ProjectByIdResultData {
+  project: {
+    id: string;
+    name: string;
+    slug: string;
+    category: string | null;
+    website_url: string | null;
+    status: "active" | "archived" | "deleted";
+    structure: {
+      current_version: {
+        id: string;
+        version: string;
+        is_current: boolean;
+        json_code: Record<string, unknown>;
+        php_code: string | null;
+      };
+    };
+    google_sheet_credentials: {
+      id: string;
+      google_sheet_id: string | null;
+      google_project_id: string | null;
+      client_email: string | null;
+    };
+  };
+}

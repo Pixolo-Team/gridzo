@@ -35,6 +35,7 @@ export const successResponse = <
     error: null,
     message,
   };
+
   return c.json(response, statusCode);
 };
 
@@ -56,5 +57,6 @@ export const errorResponse = <
     data: null,
     error,
   };
+
   return c.json(response, statusCode);
 };

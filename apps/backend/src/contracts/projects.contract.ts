@@ -8,6 +8,8 @@ import {
   createProjectRequestHeadersSchema,
   createProjectSuccessResponseSchema,
   getAllProjectsErrorResponseSchema,
+  getProjectByIdRequestParamsSchema,
+  getProjectByIdSuccessResponseSchema,
   getAllProjectsSuccessResponseSchema,
   projectsRequestHeadersSchema,
 } from "@/validators/projects.validator";
@@ -109,6 +111,55 @@ export const createProjectContract = createRoute({
       content: {
         "application/json": {
           schema: createProjectErrorResponseSchema,
+        },
+      },
+    },
+  },
+});
+
+/**
+ * OpenAPI contract for GET /project/{projectId} – fetches one accessible project.
+ */
+export const getProjectByIdContract = createRoute({
+  method: "get",
+  path: "/project/{projectId}",
+  tags: ["Projects"],
+  summary: "Get a single project by project ID",
+  security: [{ Bearer: [] }],
+  request: {
+    headers: projectsRequestHeadersSchema,
+    params: getProjectByIdRequestParamsSchema,
+  },
+  responses: {
+    200: {
+      description: "Project fetched successfully",
+      content: {
+        "application/json": {
+          schema: getProjectByIdSuccessResponseSchema,
+        },
+      },
+    },
+    401: {
+      description: "Unauthorized request",
+      content: {
+        "application/json": {
+          schema: getAllProjectsErrorResponseSchema,
+        },
+      },
+    },
+    404: {
+      description: "Project not found",
+      content: {
+        "application/json": {
+          schema: getAllProjectsErrorResponseSchema,
+        },
+      },
+    },
+    500: {
+      description: "Internal server error",
+      content: {
+        "application/json": {
+          schema: getAllProjectsErrorResponseSchema,
         },
       },
     },
