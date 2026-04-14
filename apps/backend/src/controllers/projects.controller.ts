@@ -3,6 +3,7 @@ import {
   createProjectService,
   getAllProjectsService,
   getProjectByIdService,
+  inviteUserToProjectService,
 } from "@/services/projects.service";
 
 // CONSTANTS //
@@ -21,7 +22,65 @@ import {
   createProjectContract,
   getAllProjectsContract,
   getProjectByIdContract,
+  inviteUserToProjectContract,
 } from "@/contracts/projects.contract";
+
+/**
+ * Handles inviting an existing user to a project.
+ */
+export const inviteUserToProjectController: RouteHandler<
+  typeof inviteUserToProjectContract
+> = async (c) => {
+  const { project_id: projectIdData } = c.req.valid("param");
+  const { email: emailData } = c.req.valid("json");
+  const authorizationHeaderData = c.req.header("authorization") ?? "";
+  const accessTokenData = authorizationHeaderData.startsWith("Bearer ")
+    ? authorizationHeaderData.slice("Bearer ".length).trim()
+    : "";
+
+  if (!accessTokenData) {
+    return errorResponse(
+      c,
+      "Authorization header must contain a bearer token.",
+      "Authorization header must contain a bearer token.",
+      HTTP_STATUS.UNAUTHORIZED,
+    );
+  }
+
+  const inviteResponseData = await inviteUserToProjectService(
+    accessTokenData,
+    projectIdData,
+    emailData,
+  );
+
+  if (inviteResponseData.error || !inviteResponseData.data) {
+    const errorStatusCodeData =
+      inviteResponseData.statusCode === HTTP_STATUS.UNAUTHORIZED ||
+      inviteResponseData.statusCode === HTTP_STATUS.NOT_FOUND ||
+      inviteResponseData.statusCode === HTTP_STATUS.INTERNAL_SERVER_ERROR
+        ? inviteResponseData.statusCode
+        : HTTP_STATUS.INTERNAL_SERVER_ERROR;
+
+    const errorMessageData =
+      inviteResponseData.error?.message ?? "Failed to invite user to project.";
+
+    return errorResponse(c, errorMessageData, errorMessageData, errorStatusCodeData);
+  }
+
+  return successResponse(
+    c,
+    {
+      invitation_id: inviteResponseData.data.id,
+      project_id: inviteResponseData.data.project_id,
+      invited_user_id: inviteResponseData.data.invited_user_id,
+      role: inviteResponseData.data.role,
+      status: inviteResponseData.data.status,
+      expires_at: inviteResponseData.data.expires_at,
+    },
+    "Invitation sent successfully",
+    HTTP_STATUS.OK,
+  );
+};
 
 /**
  * Controller for fetching all accessible projects for the authenticated user.
@@ -29,7 +88,6 @@ import {
 export const getAllProjectsController: RouteHandler<typeof getAllProjectsContract> = async (
   c,
 ) => {
-  // Read authenticated user injected by auth middleware.
   const userContextData = (
     c as Context<{ Variables: { user: User; accessToken: string } }>
   ).get("user");
@@ -127,7 +185,6 @@ export const getProjectByIdController: RouteHandler<typeof getProjectByIdContrac
 
   const { projectId } = c.req.valid("param");
 
-  // Delegate access validation and data loading to service layer.
   const projectResponseData = await getProjectByIdService(
     userContextData.id,
     projectId,
@@ -152,7 +209,6 @@ export const getProjectByIdController: RouteHandler<typeof getProjectByIdContrac
     );
   }
 
-  // Return standardized success response for a single project payload.
   return successResponse(
     c,
     projectResponseData.data,

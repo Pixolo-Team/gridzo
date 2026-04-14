@@ -1,3 +1,6 @@
+// CONSTANTS //
+import type { dashboardProjectIconMap } from "@/app/constants/dashboard-project-icons";
+
 // Type for Project Structure Data
 export type ProjectStructureData = {
   id: string;
@@ -48,6 +51,16 @@ export type GetProjectByIdResponseData = {
   };
 };
 
+// Type for Invite User Response Data
+export type InviteUserResponseData = {
+  invitation_id: string;
+  project_id: string;
+  invited_user_id: string;
+  role: "viewer" | "editor" | "admin";
+  status: "pending" | "accepted" | "declined" | "expired";
+  expires_at: string;
+};
+
 // Type for Create Project Request Google Sheet Credentials Data
 export type CreateProjectRequestGoogleSheetCredentialsData = {
   google_sheet_id: string;
@@ -73,4 +86,26 @@ export type CreateProjectRequestData = {
   website_url?: string;
   google_sheet_credentials: CreateProjectRequestGoogleSheetCredentialsData;
   structure: CreateProjectRequestStructureData;
+};
+
+// Type for Update Project Request Data
+export type DashboardProjectData = {
+  badgeName: string;
+  href: string;
+  backgroundClassName: string;
+  iconName: keyof typeof dashboardProjectIconMap;
+  iconColorClassName: string;
+  id: string;
+  lastSyncLabel: string;
+  title: string;
+};
+
+// Type for Dashboard Project Icon Name Data
+export type DashboardProjectIconNameData = keyof typeof dashboardProjectIconMap;
+
+// Type for Dashboard Project Visual Data
+export type DashboardProjectVisualData = {
+  backgroundClassName: string;
+  iconColorClassName: string;
+  iconName: DashboardProjectIconNameData;
 };

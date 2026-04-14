@@ -3,6 +3,7 @@
  */
 export const tables = {
   USERS: "users",
+  PROJECT_INVITATIONS: "project_invitations",
   PROJECTS: "projects",
   PROJECT_USER: "project_user",
   GOOGLE_SHEET_CREDENTIALS: "google_sheet_credentials",

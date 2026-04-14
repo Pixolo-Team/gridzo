@@ -1,8 +1,9 @@
 // MODELS //
+import type { ProjectInvitationData } from "@/models/project-invitation.model";
 import type {
   CreateProjectTransactionResultData,
-  ProjectData,
   ProjectByIdResultData,
+  ProjectData,
   ProjectWithRoleData,
 } from "@/models/project.model";
 
@@ -23,6 +24,21 @@ import {
 } from "@/config/supabase";
 
 const slugConflictMarker = "SLUG_CONFLICT";
+
+type InviteUserStatusCodeData =
+  | typeof HTTP_STATUS.OK
+  | typeof HTTP_STATUS.UNAUTHORIZED
+  | typeof HTTP_STATUS.NOT_FOUND
+  | typeof HTTP_STATUS.INTERNAL_SERVER_ERROR;
+
+type InviteUserServiceResponseData = QueryResponseData<
+  Pick<
+    ProjectInvitationData,
+    "id" | "project_id" | "invited_user_id" | "role" | "status" | "expires_at"
+  >
+> & {
+  statusCode: InviteUserStatusCodeData;
+};
 
 type ProjectsStatusCodeData =
   | typeof HTTP_STATUS.OK
@@ -76,6 +92,117 @@ export interface CreateProjectPayloadData {
     php_code?: string;
     json_code: Record<string, unknown>;
   };
+}
+
+/**
+ * Invites an existing user to a project by creating a pending invitation record.
+ */
+export async function inviteUserToProjectService(
+  accessTokenData: string,
+  projectIdData: string,
+  emailData: string,
+): Promise<InviteUserServiceResponseData> {
+  try {
+    const supabaseClient = createSupabaseClientByTokenRequest(accessTokenData);
+    const inviterAuthUserIdData = await resolveAuthUserIdByTokenService(
+      accessTokenData,
+    );
+
+    if (!inviterAuthUserIdData) {
+      return {
+        data: null,
+        error: new Error("Invalid or expired access token."),
+        statusCode: HTTP_STATUS.UNAUTHORIZED,
+      };
+    }
+
+    const inviterUserIdData = await resolveUserIdByAuthIdService(
+      inviterAuthUserIdData,
+      accessTokenData,
+    );
+
+    if (!inviterUserIdData) {
+      return {
+        data: null,
+        error: new Error("Authenticated user not found."),
+        statusCode: HTTP_STATUS.UNAUTHORIZED,
+      };
+    }
+
+    const existingUserResponseData = await supabaseClient
+      .from(tables.USERS)
+      .select("id")
+      .eq("email", emailData)
+      .maybeSingle();
+
+    if (existingUserResponseData.error) {
+      logger.error(
+        "[projects.service] failed to fetch user by email",
+        existingUserResponseData.error,
+      );
+      return {
+        data: null,
+        error: new Error("Failed to look up invited user."),
+        statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+      };
+    }
+
+    if (!existingUserResponseData.data) {
+      return {
+        data: null,
+        error: new Error("User does not exist"),
+        statusCode: HTTP_STATUS.NOT_FOUND,
+      };
+    }
+
+    const invitedUserIdData = existingUserResponseData.data.id as string;
+
+    const createdInvitationResponseData = await supabaseClient
+      .from(tables.PROJECT_INVITATIONS)
+      .insert({
+        project_id: projectIdData,
+        invited_user_id: invitedUserIdData,
+        invited_by_user_id: inviterUserIdData,
+        role: "viewer",
+        status: "pending",
+        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      })
+      .select("id, project_id, invited_user_id, role, status, expires_at")
+      .single();
+
+    if (
+      createdInvitationResponseData.error ||
+      !createdInvitationResponseData.data
+    ) {
+      logger.error(
+        "[projects.service] failed to create project invitation",
+        createdInvitationResponseData.error,
+      );
+      return {
+        data: null,
+        error: new Error("Failed to create project invitation."),
+        statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+      };
+    }
+
+    const invitationData = createdInvitationResponseData.data as Pick<
+      ProjectInvitationData,
+      "id" | "project_id" | "invited_user_id" | "role" | "status" | "expires_at"
+    >;
+
+    return {
+      data: invitationData,
+      error: null,
+      statusCode: HTTP_STATUS.OK,
+    };
+  } catch (errorData: unknown) {
+    logger.error("[projects.service] unexpected error", errorData);
+    return {
+      data: null,
+      error: new Error("Failed to invite user to project."),
+      statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+    };
+  }
 }
 
 /**
@@ -300,7 +427,6 @@ export async function getProjectByIdService(
   projectIdentifierData: string,
 ): Promise<ProjectByIdServiceResponseData> {
   try {
-    // Resolve internal user ID used across membership and ownership tables.
     const internalUserIdData =
       await resolveInternalUserIdByAuthIdService(authUserIdData);
 
@@ -324,7 +450,6 @@ export async function getProjectByIdService(
       };
     }
 
-    // Check project membership access first.
     const { data: projectMembershipItem, error: projectMembershipError } =
       await supabase
         .from(tables.PROJECT_USER)
@@ -346,7 +471,6 @@ export async function getProjectByIdService(
     }
 
     if (!projectMembershipItem) {
-      // Fall back to owner/creator access when membership row does not exist.
       const { data: ownedProjectItem, error: ownedProjectError } = await supabase
         .from(tables.PROJECTS)
         .select("id")
@@ -382,11 +506,10 @@ export async function getProjectByIdService(
       }
     }
 
-    // Load project with current structure and sheet credentials.
     const { data: projectItem, error: projectError } = await supabase
       .from(tables.PROJECTS)
       .select(
-        `id, name, slug, category, website_url, status, google_sheet_credentials(id, google_sheet_id, google_project_id, client_email), project_structure_versions(id, version, is_current, json_code, php_code)`,
+        "id, name, slug, category, website_url, status, google_sheet_credentials(id, google_sheet_id, google_project_id, client_email), project_structure_versions(id, version, is_current, json_code, php_code)",
       )
       .eq("id", projectIdData)
       .eq("project_structure_versions.is_current", true)
@@ -409,7 +532,6 @@ export async function getProjectByIdService(
       };
     }
 
-    // Normalize nested relation payloads to single objects.
     const structureVersionItem = Array.isArray(projectItem.project_structure_versions)
       ? projectItem.project_structure_versions[0]
       : null;

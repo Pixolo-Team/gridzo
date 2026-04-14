@@ -7,6 +7,7 @@ import type {
   CreateProjectRequestData,
   CreateProjectResponseData,
   GetProjectByIdResponseData,
+  InviteUserResponseData,
   ProjectListItemData,
 } from "@/types/projects";
 
@@ -104,5 +105,29 @@ export const getProjectByIdRequest = async (
   // Make API Call
   const response =
     await axios.request<ApiResponseData<GetProjectByIdResponseData>>(config);
+  return response.data;
+};
+
+/** API Call: Send Invitation with Email */
+export const inviteUserRequest = async (
+  projectId: string,
+  emailId: string,
+): Promise<ApiResponseData<InviteUserResponseData>> => {
+  // Resolve latest token for authorized request
+  const token = await getAccessTokenForApiRequestService();
+
+  // Set up the API Call Config
+  const config: AxiosRequestConfig = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    method: "post",
+    url: `${CONSTANTS.LOCAL_API_URL}/project/${projectId}/invite-user`,
+    data: { email: emailId },
+  };
+
+  // Make API Call
+  const response =
+    await axios.request<ApiResponseData<InviteUserResponseData>>(config);
   return response.data;
 };

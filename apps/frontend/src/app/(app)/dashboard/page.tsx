@@ -25,6 +25,7 @@ import { ROUTES } from "@/app/constants/routes";
 
 // UTILS //
 import { getLastSyncLabelService } from "@/utils/get-last-sync-label.util";
+import { getDashboardProjectVisuals } from "@/utils/projects.util";
 
 // OTHERS //
 import { toast } from "sonner";
@@ -144,17 +145,26 @@ export default function DashboardPage() {
         ) : null}
 
         {/* Project Cards */}
-        {filteredProjects.map((projectItem) => {
+        {filteredProjects.map((projectItem, projectIndex) => {
+          const dashboardProjectVisualData = getDashboardProjectVisuals(
+            projectItem.category,
+            projectIndex,
+          );
+
           // Resolve the icon from dashboard data so each project can render its own visual.
-          const DashboardProjectIcon = getDashboardProjectIcon("ShoppingCart2");
+          const DashboardProjectIcon = getDashboardProjectIcon(
+            dashboardProjectVisualData.iconName,
+          );
 
           return (
             <ProjectCard
               key={projectItem.id}
               badgeName={projectItem.name}
               href={ROUTES.APP.PROJECTS.DETAIL(projectItem.slug)}
-              backgroundClassName="bg-orange-100"
-              iconColorClassName="text-orange-400"
+              backgroundClassName={
+                dashboardProjectVisualData.backgroundClassName
+              }
+              iconColorClassName={dashboardProjectVisualData.iconColorClassName}
               Icon={DashboardProjectIcon}
               lastSyncLabel={getLastSyncLabelService(projectItem.updated_at)}
               title={projectItem.name}

@@ -9,9 +9,23 @@ export const projectsRequestHeadersSchema = z.object({
 });
 
 /**
+ * OpenAPI schema for invite user request headers.
+ */
+export const inviteUserRequestHeadersSchema = projectsRequestHeadersSchema;
+
+/**
  * OpenAPI schema for POST /projects request headers.
  */
 export const createProjectRequestHeadersSchema = projectsRequestHeadersSchema;
+
+/**
+ * OpenAPI schema for invite user path parameters.
+ */
+export const inviteUserParamsSchema = z.object({
+  project_id: z.string().uuid().openapi({
+    example: "123e4567-e89b-12d3-a456-426614174000",
+  }),
+});
 
 /**
  * OpenAPI schema for GET /project/{projectId} request params.
@@ -20,6 +34,15 @@ export const getProjectByIdRequestParamsSchema = z.object({
   projectId: z.string().min(1).openapi({
     example: "c0d95e7e-fc8a-4096-9e35-fd4eb42bcb9e",
     description: "Project UUID or slug",
+  }),
+});
+
+/**
+ * OpenAPI schema for invite user request body.
+ */
+export const inviteUserBodySchema = z.object({
+  email: z.string().email().openapi({
+    example: "newuser@mail.com",
   }),
 });
 
@@ -82,6 +105,24 @@ export const createProjectRequestBodySchema = z.object({
     json_code: z.record(z.unknown()).openapi({
       example: { sheet_name: "Inventory_Q1" },
     }),
+  }),
+});
+
+/**
+ * OpenAPI schema for invite user success response.
+ */
+export const inviteUserSuccessResponseSchema = z.object({
+  status: z.boolean(),
+  status_code: z.number(),
+  message: z.string(),
+  error: z.null(),
+  data: z.object({
+    invitation_id: z.string().uuid(),
+    project_id: z.string().uuid(),
+    invited_user_id: z.string().uuid(),
+    role: z.enum(["viewer", "editor", "admin"]),
+    status: z.enum(["pending", "accepted", "declined", "expired"]),
+    expires_at: z.string(),
   }),
 });
 
@@ -163,6 +204,11 @@ export const getAllProjectsErrorResponseSchema = z.object({
   error: z.string(),
   data: z.null(),
 });
+
+/**
+ * OpenAPI schema for invite user error response.
+ */
+export const inviteUserErrorResponseSchema = getAllProjectsErrorResponseSchema;
 
 /**
  * OpenAPI schema for POST /projects error response.
