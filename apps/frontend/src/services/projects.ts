@@ -7,11 +7,14 @@ import { ApiResponseData } from "@/types/app";
 // CONSTANTS //
 import { CONSTANTS } from "@/constants/constants";
 
+/**
+ * Requests all projects for the authenticated user.
+ */
 export const getAllProjectsRequest = async (): Promise<
   ApiResponseData<any>
 > => {
   // Get token from local storage
-  const token = await localStorage.getItem("access_token");
+  const token = localStorage.getItem(CONSTANTS.ACCESS_TOKEN_KEY);
 
   // Set up the API Call Config
   const config: AxiosRequestConfig = {

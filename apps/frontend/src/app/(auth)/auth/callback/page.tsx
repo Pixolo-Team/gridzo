@@ -4,15 +4,19 @@
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
-// SERVICES //
+// API SERVICES //
 import { createAuthSessionRequest } from "@/services/api/auth-session.api";
+
+// CONTEXTS //
+import { useAuthContext } from "@/contexts/AuthContext";
+
+// SERVICES //
 import {
   parseOAuthCallbackParamsService,
   type OAuthCallbackParamsData,
 } from "@/services/oauth-callback-params.service";
 
 // CONSTANTS //
-import { CONSTANTS } from "@/constants/constants";
 import { ROUTES } from "@/app/constants/routes";
 
 // OTHERS //
@@ -26,6 +30,7 @@ export default function AuthCallbackPage() {
   const router = useRouter();
 
   // Define Context
+  const { setAuthSessionService } = useAuthContext();
 
   // Define Refs
   const hasFetchedRef = useRef<boolean>(false);
@@ -77,7 +82,7 @@ export default function AuthCallbackPage() {
   };
 
   /**
-   * Creates backend auth session and stores authenticated user in local storage.
+   * Creates backend auth session and updates app auth state.
    */
   const createBackendAuthSessionService = async (
     accessToken: string,
@@ -92,13 +97,9 @@ export default function AuthCallbackPage() {
       return false;
     }
 
-    // Store access token in local storage
-    localStorage.setItem("access_token", authSessionResponse.data.token);
-
-    // Store authenticated User Data in local storage
-    localStorage.setItem(
-      CONSTANTS.AUTH_USER_STORAGE_KEY,
-      JSON.stringify(authSessionResponse.data.user),
+    setAuthSessionService(
+      { token: authSessionResponse.data.token },
+      authSessionResponse.data.user,
     );
 
     return true;
