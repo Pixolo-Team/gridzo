@@ -9,6 +9,11 @@ export const projectsRequestHeadersSchema = z.object({
 });
 
 /**
+ * OpenAPI schema for project routes request headers.
+ */
+export const projectRequestHeadersSchema = projectsRequestHeadersSchema;
+
+/**
  * OpenAPI schema for invite user request headers.
  */
 export const inviteUserRequestHeadersSchema = projectsRequestHeadersSchema;
@@ -19,13 +24,18 @@ export const inviteUserRequestHeadersSchema = projectsRequestHeadersSchema;
 export const createProjectRequestHeadersSchema = projectsRequestHeadersSchema;
 
 /**
- * OpenAPI schema for invite user path parameters.
+ * OpenAPI schema for project_id path parameter.
  */
-export const inviteUserParamsSchema = z.object({
+export const projectIdParamSchema = z.object({
   project_id: z.string().uuid().openapi({
     example: "123e4567-e89b-12d3-a456-426614174000",
   }),
 });
+
+/**
+ * OpenAPI schema for invite user path parameters.
+ */
+export const inviteUserParamsSchema = projectIdParamSchema;
 
 /**
  * OpenAPI schema for GET /project/{projectId} request params.
@@ -43,6 +53,35 @@ export const getProjectByIdRequestParamsSchema = z.object({
 export const inviteUserBodySchema = z.object({
   email: z.string().email().openapi({
     example: "newuser@mail.com",
+  }),
+});
+
+const projectUserSchema = z.object({
+  id: z.string().uuid(),
+  email: z.string().email(),
+  full_name: z.string().nullable(),
+  role: z.enum(["owner", "admin", "editor", "viewer"]),
+  status: z.enum(["invited", "active", "disabled", "inactive"]),
+});
+
+const projectInvitationSchema = z.object({
+  id: z.string().uuid(),
+  email: z.string().email(),
+  role: z.enum(["owner", "admin", "editor", "viewer"]),
+  status: z.literal("pending"),
+});
+
+/**
+ * OpenAPI schema for get-all-users success response.
+ */
+export const getAllUsersSuccessResponseSchema = z.object({
+  status: z.boolean(),
+  status_code: z.number(),
+  message: z.string(),
+  error: z.null(),
+  data: z.object({
+    users: z.array(projectUserSchema),
+    invitations: z.array(projectInvitationSchema),
   }),
 });
 
@@ -204,6 +243,11 @@ export const getAllProjectsErrorResponseSchema = z.object({
   error: z.string(),
   data: z.null(),
 });
+
+/**
+ * OpenAPI schema for project error response.
+ */
+export const projectErrorResponseSchema = getAllProjectsErrorResponseSchema;
 
 /**
  * OpenAPI schema for invite user error response.

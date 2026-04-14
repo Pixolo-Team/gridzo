@@ -4,6 +4,9 @@ import type {
   CreateProjectTransactionResultData,
   ProjectByIdResultData,
   ProjectData,
+  ProjectPendingInvitationData,
+  ProjectUserData,
+  ProjectUsersPayloadData,
   ProjectWithRoleData,
 } from "@/models/project.model";
 
@@ -24,6 +27,16 @@ import {
 } from "@/config/supabase";
 
 const slugConflictMarker = "SLUG_CONFLICT";
+
+type GetAllProjectUsersServiceResponseData =
+  QueryResponseData<ProjectUsersPayloadData> & {
+    statusCode:
+      | typeof HTTP_STATUS.OK
+      | typeof HTTP_STATUS.UNAUTHORIZED
+      | typeof HTTP_STATUS.FORBIDDEN
+      | typeof HTTP_STATUS.NOT_FOUND
+      | typeof HTTP_STATUS.INTERNAL_SERVER_ERROR;
+  };
 
 type InviteUserStatusCodeData =
   | typeof HTTP_STATUS.OK
@@ -95,114 +108,20 @@ export interface CreateProjectPayloadData {
 }
 
 /**
- * Invites an existing user to a project by creating a pending invitation record.
+ * Extracts the bearer token from a raw Authorization header value.
  */
-export async function inviteUserToProjectService(
-  accessTokenData: string,
-  projectIdData: string,
-  emailData: string,
-): Promise<InviteUserServiceResponseData> {
-  try {
-    const supabaseClient = createSupabaseClientByTokenRequest(accessTokenData);
-    const inviterAuthUserIdData = await resolveAuthUserIdByTokenService(
-      accessTokenData,
-    );
-
-    if (!inviterAuthUserIdData) {
-      return {
-        data: null,
-        error: new Error("Invalid or expired access token."),
-        statusCode: HTTP_STATUS.UNAUTHORIZED,
-      };
-    }
-
-    const inviterUserIdData = await resolveUserIdByAuthIdService(
-      inviterAuthUserIdData,
-      accessTokenData,
-    );
-
-    if (!inviterUserIdData) {
-      return {
-        data: null,
-        error: new Error("Authenticated user not found."),
-        statusCode: HTTP_STATUS.UNAUTHORIZED,
-      };
-    }
-
-    const existingUserResponseData = await supabaseClient
-      .from(tables.USERS)
-      .select("id")
-      .eq("email", emailData)
-      .maybeSingle();
-
-    if (existingUserResponseData.error) {
-      logger.error(
-        "[projects.service] failed to fetch user by email",
-        existingUserResponseData.error,
-      );
-      return {
-        data: null,
-        error: new Error("Failed to look up invited user."),
-        statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
-      };
-    }
-
-    if (!existingUserResponseData.data) {
-      return {
-        data: null,
-        error: new Error("User does not exist"),
-        statusCode: HTTP_STATUS.NOT_FOUND,
-      };
-    }
-
-    const invitedUserIdData = existingUserResponseData.data.id as string;
-
-    const createdInvitationResponseData = await supabaseClient
-      .from(tables.PROJECT_INVITATIONS)
-      .insert({
-        project_id: projectIdData,
-        invited_user_id: invitedUserIdData,
-        invited_by_user_id: inviterUserIdData,
-        role: "viewer",
-        status: "pending",
-        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-      })
-      .select("id, project_id, invited_user_id, role, status, expires_at")
-      .single();
-
-    if (
-      createdInvitationResponseData.error ||
-      !createdInvitationResponseData.data
-    ) {
-      logger.error(
-        "[projects.service] failed to create project invitation",
-        createdInvitationResponseData.error,
-      );
-      return {
-        data: null,
-        error: new Error("Failed to create project invitation."),
-        statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
-      };
-    }
-
-    const invitationData = createdInvitationResponseData.data as Pick<
-      ProjectInvitationData,
-      "id" | "project_id" | "invited_user_id" | "role" | "status" | "expires_at"
-    >;
-
-    return {
-      data: invitationData,
-      error: null,
-      statusCode: HTTP_STATUS.OK,
-    };
-  } catch (errorData: unknown) {
-    logger.error("[projects.service] unexpected error", errorData);
-    return {
-      data: null,
-      error: new Error("Failed to invite user to project."),
-      statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
-    };
+function extractBearerTokenService(
+  authorizationHeaderData: string | undefined,
+): string | null {
+  if (
+    !authorizationHeaderData ||
+    !authorizationHeaderData.startsWith("Bearer ")
+  ) {
+    return null;
   }
+
+  const tokenData = authorizationHeaderData.slice("Bearer ".length).trim();
+  return tokenData || null;
 }
 
 /**
@@ -303,6 +222,399 @@ async function resolveProjectIdByIdentifierService(
   }
 
   return (projectResponseData.data as { id: string }).id;
+}
+
+/**
+ * Checks whether the given user has access to the given project.
+ */
+async function checkProjectAccessService(
+  projectIdData: string,
+  internalUserIdData: string,
+  authUserIdData: string,
+): Promise<boolean> {
+  const { data: projectMembershipItem, error: projectMembershipError } =
+    await supabase
+      .from(tables.PROJECT_USER)
+      .select("project_id")
+      .eq("project_id", projectIdData)
+      .or(`user_id.eq.${internalUserIdData},user_id.eq.${authUserIdData}`)
+      .maybeSingle();
+
+  if (projectMembershipError) {
+    logger.error(
+      "[projects.service] failed to verify project membership access",
+      projectMembershipError,
+    );
+    return false;
+  }
+
+  if (projectMembershipItem) {
+    return true;
+  }
+
+  const { data: ownedProjectItem, error: ownedProjectError } = await supabase
+    .from(tables.PROJECTS)
+    .select("id")
+    .eq("id", projectIdData)
+    .or(
+      [
+        `owner_user_id.eq.${internalUserIdData}`,
+        `owner_user_id.eq.${authUserIdData}`,
+        `created_by_user_id.eq.${internalUserIdData}`,
+        `created_by_user_id.eq.${authUserIdData}`,
+      ].join(","),
+    )
+    .maybeSingle();
+
+  if (ownedProjectError) {
+    logger.error(
+      "[projects.service] failed to verify owned project access",
+      ownedProjectError,
+    );
+    return false;
+  }
+
+  return Boolean(ownedProjectItem);
+}
+
+/**
+ * Fetches all active members of a project from project_user joined with users.
+ */
+async function fetchProjectUsersService(
+  projectIdData: string,
+): Promise<ProjectUserData[] | null> {
+  const { data, error } = await supabase
+    .from(tables.PROJECT_USER)
+    .select("role, users(id, email, full_name, status)")
+    .eq("project_id", projectIdData);
+
+  if (error) {
+    logger.error("[projects.service] failed to fetch project users", error);
+    return null;
+  }
+
+  return (data ?? []).map(
+    (rowItem: {
+      role: string;
+      users:
+        | {
+            id: string;
+            email: string;
+            full_name: string | null;
+            status: string;
+          }[]
+        | null;
+    }) => {
+      const userRowData = Array.isArray(rowItem.users)
+        ? rowItem.users[0]
+        : rowItem.users;
+
+      return {
+        id: userRowData?.id ?? "",
+        email: userRowData?.email ?? "",
+        full_name: userRowData?.full_name ?? null,
+        role: rowItem.role as ProjectUserData["role"],
+        status: (userRowData?.status ?? "active") as ProjectUserData["status"],
+      };
+    },
+  );
+}
+
+/**
+ * Fetches all pending invitations for a project from project_invitations joined with users.
+ */
+async function fetchPendingInvitationsService(
+  projectIdData: string,
+): Promise<ProjectPendingInvitationData[] | null> {
+  const { data, error } = await supabase
+    .from(tables.PROJECT_INVITATIONS)
+    .select("id, role, status, invited_user_id")
+    .eq("project_id", projectIdData)
+    .eq("status", "pending");
+
+  if (error) {
+    logger.error(
+      "[projects.service] failed to fetch pending invitations",
+      error,
+    );
+    return null;
+  }
+
+  const invitationItemsData = (data ?? []) as {
+    id: string;
+    role: string;
+    status: string;
+    invited_user_id: string | null;
+  }[];
+
+  const invitedUserIdItemsData = invitationItemsData
+    .map((invitationItemData) => invitationItemData.invited_user_id)
+    .filter((invitedUserIdData): invitedUserIdData is string => {
+      return Boolean(invitedUserIdData);
+    });
+
+  const invitedUserEmailMapData = new Map<string, string>();
+
+  if (invitedUserIdItemsData.length > 0) {
+    const { data: invitedUserItemsData, error: invitedUserItemsError } =
+      await supabase
+        .from(tables.USERS)
+        .select("id, email")
+        .in("id", invitedUserIdItemsData);
+
+    if (invitedUserItemsError) {
+      logger.error(
+        "[projects.service] failed to fetch invited user emails",
+        invitedUserItemsError,
+      );
+      return null;
+    }
+
+    (invitedUserItemsData ?? []).forEach((invitedUserItemData) => {
+      invitedUserEmailMapData.set(invitedUserItemData.id, invitedUserItemData.email);
+    });
+  }
+
+  return invitationItemsData.map((invitationItemData) => {
+    const invitationEmailData = invitationItemData.invited_user_id
+      ? invitedUserEmailMapData.get(invitationItemData.invited_user_id) ?? ""
+      : "";
+
+    return {
+      id: invitationItemData.id,
+      email: invitationEmailData,
+      role: invitationItemData.role as ProjectPendingInvitationData["role"],
+      status: "pending",
+    };
+  });
+}
+
+/**
+ * Fetches all active project members and pending invitations for a project.
+ */
+export async function getAllProjectUsersService(
+  projectIdData: string,
+  authorizationHeaderData: string | undefined,
+): Promise<GetAllProjectUsersServiceResponseData> {
+  const accessTokenData = extractBearerTokenService(authorizationHeaderData);
+
+  if (!accessTokenData) {
+    return {
+      data: null,
+      error: new Error("Authorization header must contain a bearer token."),
+      statusCode: HTTP_STATUS.UNAUTHORIZED,
+    };
+  }
+
+  const authUserIdData = await resolveAuthUserIdByTokenService(accessTokenData);
+
+  if (!authUserIdData) {
+    return {
+      data: null,
+      error: new Error("Invalid or expired access token."),
+      statusCode: HTTP_STATUS.UNAUTHORIZED,
+    };
+  }
+
+  const internalUserIdData = await resolveUserIdByAuthIdService(
+    authUserIdData,
+    accessTokenData,
+  );
+
+  if (!internalUserIdData) {
+    return {
+      data: null,
+      error: new Error("Authenticated user not found."),
+      statusCode: HTTP_STATUS.UNAUTHORIZED,
+    };
+  }
+
+  const projectExistsResponseData = await supabase
+    .from(tables.PROJECTS)
+    .select("id")
+    .eq("id", projectIdData)
+    .maybeSingle();
+
+  if (projectExistsResponseData.error) {
+    logger.error(
+      "[projects.service] failed to verify project existence",
+      projectExistsResponseData.error,
+    );
+    return {
+      data: null,
+      error: new Error("Failed to fetch project users."),
+      statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+    };
+  }
+
+  if (!projectExistsResponseData.data) {
+    return {
+      data: null,
+      error: new Error("Project not found"),
+      statusCode: HTTP_STATUS.NOT_FOUND,
+    };
+  }
+
+  const hasProjectAccessData = await checkProjectAccessService(
+    projectIdData,
+    internalUserIdData,
+    authUserIdData,
+  );
+
+  if (!hasProjectAccessData) {
+    return {
+      data: null,
+      error: new Error("You do not have access to this project."),
+      statusCode: HTTP_STATUS.FORBIDDEN,
+    };
+  }
+
+  const [projectUsersData, pendingInvitationsData] = await Promise.all([
+    fetchProjectUsersService(projectIdData),
+    fetchPendingInvitationsService(projectIdData),
+  ]);
+
+  if (projectUsersData === null || pendingInvitationsData === null) {
+    return {
+      data: null,
+      error: new Error("Failed to fetch project users."),
+      statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+    };
+  }
+
+  return {
+    data: {
+      users: projectUsersData,
+      invitations: pendingInvitationsData,
+    },
+    error: null,
+    statusCode: HTTP_STATUS.OK,
+  };
+}
+
+/**
+ * Invites an existing user to a project by creating a pending invitation record.
+ */
+export async function inviteUserToProjectService(
+  accessTokenData: string,
+  projectIdData: string,
+  emailData: string,
+): Promise<InviteUserServiceResponseData> {
+  try {
+    const supabaseClient = createSupabaseClientByTokenRequest(accessTokenData);
+    const inviterAuthUserIdData = await resolveAuthUserIdByTokenService(
+      accessTokenData,
+    );
+
+    if (!inviterAuthUserIdData) {
+      return {
+        data: null,
+        error: new Error("Invalid or expired access token."),
+        statusCode: HTTP_STATUS.UNAUTHORIZED,
+      };
+    }
+
+    const inviterUserIdData = await resolveUserIdByAuthIdService(
+      inviterAuthUserIdData,
+      accessTokenData,
+    );
+
+    if (!inviterUserIdData) {
+      return {
+        data: null,
+        error: new Error("Authenticated user not found."),
+        statusCode: HTTP_STATUS.UNAUTHORIZED,
+      };
+    }
+
+    const hasProjectAccessData = await checkProjectAccessService(
+      projectIdData,
+      inviterUserIdData,
+      inviterAuthUserIdData,
+    );
+
+    if (!hasProjectAccessData) {
+      return {
+        data: null,
+        error: new Error("You do not have access to this project."),
+        statusCode: HTTP_STATUS.UNAUTHORIZED,
+      };
+    }
+
+    const existingUserResponseData = await supabaseClient
+      .from(tables.USERS)
+      .select("id")
+      .eq("email", emailData)
+      .maybeSingle();
+
+    if (existingUserResponseData.error) {
+      logger.error(
+        "[projects.service] failed to fetch user by email",
+        existingUserResponseData.error,
+      );
+      return {
+        data: null,
+        error: new Error("Failed to look up invited user."),
+        statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+      };
+    }
+
+    if (!existingUserResponseData.data) {
+      return {
+        data: null,
+        error: new Error("User does not exist"),
+        statusCode: HTTP_STATUS.NOT_FOUND,
+      };
+    }
+
+    const invitedUserIdData = existingUserResponseData.data.id as string;
+
+    const createdInvitationResponseData = await supabaseClient
+      .from(tables.PROJECT_INVITATIONS)
+      .insert({
+        project_id: projectIdData,
+        invited_user_id: invitedUserIdData,
+        invited_by_user_id: inviterUserIdData,
+        role: "viewer",
+        status: "pending",
+        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      })
+      .select("id, project_id, invited_user_id, role, status, expires_at")
+      .single();
+
+    if (
+      createdInvitationResponseData.error ||
+      !createdInvitationResponseData.data
+    ) {
+      logger.error(
+        "[projects.service] failed to create project invitation",
+        createdInvitationResponseData.error,
+      );
+      return {
+        data: null,
+        error: new Error("Failed to create project invitation."),
+        statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+      };
+    }
+
+    const invitationData = createdInvitationResponseData.data as Pick<
+      ProjectInvitationData,
+      "id" | "project_id" | "invited_user_id" | "role" | "status" | "expires_at"
+    >;
+
+    return {
+      data: invitationData,
+      error: null,
+      statusCode: HTTP_STATUS.OK,
+    };
+  } catch (errorData: unknown) {
+    logger.error("[projects.service] unexpected error", errorData);
+    return {
+      data: null,
+      error: new Error("Failed to invite user to project."),
+      statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+    };
+  }
 }
 
 /**
@@ -450,60 +762,18 @@ export async function getProjectByIdService(
       };
     }
 
-    const { data: projectMembershipItem, error: projectMembershipError } =
-      await supabase
-        .from(tables.PROJECT_USER)
-        .select("project_id")
-        .eq("project_id", projectIdData)
-        .or(`user_id.eq.${internalUserIdData},user_id.eq.${authUserIdData}`)
-        .maybeSingle();
+    const hasProjectAccessData = await checkProjectAccessService(
+      projectIdData,
+      internalUserIdData,
+      authUserIdData,
+    );
 
-    if (projectMembershipError) {
-      logger.error(
-        "[projects.service] failed to verify project access",
-        projectMembershipError,
-      );
+    if (!hasProjectAccessData) {
       return {
         data: null,
-        error: new Error("Failed to fetch project."),
-        statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+        error: new Error("Unauthorized"),
+        statusCode: HTTP_STATUS.UNAUTHORIZED,
       };
-    }
-
-    if (!projectMembershipItem) {
-      const { data: ownedProjectItem, error: ownedProjectError } = await supabase
-        .from(tables.PROJECTS)
-        .select("id")
-        .eq("id", projectIdData)
-        .or(
-          [
-            `owner_user_id.eq.${internalUserIdData}`,
-            `owner_user_id.eq.${authUserIdData}`,
-            `created_by_user_id.eq.${internalUserIdData}`,
-            `created_by_user_id.eq.${authUserIdData}`,
-          ].join(","),
-        )
-        .maybeSingle();
-
-      if (ownedProjectError) {
-        logger.error(
-          "[projects.service] failed to verify owned project access",
-          ownedProjectError,
-        );
-        return {
-          data: null,
-          error: new Error("Failed to fetch project."),
-          statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
-        };
-      }
-
-      if (!ownedProjectItem) {
-        return {
-          data: null,
-          error: new Error("Unauthorized"),
-          statusCode: HTTP_STATUS.UNAUTHORIZED,
-        };
-      }
     }
 
     const { data: projectItem, error: projectError } = await supabase

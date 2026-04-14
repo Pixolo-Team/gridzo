@@ -1,5 +1,10 @@
 // TYPES //
 import { DashboardProjectVisualData } from "@/types/projects";
+import type {
+  ProjectPendingInvitationData,
+  ProjectUserData,
+} from "@/types/projects";
+import type { UserData } from "@/types/user";
 
 // DATA //
 import {
@@ -28,4 +33,21 @@ export const getDashboardProjectVisuals = (
       projectIndexData % dashboardProjectVisualItemsData.length
     ] ?? dashboardProjectVisualItemsData[0]
   );
+};
+
+/**
+ * Maps project role values to user table role labels.
+ */
+export const getUserRoleLabelService = (
+  roleData: ProjectUserData["role"] | ProjectPendingInvitationData["role"],
+): UserData["role"] => {
+  if (roleData === "owner") {
+    return "Owner";
+  }
+
+  if (roleData === "admin" || roleData === "editor") {
+    return "Manager";
+  }
+
+  return "Member";
 };

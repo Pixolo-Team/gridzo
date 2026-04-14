@@ -61,6 +61,29 @@ export type InviteUserResponseData = {
   expires_at: string;
 };
 
+// Type for Project User Data
+export type ProjectUserData = {
+  id: string;
+  email: string;
+  full_name: string | null;
+  role: "owner" | "admin" | "editor" | "viewer";
+  status: "invited" | "active" | "disabled" | "inactive";
+};
+
+// Type for Project Pending Invitation Data
+export type ProjectPendingInvitationData = {
+  id: string;
+  email: string;
+  role: "owner" | "admin" | "editor" | "viewer";
+  status: "pending";
+};
+
+// Type for Get All Project Users Response Data
+export type GetAllProjectUsersResponseData = {
+  users: ProjectUserData[];
+  invitations: ProjectPendingInvitationData[];
+};
+
 // Type for Create Project Request Google Sheet Credentials Data
 export type CreateProjectRequestGoogleSheetCredentialsData = {
   google_sheet_id: string;

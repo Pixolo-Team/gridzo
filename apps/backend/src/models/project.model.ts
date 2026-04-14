@@ -99,3 +99,32 @@ export interface ProjectByIdResultData {
     };
   };
 }
+
+/**
+ * Project user row model from project_user join users.
+ */
+export interface ProjectUserData {
+  id: string;
+  email: string;
+  full_name: string | null;
+  role: "owner" | "admin" | "editor" | "viewer";
+  status: "invited" | "active" | "disabled" | "inactive";
+}
+
+/**
+ * Pending invitation row model for get-all-users response.
+ */
+export interface ProjectPendingInvitationData {
+  id: string;
+  email: string;
+  role: "owner" | "admin" | "editor" | "viewer";
+  status: "pending";
+}
+
+/**
+ * Combined response payload for project users and invitations.
+ */
+export interface ProjectUsersPayloadData {
+  users: ProjectUserData[];
+  invitations: ProjectPendingInvitationData[];
+}

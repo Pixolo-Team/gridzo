@@ -6,6 +6,7 @@ import { ApiResponseData } from "@/types/app";
 import type {
   CreateProjectRequestData,
   CreateProjectResponseData,
+  GetAllProjectUsersResponseData,
   GetProjectByIdResponseData,
   InviteUserResponseData,
   ProjectListItemData,
@@ -129,5 +130,27 @@ export const inviteUserRequest = async (
   // Make API Call
   const response =
     await axios.request<ApiResponseData<InviteUserResponseData>>(config);
+  return response.data;
+};
+
+/** API Call: Get all Users of a Project by project Id */
+export const getAllUsersRequest = async (
+  projectId: string,
+): Promise<ApiResponseData<GetAllProjectUsersResponseData>> => {
+  // Resolve latest token for authorized request
+  const token = await getAccessTokenForApiRequestService();
+
+  // Set up the API Call Config
+  const config: AxiosRequestConfig = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    method: "get",
+    url: `${CONSTANTS.LOCAL_API_URL}/projects/${projectId}/get-all-users`,
+  };
+
+  // Make API Call
+  const response =
+    await axios.request<ApiResponseData<GetAllProjectUsersResponseData>>(config);
   return response.data;
 };

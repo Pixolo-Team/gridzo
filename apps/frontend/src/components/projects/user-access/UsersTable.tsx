@@ -2,6 +2,7 @@
 import type { UserRoleData, UserData } from "@/types/user";
 
 // COMPONENTS //
+import Image from "next/image";
 import VerticalMenu from "@/components/icons/neevo-icons/VerticalMenu";
 import { Button } from "@/components/ui/button";
 import {
@@ -94,7 +95,20 @@ export default function UsersTable({ memberItems }: UsersTablePropsData) {
               >
                 <TableCell className="px-3 py-3 md:px-6 md:py-4">
                   <div className="flex min-w-0 items-center gap-1.5 md:gap-5">
-                    <div className="relative size-10 shrink-0 rounded-full bg-n-100">
+                    <div className="relative size-10 shrink-0 overflow-hidden rounded-full bg-n-100">
+                      <Image
+                        src={
+                          memberItem.avatar_url ?? "/images/dummy-profile.png"
+                        }
+                        alt={
+                          memberItem.full_name
+                            ? `${memberItem.full_name}'s profile`
+                            : "User profile"
+                        }
+                        className="h-full w-full object-cover"
+                        width={40}
+                        height={40}
+                      />
                       <span
                         className={cn(
                           "absolute -bottom-0.5 -right-0.5 size-[11px] rounded-full border-2 border-n-50 md:hidden",

@@ -1,6 +1,7 @@
 // CONTROLLERS //
 import {
   createProjectController,
+  getAllProjectUsersController,
   getAllProjectsController,
   getProjectByIdController,
   inviteUserToProjectController,
@@ -9,6 +10,7 @@ import {
 // CONTRACTS //
 import {
   createProjectContract,
+  getAllProjectUsersContract,
   getAllProjectsContract,
   getProjectByIdContract,
   inviteUserToProjectContract,
@@ -26,6 +28,7 @@ import type { OpenAPIHono } from "@hono/zod-openapi";
 export function registerProjectRoutes(openapiApp: OpenAPIHono): void {
   openapiApp.use("/projects/*", authenticateRequestMiddleware);
   openapiApp.use("/project/*", authenticateRequestMiddleware);
+  openapiApp.openapi(getAllProjectUsersContract, getAllProjectUsersController);
   openapiApp.openapi(inviteUserToProjectContract, inviteUserToProjectController);
   openapiApp.openapi(getAllProjectsContract, getAllProjectsController);
   openapiApp.openapi(getProjectByIdContract, getProjectByIdController);
