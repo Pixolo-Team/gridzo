@@ -4,7 +4,7 @@
 import { useState } from "react";
 
 // SERVICES //
-import { signInWithGoogleRequest } from "@/services/auth.service";
+import { signInWithGoogleRequest } from "@/services/api/auth.api";
 
 // COMPONENTS //
 import Image from "next/image";

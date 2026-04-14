@@ -10,7 +10,7 @@ import { ROUTES } from "@/app/constants/routes";
 type GoogleSignInResponseData = OAuthResponse | { data: null; error: AuthError };
 
 /**
- * Initiates Google OAuth sign-in flow via Supabase
+ * Initiates Google OAuth sign-in flow via Supabase.
  */
 export async function signInWithGoogleRequest(): Promise<GoogleSignInResponseData> {
   try {

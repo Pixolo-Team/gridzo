@@ -1,7 +1,11 @@
 "use client";
 
+// REACT //
+import { useCallback, useEffect, useState } from "react";
+
 // TYPES //
 import type { IconComponentData } from "@/types/icon";
+import type { UserData } from "@/types/user";
 
 // COMPONENTS //
 import Image from "next/image";
@@ -15,6 +19,7 @@ import PortraitSetting from "@/components/icons/neevo-icons/PortraitSetting";
 
 // CONSTANTS //
 import { ROUTES } from "@/app/constants/routes";
+import { CONSTANTS } from "@/constants/constants";
 
 // NAVIGATION //
 import { usePathname } from "next/navigation";
@@ -63,6 +68,9 @@ export function SideMenu({
   // Define Refs
 
   // Define States
+  const [authenticatedUser, setAuthenticatedUser] = useState<UserData | null>(
+    null,
+  );
 
   // Helper Functions
   /** Checks whether the current route is within a project details area */
@@ -113,8 +121,9 @@ export function SideMenu({
       },
       {
         id: "project-user-access",
+        href: ROUTES.APP.PROJECTS.USER_ACCESS(projectId),
         backgroundColor: "bg-blue-100",
-        iconColor: "text-blue-600",
+        iconColor: "text-blue-500",
         Icon: PortraitSetting,
         label: "User Access",
       },
@@ -149,12 +158,38 @@ export function SideMenu({
       return pathname === sidebarNavigationItem.href;
     }
 
+    if (sidebarNavigationItem.id === "project-user-access") {
+      return pathname === sidebarNavigationItem.href;
+    }
+
     if (sidebarNavigationItem.id === "project-settings") {
       return pathname === sidebarNavigationItem.href;
     }
 
     return false;
   };
+
+  /**
+   * Loads authenticated user details from local storage.
+   */
+  const getAuthenticatedUser = useCallback((): void => {
+    // Get User from Local Storage
+    const storedUserItem = window.localStorage.getItem(
+      CONSTANTS.AUTH_USER_STORAGE_KEY,
+    );
+
+    if (!storedUserItem) {
+      setAuthenticatedUser(null);
+      return;
+    }
+
+    try {
+      const parsedUser = JSON.parse(storedUserItem) as UserData;
+      setAuthenticatedUser(parsedUser);
+    } catch {
+      setAuthenticatedUser(null);
+    }
+  }, []);
 
   const sideMenuNavigationContent = (
     <>
@@ -218,8 +253,12 @@ export function SideMenu({
         <div className="flex items-center gap-[18px]">
           <div className="size-12 overflow-hidden rounded-full">
             <Image
-              src={"/images/dummy-profile.png"}
-              alt="Deven Bhagtani"
+              src={authenticatedUser?.avatar_url ?? "/images/dummy-profile.png"}
+              alt={
+                authenticatedUser?.full_name
+                  ? `${authenticatedUser.full_name}'s profile`
+                  : "Guest profile"
+              }
               className="h-full w-full object-cover"
               width={48}
               height={48}
@@ -227,10 +266,14 @@ export function SideMenu({
           </div>
 
           <div className="flex flex-col gap-0.5">
+            {/* User Name */}
             <p className="text-lg font-semibold leading-normal text-n-950">
-              Deven Bhagtani
+              {authenticatedUser ? authenticatedUser.full_name : "Guest"}
             </p>
-            <p className="text-sm leading-normal text-n-500">Pro Plan</p>
+            {/* User Email */}
+            <p className="text-sm leading-normal text-n-500">
+              {authenticatedUser ? authenticatedUser.email : "guest@gmail.com"}
+            </p>
           </div>
         </div>
       </div>
@@ -238,6 +281,9 @@ export function SideMenu({
   );
 
   // Use Effects
+  useEffect(() => {
+    getAuthenticatedUser();
+  }, [getAuthenticatedUser]);
 
   return (
     <>
