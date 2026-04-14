@@ -30,7 +30,7 @@ export default function ProjectOverviewLayout({
   return (
     <>
       {/* Overview Content */}
-      <div className="min-h-full pb-36 md:pb-0">{children}</div>
+      <div className="min-h-full pb-36 xl:pb-0">{children}</div>
 
       {/* Mobile Bottom Actions */}
       <MobileBottomActions>

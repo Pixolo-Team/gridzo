@@ -147,7 +147,7 @@ id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
 project_id UUID NOT NULL,
 version TEXT NOT NULL,
 
-json_code TEXT NOT NULL,
+json_code JSON NOT NULL,
 php_code TEXT,
 
 is_current BOOLEAN DEFAULT TRUE,
@@ -167,10 +167,10 @@ ON DELETE CASCADE
 );
 
 -- =========================================
--- GOOGLE SHEETS CREDENTIALS
+-- GOOGLE SHEET CREDENTIALS
 -- =========================================
 
-CREATE TABLE google_sheets_credentials (
+CREATE TABLE google_sheet_credentials (
 id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
 
 project_id UUID NOT NULL UNIQUE,

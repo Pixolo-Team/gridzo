@@ -1,7 +1,10 @@
 "use client";
 
 // REACT //
-import { useRouter } from "next/navigation";
+import { useState } from "react";
+
+// SERVICES //
+import { signInWithGoogleRequest } from "@/services/api/auth.api";
 
 // COMPONENTS //
 import Image from "next/image";
@@ -9,34 +12,41 @@ import Link from "next/link";
 import Database from "@/components/icons/neevo-icons/Database";
 import { Button } from "@/components/ui/button";
 
-// CONSTANTS //
-import { ROUTES } from "@/app/constants/routes";
-
 // DATA //
 import { footerLinkItems } from "@/app/data/footer-links";
 
 /** Login page */
 export default function LoginPage() {
   // Define Navigation
-  const router = useRouter();
 
   // Define Context
 
   // Define Refs
 
   // Define States
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   // Helper Functions
-  /** Handles Google Sign-In logic */
-  const handleGoogleSignIn = (): void => {
-    // TODO: Implement Google Sign-In logic here.
-    router.replace(ROUTES.APP.DASHBOARD);
-  };
+  /**
+   * Handles Google Auth logic by triggering the OAuth flow
+   */
+  const handleGoogleAuth = async (): Promise<void> => {
+    setIsLoading(true);
 
-  /** Handles Google Sign-Up logic */
-  const handleGoogleSignUp = (): void => {
-    // TODO: Implement Google Sign-Up logic here
-    router.replace(ROUTES.APP.DASHBOARD);
+    const { data, error } = await signInWithGoogleRequest();
+
+    if (error) {
+      setIsLoading(false);
+      return;
+    }
+
+    // Some browsers block automatic navigation in edge cases, so we fall back to direct URL navigation.
+    if (data?.url) {
+      window.location.assign(data.url);
+      return;
+    }
+
+    setIsLoading(false);
   };
 
   // Use Effects
@@ -72,51 +82,29 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Sign In Card */}
+            {/* Google Sign-In */}
             <div className="flex w-full flex-col items-center gap-6 rounded-xl border border-n-300 bg-n-50 px-7 py-5 md:px-8 lg:px-9">
-              {/* Auth Buttons */}
-              <div className="flex w-full flex-col gap-3">
-                <Button
-                  type="button"
-                  className="h-12 w-full gap-3 rounded-lg px-6 py-3 text-sm"
-                  aria-label="Sign in with Google"
-                  onClick={handleGoogleSignIn}
-                >
-                  {/* Google logo */}
-                  <span className="size-5 shrink-0">
-                    <Image
-                      src="/images/google-logo.png"
-                      alt=""
-                      aria-hidden="true"
-                      width={20}
-                      height={20}
-                      className="h-full w-full object-contain"
-                    />
-                  </span>
-                  <span>Sign in with Google</span>
-                </Button>
-
-                <Button
-                  type="button"
-                  variant="secondary"
-                  className="h-12 w-full gap-3 rounded-lg px-6 py-3 text-sm"
-                  aria-label="Sign up with Google"
-                  onClick={handleGoogleSignUp}
-                >
-                  {/* Google logo */}
-                  <span className="size-5 shrink-0">
-                    <Image
-                      src="/images/google-logo.png"
-                      alt=""
-                      aria-hidden="true"
-                      width={20}
-                      height={20}
-                      className="h-full w-full object-contain"
-                    />
-                  </span>
-                  <span>Sign up with Google</span>
-                </Button>
-              </div>
+              <Button
+                type="button"
+                className="h-12 w-full gap-3 rounded-lg px-6 py-3 text-sm"
+                aria-label="Sign up with Google"
+                onClick={handleGoogleAuth}
+                disabled={isLoading}
+              >
+                <span className="size-5 shrink-0">
+                  <Image
+                    src="/images/google-logo.png"
+                    alt=""
+                    aria-hidden="true"
+                    width={20}
+                    height={20}
+                    className="h-full w-full object-contain"
+                  />
+                </span>
+                <span>
+                  {isLoading ? "Opening Google..." : "Continue with Google"}
+                </span>
+              </Button>
 
               {/* Description text */}
               <p className="max-w-[84%] text-center text-xs leading-4 text-n-600 md:max-w-[76%] lg:max-w-[72%]">
