@@ -126,14 +126,14 @@ export default function UsersTable({ memberItems }: UsersTablePropsData) {
                       </p>
                     </div>
 
-                    <span className="ml-auto inline-flex shrink-0 rounded-full px-2 py-1 text-[10px] font-medium md:hidden bg-green-50 text-green-700">
+                    <span className="ml-auto inline-flex shrink-0 rounded-full bg-green-50 px-2 py-1 text-[10px] font-medium text-green-700 md:hidden">
                       {getMemberRoleLabel(memberItem.role)}
                     </span>
                   </div>
                 </TableCell>
 
                 <TableCell className="hidden px-6 py-4 text-center md:table-cell">
-                  <span className="inline-flex rounded-full px-2 py-1 text-xs font-medium bg-green-50 text-green-700">
+                  <span className="inline-flex rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700">
                     {getMemberRoleLabel(memberItem.role)}
                   </span>
                 </TableCell>

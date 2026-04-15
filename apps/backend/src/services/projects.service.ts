@@ -86,9 +86,10 @@ type ProjectsServiceResponseData = QueryResponseData<ProjectWithRoleData[]> & {
   statusCode: ProjectsStatusCodeData;
 };
 
-type ProjectByIdServiceResponseData = QueryResponseData<ProjectByIdResultData> & {
-  statusCode: ProjectsStatusCodeData;
-};
+type ProjectByIdServiceResponseData =
+  QueryResponseData<ProjectByIdResultData> & {
+    statusCode: ProjectsStatusCodeData;
+  };
 
 type CreateProjectStatusCodeData =
   | typeof HTTP_STATUS.CREATED
@@ -173,7 +174,8 @@ async function resolveAuthUserIdByTokenService(
   accessTokenData: string,
 ): Promise<string | null> {
   const supabaseClient = createSupabaseClientByTokenRequest(accessTokenData);
-  const authUserResponseData = await supabaseClient.auth.getUser(accessTokenData);
+  const authUserResponseData =
+    await supabaseClient.auth.getUser(accessTokenData);
 
   if (authUserResponseData.error || !authUserResponseData.data.user) {
     return null;
@@ -253,14 +255,13 @@ async function resolveProjectIdByIdentifierService(
 async function checkProjectAccessService(
   projectIdData: string,
   internalUserIdData: string,
-  authUserIdData: string,
 ): Promise<boolean> {
   const { data: projectMembershipItem, error: projectMembershipError } =
     await supabase
       .from(tables.PROJECT_USER)
       .select("project_id")
       .eq("project_id", projectIdData)
-      .or(`user_id.eq.${internalUserIdData},user_id.eq.${authUserIdData}`)
+      .eq("user_id", internalUserIdData)
       .maybeSingle();
 
   if (projectMembershipError) {
@@ -282,9 +283,7 @@ async function checkProjectAccessService(
     .or(
       [
         `owner_user_id.eq.${internalUserIdData}`,
-        `owner_user_id.eq.${authUserIdData}`,
         `created_by_user_id.eq.${internalUserIdData}`,
-        `created_by_user_id.eq.${authUserIdData}`,
       ].join(","),
     )
     .maybeSingle();
@@ -407,13 +406,16 @@ async function fetchPendingInvitationsService(
     }
 
     (invitedUserItemsData ?? []).forEach((invitedUserItemData) => {
-      invitedUserEmailMapData.set(invitedUserItemData.id, invitedUserItemData.email);
+      invitedUserEmailMapData.set(
+        invitedUserItemData.id,
+        invitedUserItemData.email,
+      );
     });
   }
 
   return invitationItemsData.map((invitationItemData) => {
     const invitationEmailData = invitationItemData.invited_user_id
-      ? invitedUserEmailMapData.get(invitationItemData.invited_user_id) ?? ""
+      ? (invitedUserEmailMapData.get(invitationItemData.invited_user_id) ?? "")
       : "";
 
     return {
@@ -494,7 +496,6 @@ export async function getAllProjectUsersService(
   const hasProjectAccessData = await checkProjectAccessService(
     projectIdData,
     internalUserIdData,
-    authUserIdData,
   );
 
   if (!hasProjectAccessData) {
@@ -538,9 +539,8 @@ export async function inviteUserToProjectService(
 ): Promise<InviteUserServiceResponseData> {
   try {
     const supabaseClient = createSupabaseClientByTokenRequest(accessTokenData);
-    const inviterAuthUserIdData = await resolveAuthUserIdByTokenService(
-      accessTokenData,
-    );
+    const inviterAuthUserIdData =
+      await resolveAuthUserIdByTokenService(accessTokenData);
 
     if (!inviterAuthUserIdData) {
       return {
@@ -566,7 +566,6 @@ export async function inviteUserToProjectService(
     const hasProjectAccessData = await checkProjectAccessService(
       projectIdData,
       inviterUserIdData,
-      inviterAuthUserIdData,
     );
 
     if (!hasProjectAccessData) {
@@ -613,7 +612,9 @@ export async function inviteUserToProjectService(
         invited_by_user_id: inviterUserIdData,
         role: "viewer",
         status: "pending",
-        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        expires_at: new Date(
+          Date.now() + 7 * 24 * 60 * 60 * 1000,
+        ).toISOString(),
       })
       .select("id, project_id, invited_user_id, role, status, expires_at")
       .single();
@@ -671,14 +672,15 @@ export async function getMyProjectInvitationsService(
       };
     }
 
-    const { data: invitationItemsData, error: invitationItemsError } = await supabase
-      .from(tables.PROJECT_INVITATIONS)
-      .select(
-        "id, project_id, invited_by_user_id, role, status, expires_at, created_at",
-      )
-      .eq("invited_user_id", internalUserIdData)
-      .eq("status", "pending")
-      .order("created_at", { ascending: false });
+    const { data: invitationItemsData, error: invitationItemsError } =
+      await supabase
+        .from(tables.PROJECT_INVITATIONS)
+        .select(
+          "id, project_id, invited_by_user_id, role, status, expires_at, created_at",
+        )
+        .eq("invited_user_id", internalUserIdData)
+        .eq("status", "pending")
+        .order("created_at", { ascending: false });
 
     if (invitationItemsError) {
       logger.error(
@@ -723,16 +725,17 @@ export async function getMyProjectInvitationsService(
       ),
     );
 
-    const [projectItemsResponseData, inviterItemsResponseData] = await Promise.all([
-      supabase
-        .from(tables.PROJECTS)
-        .select("id, name, slug")
-        .in("id", projectIdItemsData),
-      supabase
-        .from(tables.USERS)
-        .select("id, full_name, email")
-        .in("id", inviterIdItemsData),
-    ]);
+    const [projectItemsResponseData, inviterItemsResponseData] =
+      await Promise.all([
+        supabase
+          .from(tables.PROJECTS)
+          .select("id, name, slug")
+          .in("id", projectIdItemsData),
+        supabase
+          .from(tables.USERS)
+          .select("id, full_name, email")
+          .in("id", inviterIdItemsData),
+      ]);
 
     if (projectItemsResponseData.error || inviterItemsResponseData.error) {
       logger.error("[projects.service] failed to map invitation metadata", {
@@ -777,7 +780,9 @@ export async function getMyProjectInvitationsService(
     const mappedInvitationItemsData: ProjectInboxInvitationData[] =
       filteredInvitationItemsData
         .map((invitationItemData) => {
-          const projectItemData = projectMapData.get(invitationItemData.project_id);
+          const projectItemData = projectMapData.get(
+            invitationItemData.project_id,
+          );
           const inviterItemData = inviterMapData.get(
             invitationItemData.invited_by_user_id,
           );
@@ -893,7 +898,9 @@ export async function respondProjectInvitationService(
     }
 
     if (
-      checkIsInvitationExpiredService(invitationResponseData.data.expires_at ?? null)
+      checkIsInvitationExpiredService(
+        invitationResponseData.data.expires_at ?? null,
+      )
     ) {
       return {
         data: null,
@@ -929,7 +936,8 @@ export async function respondProjectInvitationService(
       }
     }
 
-    const invitationStatusData = actionData === "accept" ? "accepted" : "rejected";
+    const invitationStatusData =
+      actionData === "accept" ? "accepted" : "rejected";
     const invitationUpdateResponseData = await supabaseClient
       .from(tables.PROJECT_INVITATIONS)
       .update({
@@ -958,10 +966,13 @@ export async function respondProjectInvitationService(
       statusCode: HTTP_STATUS.OK,
     };
   } catch (errorData: unknown) {
-    logger.error("[projects.service] unexpected error while responding invitation", {
-      invitationIdData,
-      error: errorData,
-    });
+    logger.error(
+      "[projects.service] unexpected error while responding invitation",
+      {
+        invitationIdData,
+        error: errorData,
+      },
+    );
     return {
       data: null,
       error: new Error("Failed to process invitation."),
@@ -1007,25 +1018,25 @@ export async function getAllProjectsService(
       };
     }
 
-    const projectItems: ProjectWithRoleData[] = (projectMembershipItems ?? []).map(
-      (membershipItem) => {
-        const projectRecord = membershipItem.projects as unknown as ProjectData;
+    const projectItems: ProjectWithRoleData[] = (
+      projectMembershipItems ?? []
+    ).map((membershipItem) => {
+      const projectRecord = membershipItem.projects as unknown as ProjectData;
 
-        return {
-          id: projectRecord.id,
-          name: projectRecord.name,
-          slug: projectRecord.slug,
-          category: projectRecord.category,
-          website_url: projectRecord.website_url,
-          status: projectRecord.status,
-          created_at: projectRecord.created_at,
-          updated_at: projectRecord.updated_at,
-          created_by_user_id: projectRecord.created_by_user_id,
-          owner_user_id: projectRecord.owner_user_id,
-          role: membershipItem.role as "owner" | "admin" | "editor" | "viewer",
-        };
-      },
-    );
+      return {
+        id: projectRecord.id,
+        name: projectRecord.name,
+        slug: projectRecord.slug,
+        category: projectRecord.category,
+        website_url: projectRecord.website_url,
+        status: projectRecord.status,
+        created_at: projectRecord.created_at,
+        updated_at: projectRecord.updated_at,
+        created_by_user_id: projectRecord.created_by_user_id,
+        owner_user_id: projectRecord.owner_user_id,
+        role: membershipItem.role as "owner" | "admin" | "editor" | "viewer",
+      };
+    });
 
     if (projectItems.length > 0) {
       return {
@@ -1118,7 +1129,6 @@ export async function getProjectByIdService(
     const hasProjectAccessData = await checkProjectAccessService(
       projectIdData,
       internalUserIdData,
-      authUserIdData,
     );
 
     if (!hasProjectAccessData) {
@@ -1139,7 +1149,10 @@ export async function getProjectByIdService(
       .maybeSingle();
 
     if (projectError) {
-      logger.error("[projects.service] failed to fetch project by id", projectError);
+      logger.error(
+        "[projects.service] failed to fetch project by id",
+        projectError,
+      );
       return {
         data: null,
         error: new Error("Failed to fetch project."),
@@ -1155,7 +1168,9 @@ export async function getProjectByIdService(
       };
     }
 
-    const structureVersionItem = Array.isArray(projectItem.project_structure_versions)
+    const structureVersionItem = Array.isArray(
+      projectItem.project_structure_versions,
+    )
       ? projectItem.project_structure_versions[0]
       : null;
     const credentialsItem = Array.isArray(projectItem.google_sheet_credentials)
@@ -1200,7 +1215,10 @@ export async function getProjectByIdService(
       statusCode: HTTP_STATUS.OK,
     };
   } catch (errorData: unknown) {
-    logger.error("[projects.service] unexpected error while fetching project", errorData);
+    logger.error(
+      "[projects.service] unexpected error while fetching project",
+      errorData,
+    );
     return {
       data: null,
       error: new Error("Failed to fetch project."),
@@ -1253,7 +1271,8 @@ export async function createProjectService(
         p_google_sheet_id: payloadData.google_sheet_credentials.google_sheet_id,
         p_google_project_id:
           payloadData.google_sheet_credentials.google_project_id ?? null,
-        p_private_key_id: payloadData.google_sheet_credentials.private_key_id ?? null,
+        p_private_key_id:
+          payloadData.google_sheet_credentials.private_key_id ?? null,
         p_client_email: payloadData.google_sheet_credentials.client_email,
         p_client_id: payloadData.google_sheet_credentials.client_id ?? null,
         p_client_x509_cert_url:
@@ -1286,7 +1305,8 @@ export async function createProjectService(
       };
     }
 
-    const resultData = rpcResponseData.data as CreateProjectTransactionResultData;
+    const resultData =
+      rpcResponseData.data as CreateProjectTransactionResultData;
 
     return {
       data: resultData,

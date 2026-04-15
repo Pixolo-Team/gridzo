@@ -14,17 +14,17 @@ import type { ReactNode } from "react";
 // TYPES //
 import type { MyProjectInvitationData } from "@/types/projects";
 
-// CONTEXTS //
-import { useAuthContext } from "@/contexts/AuthContext";
-
 // API SERVICES //
 import { getMyProjectInvitationsRequest } from "@/services/api/projects.api";
+
+// CONTEXTS //
+import { useAuthContext } from "@/contexts/AuthContext";
 
 type ProjectInvitationsContextData = {
   invitationItems: MyProjectInvitationData[];
   isInvitationItemsLoading: boolean;
   refreshInvitationItemsService: () => void;
-  removeInvitationItemService: (invitationIdData: string) => void;
+  removeInvitationItemService: (invitationId: string) => void;
 };
 
 const ProjectInvitationsContext =
@@ -82,10 +82,10 @@ export function ProjectInvitationsProvider({
    * Removes an invitation from shared state by id after user action.
    */
   const removeInvitationItemService = useCallback(
-    (invitationIdData: string): void => {
-      setInvitationItems((previousInvitationItemsData) => {
-        return previousInvitationItemsData.filter((invitationItemData) => {
-          return invitationItemData.id !== invitationIdData;
+    (invitationId: string): void => {
+      setInvitationItems((previousInvitationItems) => {
+        return previousInvitationItems.filter((invitationItem) => {
+          return invitationItem.id !== invitationId;
         });
       });
     },

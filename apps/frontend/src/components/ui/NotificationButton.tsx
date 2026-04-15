@@ -50,16 +50,16 @@ export default function NotificationButton() {
   /**
    * Accepts the selected invitation and removes it from the panel list.
    */
-  const handleAcceptInvitationService = (invitationIdData: string): void => {
+  const handleAcceptInvitationService = (invitationId: string): void => {
     // Lock action buttons for this invitation row.
-    setActionInvitationId(invitationIdData);
+    setActionInvitationId(invitationId);
 
     /** API Call to accept the invitation */
-    acceptProjectInvitationRequest(invitationIdData)
+    acceptProjectInvitationRequest(invitationId)
       .then((response) => {
         if (response.status_code === 200) {
           // Remove accepted invitation from current list.
-          removeInvitationItemService(invitationIdData);
+          removeInvitationItemService(invitationId);
 
           // Show success toast.
           toast.success(
@@ -84,14 +84,14 @@ export default function NotificationButton() {
   /**
    * Rejects the selected invitation and removes it from the panel list.
    */
-  const handleRejectInvitationService = (invitationIdData: string): void => {
-    setActionInvitationId(invitationIdData);
+  const handleRejectInvitationService = (invitationId: string): void => {
+    setActionInvitationId(invitationId);
 
     /** API Call to send rejection of the invitations */
-    rejectProjectInvitationRequest(invitationIdData)
+    rejectProjectInvitationRequest(invitationId)
       .then((response) => {
         if (response.status_code === 200) {
-          removeInvitationItemService(invitationIdData);
+          removeInvitationItemService(invitationId);
 
           // Show success toast
           toast.success(
@@ -117,26 +117,24 @@ export default function NotificationButton() {
    * Returns the inviter label from full name fallback email.
    */
   const getInviterLabelService = (
-    invitationItemData: MyProjectInvitationData,
+    invitationItem: MyProjectInvitationData,
   ): string => {
-    return (
-      invitationItemData.invited_by_name || invitationItemData.invited_by_email
-    );
+    return invitationItem.invited_by_name || invitationItem.invited_by_email;
   };
 
   /**
    * Formats the created date as month/day label.
    */
   const getInvitationDateLabelService = (
-    invitationCreatedAtData: string,
+    invitationCreatedAt: string,
   ): string => {
-    const invitationCreatedDateData = new Date(invitationCreatedAtData);
+    const invitationCreatedDate = new Date(invitationCreatedAt);
 
-    if (Number.isNaN(invitationCreatedDateData.getTime())) {
+    if (Number.isNaN(invitationCreatedDate.getTime())) {
       return "";
     }
 
-    return invitationCreatedDateData.toLocaleDateString("en-US", {
+    return invitationCreatedDate.toLocaleDateString("en-US", {
       month: "long",
       day: "numeric",
     });
@@ -146,11 +144,11 @@ export default function NotificationButton() {
    * Builds the avatar label from inviter details.
    */
   const getInvitationAvatarLabelService = (
-    invitationItemData: MyProjectInvitationData,
+    invitationItem: MyProjectInvitationData,
   ): string => {
-    const inviterLabelData = getInviterLabelService(invitationItemData).trim();
+    const inviterLabel = getInviterLabelService(invitationItem).trim();
 
-    return inviterLabelData.charAt(0).toUpperCase() || "U";
+    return inviterLabel.charAt(0).toUpperCase() || "U";
   };
 
   // Use Effects
@@ -180,10 +178,10 @@ export default function NotificationButton() {
       </PopoverTrigger>
 
       <PopoverContent
-        align="end"
+        align="start"
         sideOffset={8}
-        // Use full-width panel on mobile and constrained card width on larger screens.
-        className="z-40 w-[calc(100vw-1rem)] max-w-[calc(100vw-1rem)] overflow-hidden rounded-xl border border-n-300 bg-n-50 p-5 text-n-900 shadow-[0_16px_48px_rgba(2,6,23,0.12)] sm:w-[min(688px,calc(100vw-2rem))] sm:max-w-[688px] sm:rounded-2xl sm:p-8"
+        // Keep balanced left/right spacing on mobile and constrain card width on larger screens.
+        className="z-40 w-[calc(100vw-3rem)] max-w-[calc(100vw-3rem)] overflow-hidden rounded-xl border border-n-300 bg-n-50 p-5 text-n-900 shadow-[0_16px_48px_rgba(2,6,23,0.12)] sm:w-[min(688px,calc(100vw-2rem))] sm:max-w-[688px] sm:rounded-2xl sm:p-8"
       >
         {/* Notification panel heading */}
         <div className="flex flex-col gap-1.5 sm:gap-2.5">
