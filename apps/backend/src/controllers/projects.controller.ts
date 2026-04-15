@@ -1,6 +1,10 @@
 // SERVICES //
 import {
+  getMyProjectInvitationsService,
+  respondProjectInvitationService,
   createProjectService,
+  editProjectService,
+  getAllProjectUsersService,
   getAllProjectsService,
   getProjectByIdService,
   inviteUserToProjectService,
@@ -19,11 +23,171 @@ import type { Context } from "hono";
 
 // CONTRACTS //
 import {
+  acceptProjectInvitationContract,
   createProjectContract,
+  editProjectContract,
+  getAllProjectUsersContract,
   getAllProjectsContract,
+  getMyProjectInvitationsContract,
   getProjectByIdContract,
   inviteUserToProjectContract,
+  rejectProjectInvitationContract,
 } from "@/contracts/projects.contract";
+
+/**
+ * Controller for fetching pending invitations of authenticated user.
+ */
+export const getMyProjectInvitationsController: RouteHandler<
+  typeof getMyProjectInvitationsContract
+> = async (c) => {
+  const userContextData = (
+    c as Context<{ Variables: { user: User; accessToken: string } }>
+  ).get("user");
+
+  if (!userContextData) {
+    return errorResponse(c, "Unauthorized", "Unauthorized", HTTP_STATUS.UNAUTHORIZED);
+  }
+
+  const serviceResponseData = await getMyProjectInvitationsService(
+    userContextData.id,
+  );
+
+  if (serviceResponseData.error || !serviceResponseData.data) {
+    const statusCodeData =
+      serviceResponseData.statusCode === HTTP_STATUS.UNAUTHORIZED
+        ? serviceResponseData.statusCode
+        : HTTP_STATUS.INTERNAL_SERVER_ERROR;
+    const errorMessageData =
+      serviceResponseData.error?.message ?? "Failed to fetch pending invitations.";
+
+    return errorResponse(c, errorMessageData, errorMessageData, statusCodeData);
+  }
+
+  return successResponse(
+    c,
+    serviceResponseData.data,
+    "Pending invitations fetched successfully",
+    HTTP_STATUS.OK,
+  );
+};
+
+/**
+ * Controller for accepting a pending invitation.
+ */
+export const acceptProjectInvitationController: RouteHandler<
+  typeof acceptProjectInvitationContract
+> = async (c) => {
+  const { invitation_id: invitationIdData } = c.req.valid("param");
+  const userContextData = (
+    c as Context<{ Variables: { user: User; accessToken: string } }>
+  ).get("user");
+  const accessTokenData = (
+    c as Context<{ Variables: { user: User; accessToken: string } }>
+  ).get("accessToken");
+
+  if (!userContextData || !accessTokenData) {
+    return errorResponse(c, "Unauthorized", "Unauthorized", HTTP_STATUS.UNAUTHORIZED);
+  }
+
+  const serviceResponseData = await respondProjectInvitationService(
+    userContextData.id,
+    accessTokenData,
+    invitationIdData,
+    "accept",
+  );
+
+  if (serviceResponseData.error) {
+    const statusCodeData =
+      serviceResponseData.statusCode === HTTP_STATUS.UNAUTHORIZED ||
+      serviceResponseData.statusCode === HTTP_STATUS.NOT_FOUND ||
+      serviceResponseData.statusCode === HTTP_STATUS.CONFLICT
+        ? serviceResponseData.statusCode
+        : HTTP_STATUS.INTERNAL_SERVER_ERROR;
+    const errorMessageData =
+      serviceResponseData.error.message ?? "Failed to accept invitation.";
+
+    return errorResponse(c, errorMessageData, errorMessageData, statusCodeData);
+  }
+
+  return successResponse(c, null, "Invitation accepted successfully", HTTP_STATUS.OK);
+};
+
+/**
+ * Controller for rejecting a pending invitation.
+ */
+export const rejectProjectInvitationController: RouteHandler<
+  typeof rejectProjectInvitationContract
+> = async (c) => {
+  const { invitation_id: invitationIdData } = c.req.valid("param");
+  const userContextData = (
+    c as Context<{ Variables: { user: User; accessToken: string } }>
+  ).get("user");
+  const accessTokenData = (
+    c as Context<{ Variables: { user: User; accessToken: string } }>
+  ).get("accessToken");
+
+  if (!userContextData || !accessTokenData) {
+    return errorResponse(c, "Unauthorized", "Unauthorized", HTTP_STATUS.UNAUTHORIZED);
+  }
+
+  const serviceResponseData = await respondProjectInvitationService(
+    userContextData.id,
+    accessTokenData,
+    invitationIdData,
+    "reject",
+  );
+
+  if (serviceResponseData.error) {
+    const statusCodeData =
+      serviceResponseData.statusCode === HTTP_STATUS.UNAUTHORIZED ||
+      serviceResponseData.statusCode === HTTP_STATUS.NOT_FOUND ||
+      serviceResponseData.statusCode === HTTP_STATUS.CONFLICT
+        ? serviceResponseData.statusCode
+        : HTTP_STATUS.INTERNAL_SERVER_ERROR;
+    const errorMessageData =
+      serviceResponseData.error.message ?? "Failed to reject invitation.";
+
+    return errorResponse(c, errorMessageData, errorMessageData, statusCodeData);
+  }
+
+  return successResponse(c, null, "Invitation rejected successfully", HTTP_STATUS.OK);
+};
+
+/**
+ * Controller for fetching all users and pending invitations of a project.
+ */
+export const getAllProjectUsersController: RouteHandler<
+  typeof getAllProjectUsersContract
+> = async (c) => {
+  const { project_id: projectIdData } = c.req.valid("param");
+  const authorizationHeaderData = c.req.header("authorization");
+
+  const serviceResponseData = await getAllProjectUsersService(
+    projectIdData,
+    authorizationHeaderData,
+  );
+
+  if (serviceResponseData.error || !serviceResponseData.data) {
+    const statusCodeData =
+      serviceResponseData.statusCode === HTTP_STATUS.FORBIDDEN ||
+      serviceResponseData.statusCode === HTTP_STATUS.NOT_FOUND ||
+      serviceResponseData.statusCode === HTTP_STATUS.UNAUTHORIZED
+        ? serviceResponseData.statusCode
+        : HTTP_STATUS.INTERNAL_SERVER_ERROR;
+
+    const errorMessageData =
+      serviceResponseData.error?.message ?? "Failed to fetch project users.";
+
+    return errorResponse(c, errorMessageData, errorMessageData, statusCodeData);
+  }
+
+  return successResponse(
+    c,
+    serviceResponseData.data,
+    "Users fetched successfully",
+    HTTP_STATUS.OK,
+  );
+};
 
 /**
  * Handles inviting an existing user to a project.
@@ -166,6 +330,52 @@ export const createProjectController: RouteHandler<typeof createProjectContract>
     projectResponseData.data,
     "Project created successfully",
     HTTP_STATUS.CREATED,
+  );
+};
+
+/**
+ * Handles PATCH /projects/:project_id requests.
+ */
+export const editProjectController: RouteHandler<typeof editProjectContract> = async (
+  c,
+) => {
+  const { project_id: projectIdData } = c.req.valid("param");
+  const bodyData = c.req.valid("json");
+  const authUserData = c.get("user" as never) as User;
+
+  const editProjectResponseData = await editProjectService(
+    projectIdData,
+    authUserData.id,
+    bodyData,
+  );
+
+  if (editProjectResponseData.error || !editProjectResponseData.data) {
+    const errorMessageData =
+      editProjectResponseData.error?.message ?? "Failed to update project";
+
+    const validErrorStatusCodes = [
+      HTTP_STATUS.UNAUTHORIZED,
+      HTTP_STATUS.FORBIDDEN,
+      HTTP_STATUS.NOT_FOUND,
+      HTTP_STATUS.INTERNAL_SERVER_ERROR,
+    ] as const;
+
+    type ValidErrorStatusCode = (typeof validErrorStatusCodes)[number];
+
+    const errorStatusCodeData: ValidErrorStatusCode = validErrorStatusCodes.includes(
+      editProjectResponseData.statusCode as ValidErrorStatusCode,
+    )
+      ? (editProjectResponseData.statusCode as ValidErrorStatusCode)
+      : HTTP_STATUS.INTERNAL_SERVER_ERROR;
+
+    return errorResponse(c, errorMessageData, errorMessageData, errorStatusCodeData);
+  }
+
+  return successResponse(
+    c,
+    editProjectResponseData.data,
+    "Project updated successfully",
+    HTTP_STATUS.OK,
   );
 };
 

@@ -96,6 +96,96 @@ export interface ProjectByIdResultData {
       google_sheet_id: string | null;
       google_project_id: string | null;
       client_email: string | null;
+      private_key_id: string | null;
+      client_id: string | null;
+      client_x509_cert_url: string | null;
+      private_key: string | null;
     };
   };
+}
+
+/**
+ * Project user row model from project_user join users.
+ */
+export interface ProjectUserData {
+  id: string;
+  email: string;
+  full_name: string | null;
+  role: "owner" | "admin" | "editor" | "viewer";
+  status: "invited" | "active" | "disabled" | "inactive";
+}
+
+/**
+ * Pending invitation row model for get-all-users response.
+ */
+export interface ProjectPendingInvitationData {
+  id: string;
+  email: string;
+  role: "owner" | "admin" | "editor" | "viewer";
+  status: "pending";
+}
+
+/**
+ * Combined response payload for project users and invitations.
+ */
+export interface ProjectUsersPayloadData {
+  users: ProjectUserData[];
+  invitations: ProjectPendingInvitationData[];
+}
+
+/**
+ * Input payload for editing a project.
+ */
+export interface EditProjectPayloadData {
+  name?: string;
+  slug?: string;
+  category?: string;
+  website_url?: string;
+  google_sheet_credentials?: {
+    google_sheet_id: string;
+    google_project_id?: string;
+    private_key_id?: string;
+    client_email: string;
+    client_id?: string;
+    client_x509_cert_url?: string;
+    private_key: string;
+  };
+}
+
+/**
+ * Safe response payload returned after editing a project.
+ */
+export interface EditProjectResponseData {
+  project: Pick<
+    ProjectData,
+    "id" | "name" | "slug" | "category" | "website_url" | "status" | "updated_at"
+  >;
+  google_sheet_credentials: Pick<
+    GoogleSheetCredentialsData,
+    "id" | "google_sheet_id" | "google_project_id" | "client_email"
+  > | null;
+}
+
+/**
+ * Pending invitation item returned for authenticated invited user.
+ */
+export interface ProjectInboxInvitationData {
+  id: string;
+  project_id: string;
+  project_name: string;
+  project_slug: string;
+  invited_by_user_id: string;
+  invited_by_name: string | null;
+  invited_by_email: string;
+  role: "owner" | "admin" | "editor" | "viewer";
+  status: "pending";
+  expires_at: string | null;
+  created_at: string;
+}
+
+/**
+ * Combined payload for authenticated user invitation inbox.
+ */
+export interface ProjectInboxInvitationsPayloadData {
+  invitations: ProjectInboxInvitationData[];
 }

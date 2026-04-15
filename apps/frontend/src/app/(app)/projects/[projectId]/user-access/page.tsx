@@ -1,7 +1,7 @@
 "use client";
 
 // REACT //
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 // COMPONENTS //
 import UsersTable from "@/components/projects/user-access/UsersTable";
@@ -9,22 +9,28 @@ import InputActionCard from "@/components/ui/InputActionCard";
 import PageIntro from "@/components/ui/PageIntro";
 
 // API SERVICES //
-import { inviteUserRequest } from "@/services/api/projects.api";
+import {
+  getAllUsersRequest,
+  inviteUserRequest,
+} from "@/services/api/projects.api";
 
 // CONTEXTS //
 import { useProjectDetailsContext } from "@/contexts/ProjectContext";
 
 // UTILS //
+import { getUserRoleLabelService } from "@/utils/projects.util";
 import { validateEmail } from "@/utils/validations.util";
+import type { UserData } from "@/types/user";
+import type {
+  ProjectPendingInvitationData,
+  ProjectUserData,
+} from "@/types/projects";
 
 // OTHERS //
 import { toast } from "sonner";
 
 // DATA //
-import {
-  getUserAccessInviteInputActionCard,
-  userAccessMemberItemsData,
-} from "@/app/data/user-access.data";
+import { getUserAccessInviteInputActionCard } from "@/app/data/user-access.data";
 
 /**
  * Renders the user access management page UI
@@ -45,6 +51,10 @@ export default function UserAccessPage() {
   const [inviteEmailAddress, setInviteEmailAddress] = useState<string>("");
   const [isInviteRequestLoading, setIsInviteRequestLoading] =
     useState<boolean>(false);
+  const [memberItems, setMemberItems] = useState<UserData[]>([]);
+  const [usersErrorMessage, setUsersErrorMessage] = useState<string>("");
+  const [isUsersLoading, setIsUsersLoading] = useState<boolean>(false);
+  const [hasLoadedUsers, setHasLoadedUsers] = useState<boolean>(false);
 
   // Helper Functions
   /** Function to handle invite email input changes */
@@ -55,7 +65,7 @@ export default function UserAccessPage() {
   /** Function to handle sending invite */
   const handleSendInviteClick = (): void => {
     // Get project ID from project details context
-    const projectIdData = projectDetails?.project.id || "";
+    const projectId = projectDetails?.project.id || "";
 
     // Basic validation to check if project details are available
     if (!projectDetails?.project.id) {
@@ -79,7 +89,7 @@ export default function UserAccessPage() {
     setIsInviteRequestLoading(true);
 
     /** API Call to send user invitation */
-    inviteUserRequest(projectIdData, inviteEmailAddress)
+    inviteUserRequest(projectId, inviteEmailAddress)
       .then((response) => {
         // Handle API Response
         if (response.status_code === 200) {
@@ -88,6 +98,9 @@ export default function UserAccessPage() {
 
           // Clear input field
           setInviteEmailAddress("");
+
+          // Refresh users and invitations list after successful invite
+          getAllUsersDetails(projectId);
 
           return;
         }
@@ -104,9 +117,81 @@ export default function UserAccessPage() {
       });
   };
 
-  const inviteInputActionCardData = getUserAccessInviteInputActionCard();
+  /**
+   * Maps project users and pending invitations into table-ready rows.
+   */
+  const getUserAccessMemberItemsService = (
+    userItems: ProjectUserData[],
+    invitationItems: ProjectPendingInvitationData[],
+  ): UserData[] => {
+    const mappedUserItems: UserData[] = userItems.map((userItem) => ({
+      id: userItem.id,
+      email: userItem.email,
+      full_name: userItem.full_name ?? userItem.email,
+      avatar_url: null,
+      status: userItem.status,
+      role: getUserRoleLabelService(userItem.role),
+    }));
+
+    const mappedInvitationItems: UserData[] = invitationItems.map(
+      (invitationItem) => ({
+        id: invitationItem.id,
+        email: invitationItem.email,
+        full_name: invitationItem.email,
+        avatar_url: null,
+        status: "invited",
+        role: getUserRoleLabelService(invitationItem.role),
+      }),
+    );
+
+    return [...mappedUserItems, ...mappedInvitationItems];
+  };
+
+  /**
+   * Fetches all project users and pending invitations by project ID.
+   */
+  const getAllUsersDetails = (projectId: string): void => {
+    setIsUsersLoading(true);
+    setUsersErrorMessage("");
+
+    getAllUsersRequest(projectId)
+      .then((response) => {
+        if (response.status_code !== 200 || !response.data) {
+          setMemberItems([]);
+          setUsersErrorMessage(response.message || "Failed to fetch users.");
+          return;
+        }
+
+        setMemberItems(
+          getUserAccessMemberItemsService(
+            response.data.users,
+            response.data.invitations,
+          ),
+        );
+      })
+      .catch(() => {
+        setMemberItems([]);
+        setUsersErrorMessage("Failed to fetch users.");
+      })
+      .finally(() => {
+        setIsUsersLoading(false);
+        setHasLoadedUsers(true);
+      });
+  };
+
+  const inviteInputActionCardItem = getUserAccessInviteInputActionCard();
 
   // Use Effects
+  useEffect(() => {
+    const projectId = projectDetails?.project.id;
+
+    if (!projectId) {
+      return;
+    }
+
+    setHasLoadedUsers(false);
+    getAllUsersDetails(projectId);
+  }, [projectDetails?.project.id]);
 
   return (
     <section className="flex flex-col gap-11 px-6 py-8 md:gap-9 md:px-9 md:py-10">
@@ -118,16 +203,16 @@ export default function UserAccessPage() {
 
       {/* Input Action Card Component */}
       <InputActionCard
-        title={inviteInputActionCardData.title}
-        description={inviteInputActionCardData.description}
-        inputIcon={inviteInputActionCardData.inputIcon}
-        label={inviteInputActionCardData.label}
-        placeholder={inviteInputActionCardData.placeholder}
-        type={inviteInputActionCardData.type}
+        title={inviteInputActionCardItem.title}
+        description={inviteInputActionCardItem.description}
+        inputIcon={inviteInputActionCardItem.inputIcon}
+        label={inviteInputActionCardItem.label}
+        placeholder={inviteInputActionCardItem.placeholder}
+        type={inviteInputActionCardItem.type}
         value={inviteEmailAddress}
         onValueChange={handleInviteEmailAddressChange}
         buttonOneClick={handleSendInviteClick}
-        buttonOneIcon={inviteInputActionCardData.buttonOneIcon}
+        buttonOneIcon={inviteInputActionCardItem.buttonOneIcon}
         buttonOneText={
           isInviteRequestLoading ? "Sending Invite..." : "Send Invite"
         }
@@ -141,8 +226,25 @@ export default function UserAccessPage() {
         <p className="text-sm text-red-600">{projectDetailsErrorMessage}</p>
       ) : null}
 
+      {isUsersLoading && memberItems.length === 0 ? (
+        <p className="text-sm text-n-600">Loading users...</p>
+      ) : null}
+
+      {usersErrorMessage ? (
+        <p className="text-sm text-red-600">{usersErrorMessage}</p>
+      ) : null}
+
       {/* UsersTable Component */}
-      <UsersTable memberItems={userAccessMemberItemsData} />
+      {!usersErrorMessage &&
+      !isProjectDetailsLoading &&
+      hasLoadedUsers &&
+      !isUsersLoading ? (
+        memberItems.length > 0 ? (
+          <UsersTable memberItems={memberItems} />
+        ) : (
+          <p className="text-sm text-n-600">No Members Found.</p>
+        )
+      ) : null}
     </section>
   );
 }

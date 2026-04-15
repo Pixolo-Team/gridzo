@@ -7,17 +7,235 @@ import {
   createProjectRequestBodySchema,
   createProjectRequestHeadersSchema,
   createProjectSuccessResponseSchema,
+  editProjectBodySchema,
+  editProjectErrorResponseSchema,
+  editProjectParamsSchema,
+  editProjectSuccessResponseSchema,
   getAllProjectsErrorResponseSchema,
   getAllProjectsSuccessResponseSchema,
+  getMyInvitationsSuccessResponseSchema,
+  getAllUsersSuccessResponseSchema,
   getProjectByIdRequestParamsSchema,
   getProjectByIdSuccessResponseSchema,
+  invitationActionSuccessResponseSchema,
+  invitationIdParamSchema,
   inviteUserBodySchema,
   inviteUserErrorResponseSchema,
   inviteUserParamsSchema,
   inviteUserRequestHeadersSchema,
   inviteUserSuccessResponseSchema,
+  projectErrorResponseSchema,
+  projectIdParamSchema,
+  projectRequestHeadersSchema,
   projectsRequestHeadersSchema,
 } from "@/validators/projects.validator";
+
+/**
+ * OpenAPI contract for fetching pending invitations of authenticated user.
+ */
+export const getMyProjectInvitationsContract = createRoute({
+  method: "get",
+  path: "/projects/invitations/me",
+  tags: ["Projects"],
+  summary: "Get pending invitations for authenticated user",
+  request: {
+    headers: projectsRequestHeadersSchema,
+  },
+  responses: {
+    200: {
+      description: "Pending invitations fetched successfully",
+      content: {
+        "application/json": {
+          schema: getMyInvitationsSuccessResponseSchema,
+        },
+      },
+    },
+    401: {
+      description: "Unauthorized request",
+      content: {
+        "application/json": {
+          schema: projectErrorResponseSchema,
+        },
+      },
+    },
+    500: {
+      description: "Internal server error",
+      content: {
+        "application/json": {
+          schema: projectErrorResponseSchema,
+        },
+      },
+    },
+  },
+});
+
+/**
+ * OpenAPI contract for accepting a project invitation.
+ */
+export const acceptProjectInvitationContract = createRoute({
+  method: "post",
+  path: "/projects/invitations/{invitation_id}/accept",
+  tags: ["Projects"],
+  summary: "Accept a pending project invitation",
+  request: {
+    headers: projectsRequestHeadersSchema,
+    params: invitationIdParamSchema,
+  },
+  responses: {
+    200: {
+      description: "Invitation accepted successfully",
+      content: {
+        "application/json": {
+          schema: invitationActionSuccessResponseSchema,
+        },
+      },
+    },
+    401: {
+      description: "Unauthorized request",
+      content: {
+        "application/json": {
+          schema: projectErrorResponseSchema,
+        },
+      },
+    },
+    404: {
+      description: "Invitation not found",
+      content: {
+        "application/json": {
+          schema: projectErrorResponseSchema,
+        },
+      },
+    },
+    409: {
+      description: "Invitation is not actionable",
+      content: {
+        "application/json": {
+          schema: projectErrorResponseSchema,
+        },
+      },
+    },
+    500: {
+      description: "Internal server error",
+      content: {
+        "application/json": {
+          schema: projectErrorResponseSchema,
+        },
+      },
+    },
+  },
+});
+
+/**
+ * OpenAPI contract for rejecting a project invitation.
+ */
+export const rejectProjectInvitationContract = createRoute({
+  method: "post",
+  path: "/projects/invitations/{invitation_id}/reject",
+  tags: ["Projects"],
+  summary: "Reject a pending project invitation",
+  request: {
+    headers: projectsRequestHeadersSchema,
+    params: invitationIdParamSchema,
+  },
+  responses: {
+    200: {
+      description: "Invitation rejected successfully",
+      content: {
+        "application/json": {
+          schema: invitationActionSuccessResponseSchema,
+        },
+      },
+    },
+    401: {
+      description: "Unauthorized request",
+      content: {
+        "application/json": {
+          schema: projectErrorResponseSchema,
+        },
+      },
+    },
+    404: {
+      description: "Invitation not found",
+      content: {
+        "application/json": {
+          schema: projectErrorResponseSchema,
+        },
+      },
+    },
+    409: {
+      description: "Invitation is not actionable",
+      content: {
+        "application/json": {
+          schema: projectErrorResponseSchema,
+        },
+      },
+    },
+    500: {
+      description: "Internal server error",
+      content: {
+        "application/json": {
+          schema: projectErrorResponseSchema,
+        },
+      },
+    },
+  },
+});
+
+/**
+ * OpenAPI contract for fetching all users and pending invitations of a project.
+ */
+export const getAllProjectUsersContract = createRoute({
+  method: "get",
+  path: "/projects/{project_id}/get-all-users",
+  tags: ["Projects"],
+  summary: "Get all users and pending invitations for a project",
+  request: {
+    headers: projectRequestHeadersSchema,
+    params: projectIdParamSchema,
+  },
+  responses: {
+    200: {
+      description: "Users and pending invitations fetched successfully",
+      content: {
+        "application/json": {
+          schema: getAllUsersSuccessResponseSchema,
+        },
+      },
+    },
+    401: {
+      description: "Unauthorized request",
+      content: {
+        "application/json": {
+          schema: projectErrorResponseSchema,
+        },
+      },
+    },
+    403: {
+      description: "Forbidden – user is not a member of the project",
+      content: {
+        "application/json": {
+          schema: projectErrorResponseSchema,
+        },
+      },
+    },
+    404: {
+      description: "Project not found",
+      content: {
+        "application/json": {
+          schema: projectErrorResponseSchema,
+        },
+      },
+    },
+    500: {
+      description: "Internal server error",
+      content: {
+        "application/json": {
+          schema: projectErrorResponseSchema,
+        },
+      },
+    },
+  },
+});
 
 /**
  * OpenAPI contract for inviting an existing user to a project.
@@ -228,6 +446,78 @@ export const getProjectByIdContract = createRoute({
       content: {
         "application/json": {
           schema: getAllProjectsErrorResponseSchema,
+        },
+      },
+    },
+  },
+});
+
+/**
+ * OpenAPI contract for PATCH /projects/:project_id.
+ */
+export const editProjectContract = createRoute({
+  method: "patch",
+  path: "/projects/{project_id}",
+  tags: ["Projects"],
+  summary: "Partially update a project and optional Google Sheet credentials",
+  security: [{ Bearer: [] }],
+  request: {
+    params: editProjectParamsSchema,
+    body: {
+      content: {
+        "application/json": {
+          schema: editProjectBodySchema,
+        },
+      },
+      required: true,
+    },
+  },
+  responses: {
+    200: {
+      description: "Project updated successfully",
+      content: {
+        "application/json": {
+          schema: editProjectSuccessResponseSchema,
+        },
+      },
+    },
+    400: {
+      description: "Validation error",
+      content: {
+        "application/json": {
+          schema: editProjectErrorResponseSchema,
+        },
+      },
+    },
+    401: {
+      description: "Unauthorized",
+      content: {
+        "application/json": {
+          schema: editProjectErrorResponseSchema,
+        },
+      },
+    },
+    403: {
+      description: "Forbidden – insufficient role",
+      content: {
+        "application/json": {
+          schema: editProjectErrorResponseSchema,
+        },
+      },
+    },
+    404: {
+      description: "Project not found",
+      content: {
+        "application/json": {
+          schema: editProjectErrorResponseSchema,
+        },
+      },
+    },
+    500: {
+      description: "Internal server error",
+      content: {
+        "application/json": {
+          schema: editProjectErrorResponseSchema,
         },
       },
     },

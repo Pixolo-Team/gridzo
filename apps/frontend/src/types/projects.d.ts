@@ -16,6 +16,10 @@ export type ProjectGoogleSheetCredentialsData = {
   google_sheet_id: string | null;
   google_project_id: string | null;
   client_email: string | null;
+  private_key_id: string | null;
+  client_id: string | null;
+  client_x509_cert_url: string | null;
+  private_key: string | null;
 };
 
 // Type for Project Data
@@ -57,8 +61,51 @@ export type InviteUserResponseData = {
   project_id: string;
   invited_user_id: string;
   role: "viewer" | "editor" | "admin";
-  status: "pending" | "accepted" | "declined" | "expired";
+  status: "pending" | "accepted" | "rejected" | "expired";
   expires_at: string;
+};
+
+// Type for Project User Data
+export type ProjectUserData = {
+  id: string;
+  email: string;
+  full_name: string | null;
+  role: "owner" | "admin" | "editor" | "viewer";
+  status: "invited" | "active" | "disabled" | "inactive";
+};
+
+// Type for Project Pending Invitation Data
+export type ProjectPendingInvitationData = {
+  id: string;
+  email: string;
+  role: "owner" | "admin" | "editor" | "viewer";
+  status: "pending";
+};
+
+// Type for Get All Project Users Response Data
+export type GetAllProjectUsersResponseData = {
+  users: ProjectUserData[];
+  invitations: ProjectPendingInvitationData[];
+};
+
+// Type for My Pending Project Invitation Data
+export type MyProjectInvitationData = {
+  id: string;
+  project_id: string;
+  project_name: string;
+  project_slug: string;
+  invited_by_user_id: string;
+  invited_by_name: string | null;
+  invited_by_email: string;
+  role: "owner" | "admin" | "editor" | "viewer";
+  status: "pending";
+  expires_at: string | null;
+  created_at: string;
+};
+
+// Type for Get My Pending Invitations Response Data
+export type GetMyProjectInvitationsResponseData = {
+  invitations: MyProjectInvitationData[];
 };
 
 // Type for Create Project Request Google Sheet Credentials Data
@@ -86,6 +133,45 @@ export type CreateProjectRequestData = {
   website_url?: string;
   google_sheet_credentials: CreateProjectRequestGoogleSheetCredentialsData;
   structure: CreateProjectRequestStructureData;
+};
+
+// Type for Update Project Request Google Sheet Credentials Data
+export type UpdateProjectRequestGoogleSheetCredentialsData = {
+  google_sheet_id: string;
+  google_project_id?: string;
+  private_key_id?: string;
+  client_email: string;
+  client_id?: string;
+  client_x509_cert_url?: string;
+  private_key: string;
+};
+
+// Type for Update Project Request Data
+export type UpdateProjectRequestData = {
+  name?: string;
+  slug?: string;
+  category?: string;
+  website_url?: string;
+  google_sheet_credentials?: UpdateProjectRequestGoogleSheetCredentialsData;
+};
+
+// Type for Update Project Response Data
+export type UpdateProjectResponseData = {
+  project: {
+    id: string;
+    name: string;
+    slug: string;
+    category: string | null;
+    website_url: string | null;
+    status: "active" | "archived" | "deleted";
+    updated_at: string;
+  };
+  google_sheet_credentials: {
+    id: string;
+    google_sheet_id: string | null;
+    google_project_id: string | null;
+    client_email: string | null;
+  } | null;
 };
 
 // Type for Update Project Request Data

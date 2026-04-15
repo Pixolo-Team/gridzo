@@ -1,7 +1,14 @@
 "use client";
 
 // REACT //
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+
+// TYPES //
+import type {
+  GetProjectByIdResponseData,
+  UpdateProjectRequestData,
+} from "@/types/projects";
 
 // COMPONENTS //
 import Link from "next/link";
@@ -14,8 +21,20 @@ import PageIntro from "@/components/ui/PageIntro";
 import TextareaBox from "@/components/ui/TextareaBox";
 import { Button } from "@/components/ui/button";
 
+// API SERVICES //
+import { updateProjectRequest } from "@/services/api/projects.api";
+
+// CONTEXTS //
+import { useProjectDetailsContext } from "@/contexts/ProjectContext";
+
 // CONSTANTS //
 import { ROUTES } from "@/app/constants/routes";
+
+// UTILS //
+import { normalizeUrlService } from "@/utils/normalize-url.util";
+
+// OTHERS //
+import { toast } from "sonner";
 
 // DATA //
 import {
@@ -32,14 +51,19 @@ type EditProjectFormValueData = Record<string, string>;
  */
 export default function EditProjectPage() {
   // Define Navigation
+  const router = useRouter();
 
   // Define Context
+  const { projectDetails, refreshProjectDetailsService } =
+    useProjectDetailsContext();
 
   // Define Refs
 
   // Define States
   const [formInputField, setFormInputField] =
     useState<EditProjectFormValueData>(() => ({ ...editProjectFormValues }));
+  const [isUpdateProjectLoading, setIsUpdateProjectLoading] =
+    useState<boolean>(false);
 
   // Helper Functions
   /**
@@ -59,6 +83,68 @@ export default function EditProjectPage() {
    */
   const getFieldValue = (fieldId: string): string => {
     return formInputField[fieldId] ?? "";
+  };
+
+  /**
+   * Maps API project details into edit-form fields.
+   */
+  const mapProjectDetailsToForm = (
+    projectDetails: GetProjectByIdResponseData,
+  ): EditProjectFormValueData => {
+    return {
+      "client-email":
+        projectDetails.project.google_sheet_credentials.client_email ?? "",
+      "client-id":
+        projectDetails.project.google_sheet_credentials.client_id ?? "",
+      "client-x509-cert-url":
+        projectDetails.project.google_sheet_credentials.client_x509_cert_url ??
+        "",
+      "google-sheet-id":
+        projectDetails.project.google_sheet_credentials.google_sheet_id ?? "",
+      "private-key":
+        projectDetails.project.google_sheet_credentials.private_key ?? "",
+      "private-key-id":
+        projectDetails.project.google_sheet_credentials.private_key_id ?? "",
+      "project-category": projectDetails.project.category ?? "",
+      "project-id":
+        projectDetails.project.google_sheet_credentials.google_project_id ?? "",
+      "project-name": projectDetails.project.name ?? "",
+      slug: projectDetails.project.slug ?? "",
+      "website-url": projectDetails.project.website_url ?? "",
+    };
+  };
+
+  /**
+   * Builds PATCH payload from current form fields.
+   * Sends credentials only when required credential fields are present.
+   */
+  const buildUpdateProjectPayload = (): UpdateProjectRequestData => {
+    const googleSheetId = getFieldValue("google-sheet-id").trim();
+    const clientEmail = getFieldValue("client-email").trim();
+    const privateKey = getFieldValue("private-key").trim();
+
+    const googleSheetCredentials =
+      googleSheetId && clientEmail && privateKey
+        ? {
+            google_sheet_id: googleSheetId,
+            google_project_id: getFieldValue("project-id").trim() || undefined,
+            private_key_id: getFieldValue("private-key-id").trim() || undefined,
+            client_email: clientEmail,
+            client_id: getFieldValue("client-id").trim() || undefined,
+            client_x509_cert_url: normalizeUrlService(
+              getFieldValue("client-x509-cert-url"),
+            ),
+            private_key: privateKey,
+          }
+        : undefined;
+
+    return {
+      name: getFieldValue("project-name").trim() || undefined,
+      slug: getFieldValue("slug").trim() || undefined,
+      category: getFieldValue("project-category").trim() || undefined,
+      website_url: normalizeUrlService(getFieldValue("website-url")),
+      google_sheet_credentials: googleSheetCredentials,
+    };
   };
 
   /**
@@ -89,6 +175,8 @@ export default function EditProjectPage() {
           size="small"
           variant="secondary"
           className={buttonClassName}
+          disabled={isUpdateProjectLoading}
+          onClick={handleDiscardChanges}
         >
           {editProjectDetails.discardChangesLabel}
         </Button>
@@ -98,8 +186,12 @@ export default function EditProjectPage() {
           size="small"
           variant="primary"
           className={buttonClassName}
+          disabled={isUpdateProjectLoading}
+          onClick={handleSaveChanges}
         >
-          {editProjectDetails.saveChangesLabel}
+          {isUpdateProjectLoading
+            ? "Saving Changes..."
+            : editProjectDetails.saveChangesLabel}
         </Button>
       </>
     );
@@ -132,7 +224,82 @@ export default function EditProjectPage() {
     );
   };
 
+  /**
+   * Resets form values to the latest project details from context.
+   */
+  const handleDiscardChanges = (): void => {
+    if (!projectDetails) {
+      setFormInputField({ ...editProjectFormValues });
+      return;
+    }
+
+    // Revert local changes back to last fetched project values.
+    setFormInputField(mapProjectDetailsToForm(projectDetails));
+  };
+
+  /**
+   * Submits edit-project payload and refreshes project context on success.
+   */
+  const handleSaveChanges = (): void => {
+    const projectId = projectDetails?.project.id;
+
+    // Guard save until project details are available.
+    if (!projectId) {
+      toast.error("Project details are not ready yet.");
+      return;
+    }
+
+    // Lock action buttons while request is in-flight.
+    setIsUpdateProjectLoading(true);
+
+    // Send PATCH update request.
+    updateProjectRequest(projectId, buildUpdateProjectPayload())
+      .then((updateProjectResponse) => {
+        if (
+          !updateProjectResponse.status ||
+          updateProjectResponse.status_code !== 200
+        ) {
+          // Show backend-provided error.
+          toast.error(updateProjectResponse.message);
+          return;
+        }
+
+        // Show success and sync context with latest backend state.
+        toast.success(updateProjectResponse.message);
+
+        const updatedSlug = updateProjectResponse.data?.project.slug;
+        if (updatedSlug && projectDetails?.project.slug !== updatedSlug) {
+          // Move to the new slug route so all subsequent project fetches use latest identifier.
+          router.replace(ROUTES.APP.PROJECTS.EDIT(updatedSlug));
+          return;
+        }
+
+        return refreshProjectDetailsService();
+      })
+      .catch(() => {
+        // Show generic error for network/unexpected failures.
+        toast.error("Failed to update project.");
+      })
+      .finally(() => {
+        // Re-enable actions regardless of request result.
+        setIsUpdateProjectLoading(false);
+      });
+  };
+
   // Use Effects
+  useEffect(() => {
+    if (!projectDetails) {
+      return;
+    }
+
+    // Prefill form whenever project details are loaded/refreshed.
+    setFormInputField((previousFormInputField) => {
+      return {
+        ...previousFormInputField,
+        ...mapProjectDetailsToForm(projectDetails),
+      };
+    });
+  }, [projectDetails]);
 
   return (
     <>
