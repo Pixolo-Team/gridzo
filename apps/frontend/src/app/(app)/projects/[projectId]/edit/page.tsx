@@ -4,6 +4,12 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
+// TYPES //
+import type {
+  GetProjectByIdResponseData,
+  UpdateProjectRequestData,
+} from "@/types/projects";
+
 // COMPONENTS //
 import Link from "next/link";
 import EditProjectSection from "@/components/projects/edit-project/EditProjectSection";
@@ -15,8 +21,20 @@ import PageIntro from "@/components/ui/PageIntro";
 import TextareaBox from "@/components/ui/TextareaBox";
 import { Button } from "@/components/ui/button";
 
+// API SERVICES //
+import { updateProjectRequest } from "@/services/api/projects.api";
+
+// CONTEXTS //
+import { useProjectDetailsContext } from "@/contexts/ProjectContext";
+
 // CONSTANTS //
 import { ROUTES } from "@/app/constants/routes";
+
+// UTILS //
+import { normalizeUrlService } from "@/utils/normalize-url.util";
+
+// OTHERS //
+import { toast } from "sonner";
 
 // DATA //
 import {
@@ -25,14 +43,6 @@ import {
   editProjectCategoryOptionItems,
   editProjectSectionDetails,
 } from "@/app/data/edit-project";
-import { useProjectDetailsContext } from "@/contexts/ProjectContext";
-import { updateProjectRequest } from "@/services/api/projects.api";
-import type {
-  GetProjectByIdResponseData,
-  UpdateProjectRequestData,
-} from "@/types/projects";
-import { normalizeUrlService } from "@/utils/normalize-url.util";
-import { toast } from "sonner";
 
 type EditProjectFormValueData = Record<string, string>;
 
@@ -79,31 +89,28 @@ export default function EditProjectPage() {
    * Maps API project details into edit-form fields.
    */
   const mapProjectDetailsToForm = (
-    projectDetailsData: GetProjectByIdResponseData,
+    projectDetails: GetProjectByIdResponseData,
   ): EditProjectFormValueData => {
     return {
       "client-email":
-        projectDetailsData.project.google_sheet_credentials.client_email ?? "",
+        projectDetails.project.google_sheet_credentials.client_email ?? "",
       "client-id":
-        projectDetailsData.project.google_sheet_credentials.client_id ?? "",
+        projectDetails.project.google_sheet_credentials.client_id ?? "",
       "client-x509-cert-url":
-        projectDetailsData.project.google_sheet_credentials
-          .client_x509_cert_url ?? "",
+        projectDetails.project.google_sheet_credentials.client_x509_cert_url ??
+        "",
       "google-sheet-id":
-        projectDetailsData.project.google_sheet_credentials.google_sheet_id ??
-        "",
+        projectDetails.project.google_sheet_credentials.google_sheet_id ?? "",
       "private-key":
-        projectDetailsData.project.google_sheet_credentials.private_key ?? "",
+        projectDetails.project.google_sheet_credentials.private_key ?? "",
       "private-key-id":
-        projectDetailsData.project.google_sheet_credentials.private_key_id ??
-        "",
-      "project-category": projectDetailsData.project.category ?? "",
+        projectDetails.project.google_sheet_credentials.private_key_id ?? "",
+      "project-category": projectDetails.project.category ?? "",
       "project-id":
-        projectDetailsData.project.google_sheet_credentials.google_project_id ??
-        "",
-      "project-name": projectDetailsData.project.name ?? "",
-      slug: projectDetailsData.project.slug ?? "",
-      "website-url": projectDetailsData.project.website_url ?? "",
+        projectDetails.project.google_sheet_credentials.google_project_id ?? "",
+      "project-name": projectDetails.project.name ?? "",
+      slug: projectDetails.project.slug ?? "",
+      "website-url": projectDetails.project.website_url ?? "",
     };
   };
 
@@ -112,22 +119,22 @@ export default function EditProjectPage() {
    * Sends credentials only when required credential fields are present.
    */
   const buildUpdateProjectPayload = (): UpdateProjectRequestData => {
-    const googleSheetIdData = getFieldValue("google-sheet-id").trim();
-    const clientEmailData = getFieldValue("client-email").trim();
-    const privateKeyData = getFieldValue("private-key").trim();
+    const googleSheetId = getFieldValue("google-sheet-id").trim();
+    const clientEmail = getFieldValue("client-email").trim();
+    const privateKey = getFieldValue("private-key").trim();
 
-    const googleSheetCredentialsData =
-      googleSheetIdData && clientEmailData && privateKeyData
+    const googleSheetCredentials =
+      googleSheetId && clientEmail && privateKey
         ? {
-            google_sheet_id: googleSheetIdData,
+            google_sheet_id: googleSheetId,
             google_project_id: getFieldValue("project-id").trim() || undefined,
             private_key_id: getFieldValue("private-key-id").trim() || undefined,
-            client_email: clientEmailData,
+            client_email: clientEmail,
             client_id: getFieldValue("client-id").trim() || undefined,
             client_x509_cert_url: normalizeUrlService(
               getFieldValue("client-x509-cert-url"),
             ),
-            private_key: privateKeyData,
+            private_key: privateKey,
           }
         : undefined;
 
@@ -136,7 +143,7 @@ export default function EditProjectPage() {
       slug: getFieldValue("slug").trim() || undefined,
       category: getFieldValue("project-category").trim() || undefined,
       website_url: normalizeUrlService(getFieldValue("website-url")),
-      google_sheet_credentials: googleSheetCredentialsData,
+      google_sheet_credentials: googleSheetCredentials,
     };
   };
 
@@ -234,10 +241,10 @@ export default function EditProjectPage() {
    * Submits edit-project payload and refreshes project context on success.
    */
   const handleSaveChanges = (): void => {
-    const projectIdData = projectDetails?.project.id;
+    const projectId = projectDetails?.project.id;
 
     // Guard save until project details are available.
-    if (!projectIdData) {
+    if (!projectId) {
       toast.error("Project details are not ready yet.");
       return;
     }
@@ -246,21 +253,21 @@ export default function EditProjectPage() {
     setIsUpdateProjectLoading(true);
 
     // Send PATCH update request.
-    updateProjectRequest(projectIdData, buildUpdateProjectPayload())
-      .then((updateProjectResponseData) => {
+    updateProjectRequest(projectId, buildUpdateProjectPayload())
+      .then((updateProjectResponse) => {
         if (
-          !updateProjectResponseData.status ||
-          updateProjectResponseData.status_code !== 200
+          !updateProjectResponse.status ||
+          updateProjectResponse.status_code !== 200
         ) {
           // Show backend-provided error.
-          toast.error(updateProjectResponseData.message);
+          toast.error(updateProjectResponse.message);
           return;
         }
 
         // Show success and sync context with latest backend state.
-        toast.success(updateProjectResponseData.message);
+        toast.success(updateProjectResponse.message);
 
-        const updatedSlug = updateProjectResponseData.data?.project.slug;
+        const updatedSlug = updateProjectResponse.data?.project.slug;
         if (updatedSlug && projectDetails?.project.slug !== updatedSlug) {
           // Move to the new slug route so all subsequent project fetches use latest identifier.
           router.replace(ROUTES.APP.PROJECTS.EDIT(updatedSlug));

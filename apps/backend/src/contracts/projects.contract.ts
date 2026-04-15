@@ -306,7 +306,7 @@ export const editProjectContract = createRoute({
   path: "/projects/{project_id}",
   tags: ["Projects"],
   summary: "Partially update a project and optional Google Sheet credentials",
-  security: [{ bearerAuth: [] }],
+  security: [{ Bearer: [] }],
   request: {
     params: editProjectParamsSchema,
     body: {
