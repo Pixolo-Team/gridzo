@@ -96,10 +96,6 @@ export interface ProjectByIdResultData {
       google_sheet_id: string | null;
       google_project_id: string | null;
       client_email: string | null;
-      private_key_id: string | null;
-      client_id: string | null;
-      client_x509_cert_url: string | null;
-      private_key: string | null;
     };
   };
 }
@@ -162,6 +158,13 @@ export interface EditProjectResponseData {
   >;
   google_sheet_credentials: Pick<
     GoogleSheetCredentialsData,
-    "id" | "google_sheet_id" | "google_project_id" | "client_email"
+    | "id"
+    | "google_sheet_id"
+    | "google_project_id"
+    | "client_email"
+    | "private_key_id"
+    | "client_id"
+    | "client_x509_cert_url"
+    | "private_key"
   > | null;
 }

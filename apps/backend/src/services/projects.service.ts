@@ -314,7 +314,9 @@ async function upsertGoogleCredentialsService(
       { ...credentialsData, project_id: projectIdData, updated_at: new Date().toISOString() },
       { onConflict: "project_id" },
     )
-    .select("id, google_sheet_id, google_project_id, client_email")
+    .select(
+      "id, google_sheet_id, google_project_id, client_email, private_key_id, client_id, client_x509_cert_url, private_key",
+    )
     .single();
 
   if (upsertResponseData.error || !upsertResponseData.data) {
@@ -322,6 +324,31 @@ async function upsertGoogleCredentialsService(
   }
 
   return upsertResponseData.data as EditProjectResponseData["google_sheet_credentials"];
+}
+
+/**
+ * Fetches Google Sheet credentials for a project.
+ */
+async function getGoogleCredentialsByProjectIdService(
+  projectIdData: string,
+): Promise<EditProjectResponseData["google_sheet_credentials"] | Error> {
+  const credentialsResponseData = await supabase
+    .from(tables.GOOGLE_SHEET_CREDENTIALS)
+    .select(
+      "id, google_sheet_id, google_project_id, client_email, private_key_id, client_id, client_x509_cert_url, private_key",
+    )
+    .eq("project_id", projectIdData)
+    .maybeSingle();
+
+  if (credentialsResponseData.error) {
+    return new Error("Failed to fetch Google Sheet credentials");
+  }
+
+  if (!credentialsResponseData.data) {
+    return null;
+  }
+
+  return credentialsResponseData.data as EditProjectResponseData["google_sheet_credentials"];
 }
 
 /**
@@ -373,14 +400,13 @@ async function resolveProjectIdByIdentifierService(
 async function checkProjectAccessService(
   projectIdData: string,
   internalUserIdData: string,
-  authUserIdData: string,
 ): Promise<boolean> {
   const { data: projectMembershipItem, error: projectMembershipError } =
     await supabase
       .from(tables.PROJECT_USER)
       .select("project_id")
       .eq("project_id", projectIdData)
-      .or(`user_id.eq.${internalUserIdData},user_id.eq.${authUserIdData}`)
+      .eq("user_id", internalUserIdData)
       .maybeSingle();
 
   if (projectMembershipError) {
@@ -402,9 +428,7 @@ async function checkProjectAccessService(
     .or(
       [
         `owner_user_id.eq.${internalUserIdData}`,
-        `owner_user_id.eq.${authUserIdData}`,
         `created_by_user_id.eq.${internalUserIdData}`,
-        `created_by_user_id.eq.${authUserIdData}`,
       ].join(","),
     )
     .maybeSingle();
@@ -601,7 +625,6 @@ export async function getAllProjectUsersService(
   const hasProjectAccessData = await checkProjectAccessService(
     projectIdData,
     internalUserIdData,
-    authUserIdData,
   );
 
   if (!hasProjectAccessData) {
@@ -673,7 +696,6 @@ export async function inviteUserToProjectService(
     const hasProjectAccessData = await checkProjectAccessService(
       projectIdData,
       inviterUserIdData,
-      inviterAuthUserIdData,
     );
 
     if (!hasProjectAccessData) {
@@ -908,7 +930,6 @@ export async function getProjectByIdService(
     const hasProjectAccessData = await checkProjectAccessService(
       projectIdData,
       internalUserIdData,
-      authUserIdData,
     );
 
     if (!hasProjectAccessData) {
@@ -922,7 +943,7 @@ export async function getProjectByIdService(
     const { data: projectItem, error: projectError } = await supabase
       .from(tables.PROJECTS)
       .select(
-        "id, name, slug, category, website_url, status, google_sheet_credentials(id, google_sheet_id, google_project_id, client_email, private_key_id, client_id, client_x509_cert_url, private_key), project_structure_versions(id, version, is_current, json_code, php_code)",
+        "id, name, slug, category, website_url, status, google_sheet_credentials(id, google_sheet_id, google_project_id, client_email), project_structure_versions(id, version, is_current, json_code, php_code)",
       )
       .eq("id", projectIdData)
       .eq("project_structure_versions.is_current", true)
@@ -983,10 +1004,6 @@ export async function getProjectByIdService(
             google_sheet_id: credentialsItem.google_sheet_id,
             google_project_id: credentialsItem.google_project_id,
             client_email: credentialsItem.client_email,
-            private_key_id: credentialsItem.private_key_id,
-            client_id: credentialsItem.client_id,
-            client_x509_cert_url: credentialsItem.client_x509_cert_url,
-            private_key: credentialsItem.private_key,
           },
         },
       },
@@ -1209,6 +1226,25 @@ export async function editProjectService(
       }
 
       updatedCredentialsData = credentialsResultData;
+    }
+
+    if (!googleCredentialsData) {
+      const existingCredentialsData =
+        await getGoogleCredentialsByProjectIdService(projectIdData);
+
+      if (existingCredentialsData instanceof Error) {
+        logger.error(
+          "[projects.service] failed to fetch existing Google Sheet credentials",
+          existingCredentialsData,
+        );
+        return {
+          data: null,
+          error: new Error("Failed to fetch Google Sheet credentials"),
+          statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+        };
+      }
+
+      updatedCredentialsData = existingCredentialsData;
     }
 
     return {

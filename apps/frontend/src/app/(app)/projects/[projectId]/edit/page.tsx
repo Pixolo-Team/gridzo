@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 // TYPES //
 import type {
   GetProjectByIdResponseData,
+  UpdateProjectResponseData,
   UpdateProjectRequestData,
 } from "@/types/projects";
 
@@ -54,13 +55,14 @@ export default function EditProjectPage() {
   const router = useRouter();
 
   // Define Context
-  const { projectDetails, refreshProjectDetailsService } =
-    useProjectDetailsContext();
+  const { projectDetails } = useProjectDetailsContext();
 
   // Define Refs
 
   // Define States
   const [formInputField, setFormInputField] =
+    useState<EditProjectFormValueData>(() => ({ ...editProjectFormValues }));
+  const [lastSavedFormInputField, setLastSavedFormInputField] =
     useState<EditProjectFormValueData>(() => ({ ...editProjectFormValues }));
   const [isUpdateProjectLoading, setIsUpdateProjectLoading] =
     useState<boolean>(false);
@@ -94,23 +96,46 @@ export default function EditProjectPage() {
     return {
       "client-email":
         projectDetails.project.google_sheet_credentials.client_email ?? "",
-      "client-id":
-        projectDetails.project.google_sheet_credentials.client_id ?? "",
-      "client-x509-cert-url":
-        projectDetails.project.google_sheet_credentials.client_x509_cert_url ??
-        "",
+      "client-id": "",
+      "client-x509-cert-url": "",
       "google-sheet-id":
         projectDetails.project.google_sheet_credentials.google_sheet_id ?? "",
-      "private-key":
-        projectDetails.project.google_sheet_credentials.private_key ?? "",
-      "private-key-id":
-        projectDetails.project.google_sheet_credentials.private_key_id ?? "",
+      "private-key": "",
+      "private-key-id": "",
       "project-category": projectDetails.project.category ?? "",
       "project-id":
         projectDetails.project.google_sheet_credentials.google_project_id ?? "",
       "project-name": projectDetails.project.name ?? "",
       slug: projectDetails.project.slug ?? "",
       "website-url": projectDetails.project.website_url ?? "",
+    };
+  };
+
+  /**
+   * Maps successful PATCH response into edit-form fields.
+   */
+  const mapUpdatedProjectResponseToForm = (
+    updateProjectResponse: UpdateProjectResponseData,
+  ): EditProjectFormValueData => {
+    return {
+      ...formInputField,
+      "client-email":
+        updateProjectResponse.google_sheet_credentials?.client_email ?? "",
+      "client-id": updateProjectResponse.google_sheet_credentials?.client_id ?? "",
+      "client-x509-cert-url":
+        updateProjectResponse.google_sheet_credentials?.client_x509_cert_url ?? "",
+      "google-sheet-id":
+        updateProjectResponse.google_sheet_credentials?.google_sheet_id ?? "",
+      "private-key":
+        updateProjectResponse.google_sheet_credentials?.private_key ?? "",
+      "private-key-id":
+        updateProjectResponse.google_sheet_credentials?.private_key_id ?? "",
+      "project-category": updateProjectResponse.project.category ?? "",
+      "project-id":
+        updateProjectResponse.google_sheet_credentials?.google_project_id ?? "",
+      "project-name": updateProjectResponse.project.name ?? "",
+      slug: updateProjectResponse.project.slug ?? "",
+      "website-url": updateProjectResponse.project.website_url ?? "",
     };
   };
 
@@ -228,13 +253,8 @@ export default function EditProjectPage() {
    * Resets form values to the latest project details from context.
    */
   const handleDiscardChanges = (): void => {
-    if (!projectDetails) {
-      setFormInputField({ ...editProjectFormValues });
-      return;
-    }
-
-    // Revert local changes back to last fetched project values.
-    setFormInputField(mapProjectDetailsToForm(projectDetails));
+    // Revert local changes back to last saved form values.
+    setFormInputField({ ...lastSavedFormInputField });
   };
 
   /**
@@ -264,8 +284,14 @@ export default function EditProjectPage() {
           return;
         }
 
-        // Show success and sync context with latest backend state.
+        // Show success and sync edit form with latest backend response state.
         toast.success(updateProjectResponse.message);
+
+        const updatedFormInputField = mapUpdatedProjectResponseToForm(
+          updateProjectResponse.data,
+        );
+        setFormInputField(updatedFormInputField);
+        setLastSavedFormInputField(updatedFormInputField);
 
         const updatedSlug = updateProjectResponse.data?.project.slug;
         if (updatedSlug && projectDetails?.project.slug !== updatedSlug) {
@@ -273,8 +299,6 @@ export default function EditProjectPage() {
           router.replace(ROUTES.APP.PROJECTS.EDIT(updatedSlug));
           return;
         }
-
-        return refreshProjectDetailsService();
       })
       .catch(() => {
         // Show generic error for network/unexpected failures.
@@ -293,12 +317,13 @@ export default function EditProjectPage() {
     }
 
     // Prefill form whenever project details are loaded/refreshed.
-    setFormInputField((previousFormInputField) => {
-      return {
-        ...previousFormInputField,
-        ...mapProjectDetailsToForm(projectDetails),
-      };
-    });
+    const nextFormInputField = {
+      ...editProjectFormValues,
+      ...mapProjectDetailsToForm(projectDetails),
+    };
+
+    setFormInputField(nextFormInputField);
+    setLastSavedFormInputField(nextFormInputField);
   }, [projectDetails]);
 
   return (
