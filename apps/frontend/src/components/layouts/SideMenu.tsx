@@ -11,7 +11,14 @@ import Close from "@/components/icons/neevo-icons/Close";
 import Cog from "@/components/icons/neevo-icons/Cog";
 import DashboardSquare from "@/components/icons/neevo-icons/DashboardSquare";
 import DeployRules from "@/components/icons/neevo-icons/DeployRules";
+import Logout1 from "@/components/icons/neevo-icons/Logout1";
 import PortraitSetting from "@/components/icons/neevo-icons/PortraitSetting";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
 
 // CONTEXTS //
 import { useAuthContext } from "@/contexts/AuthContext";
@@ -20,10 +27,11 @@ import { useAuthContext } from "@/contexts/AuthContext";
 import { ROUTES } from "@/app/constants/routes";
 
 // NAVIGATION //
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 // OTHERS //
 import { cn } from "@/lib/utils";
+import { supabase } from "@/lib/supabase";
 
 interface SidebarNavigationItemData {
   href?: string;
@@ -59,10 +67,11 @@ export function SideMenu({
   onCloseMobileMenu,
 }: SideMenuPropsData) {
   // Define Navigation
+  const router = useRouter();
   const pathname = usePathname();
 
   // Define Context
-  const { user } = useAuthContext();
+  const { user, clearAuthSessionService } = useAuthContext();
 
   // Define Refs
 
@@ -165,6 +174,22 @@ export function SideMenu({
     return false;
   };
 
+  /**
+   * Signs out user, clears local auth state, and routes to login.
+   */
+  const handleLogout = async (): Promise<void> => {
+    try {
+      // Call Supabase`s Signout
+      await supabase.auth.signOut();
+    } finally {
+      // Clear auth session
+      clearAuthSessionService();
+
+      // Route back to Login
+      router.replace(ROUTES.AUTH.LOGIN);
+    }
+  };
+
   const sideMenuNavigationContent = (
     <>
       {/* Navigation Links */}
@@ -224,32 +249,66 @@ export function SideMenu({
 
       {/* User Summary */}
       <div className="mt-auto px-7 py-7">
-        <div className="flex items-center gap-[18px]">
-          <div className="size-12 overflow-hidden rounded-full">
-            <Image
-              src={user?.avatar_url ?? "/images/dummy-profile.png"}
-              alt={
-                user?.full_name
-                  ? `${user.full_name}'s profile`
-                  : "Guest profile"
-              }
-              className="h-full w-full object-cover"
-              width={48}
-              height={48}
-            />
-          </div>
+        <Popover>
+          <PopoverTrigger asChild>
+            <button
+              type="button"
+              className="flex w-full items-center gap-[18px] rounded-xl p-1 text-left transition-colors hover:bg-n-100"
+              aria-label="Open profile menu"
+            >
+              <div className="size-12 overflow-hidden rounded-full">
+                <Image
+                  src={user?.avatar_url ?? "/images/dummy-profile.png"}
+                  alt={
+                    user?.full_name
+                      ? `${user.full_name}'s profile`
+                      : "Guest profile"
+                  }
+                  className="h-full w-full object-cover"
+                  width={48}
+                  height={48}
+                />
+              </div>
 
-          <div className="flex flex-col gap-0.5">
-            {/* User Name */}
-            <p className="text-lg font-semibold leading-normal text-n-950">
-              {user ? user.full_name : "Guest"}
-            </p>
-            {/* User Email */}
-            <p className="text-sm leading-normal text-n-500">
-              {user ? user.email : "guest@gmail.com"}
-            </p>
-          </div>
-        </div>
+              <div className="flex min-w-0 flex-col gap-0.5 flex-1">
+                {/* User Name */}
+                <p className="truncate text-lg font-semibold leading-normal text-n-950">
+                  {user ? user.full_name : "Guest"}
+                </p>
+                {/* User Email */}
+                <p className="truncate text-sm leading-normal text-n-500">
+                  {user ? user.email : "guest@gmail.com"}
+                </p>
+              </div>
+            </button>
+          </PopoverTrigger>
+
+          {/* Profile menu popover */}
+          <PopoverContent
+            side="top"
+            align="start"
+            sideOffset={10}
+            className="w-[300px] rounded-xl border-n-300 bg-n-50 p-2"
+          >
+            {/* Logout row */}
+            <Button
+              type="button"
+              variant="ghost"
+              className="flex h-auto w-full items-center justify-start gap-5 rounded-xl px-3 py-1 text-left text-lg font-medium text-n-700 transition-colors hover:bg-n-100 hover:text-n-900"
+              onClick={handleLogout}
+            >
+              {/* Logout icon */}
+              <span className="flex size-8 shrink-0 items-center justify-center rounded bg-red-100 ">
+                <Logout1
+                  primaryColor="currentColor"
+                  className="size-5 text-red-500"
+                />
+              </span>
+              {/* Logout label */}
+              <span>Logout</span>
+            </Button>
+          </PopoverContent>
+        </Popover>
       </div>
     </>
   );
