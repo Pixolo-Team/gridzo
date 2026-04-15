@@ -237,6 +237,27 @@ async function getProjectMemberRoleService(
 }
 
 /**
+ * Checks whether the given user is project owner or creator.
+ */
+async function checkIsProjectOwnerService(
+  projectIdData: string,
+  userIdData: string,
+): Promise<boolean | Error> {
+  const projectOwnershipResponseData = await supabase
+    .from(tables.PROJECTS)
+    .select("id")
+    .eq("id", projectIdData)
+    .or(`owner_user_id.eq.${userIdData},created_by_user_id.eq.${userIdData}`)
+    .maybeSingle();
+
+  if (projectOwnershipResponseData.error) {
+    return new Error("Failed to query project ownership");
+  }
+
+  return Boolean(projectOwnershipResponseData.data);
+}
+
+/**
  * Performs a partial update on project fields.
  */
 async function updateProjectFieldsService(
@@ -894,7 +915,7 @@ export async function getProjectByIdService(
     const { data: projectItem, error: projectError } = await supabase
       .from(tables.PROJECTS)
       .select(
-        "id, name, slug, category, website_url, status, google_sheet_credentials(id, google_sheet_id, google_project_id, client_email), project_structure_versions(id, version, is_current, json_code, php_code)",
+        "id, name, slug, category, website_url, status, google_sheet_credentials(id, google_sheet_id, google_project_id, client_email, private_key_id, client_id, client_x509_cert_url, private_key), project_structure_versions(id, version, is_current, json_code, php_code)",
       )
       .eq("id", projectIdData)
       .eq("project_structure_versions.is_current", true)
@@ -955,6 +976,10 @@ export async function getProjectByIdService(
             google_sheet_id: credentialsItem.google_sheet_id,
             google_project_id: credentialsItem.google_project_id,
             client_email: credentialsItem.client_email,
+            private_key_id: credentialsItem.private_key_id,
+            client_id: credentialsItem.client_id,
+            client_x509_cert_url: credentialsItem.client_x509_cert_url,
+            private_key: credentialsItem.private_key,
           },
         },
       },
@@ -1104,6 +1129,10 @@ export async function editProjectService(
     }
 
     const memberRoleData = await getProjectMemberRoleService(projectIdData, userIdData);
+    const isProjectOwnerData = await checkIsProjectOwnerService(
+      projectIdData,
+      userIdData,
+    );
 
     if (memberRoleData instanceof Error) {
       logger.error("[projects.service] failed to check project membership", memberRoleData);
@@ -1114,7 +1143,20 @@ export async function editProjectService(
       };
     }
 
-    if (!memberRoleData || !["owner", "admin"].includes(memberRoleData)) {
+    if (isProjectOwnerData instanceof Error) {
+      logger.error("[projects.service] failed to check project ownership", isProjectOwnerData);
+      return {
+        data: null,
+        error: new Error("Failed to verify project ownership"),
+        statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+      };
+    }
+
+    const checkHasEditPermissionData =
+      isProjectOwnerData ||
+      (memberRoleData !== null && ["owner", "admin"].includes(memberRoleData));
+
+    if (!checkHasEditPermissionData) {
       return {
         data: null,
         error: new Error("You do not have permission to update this project"),

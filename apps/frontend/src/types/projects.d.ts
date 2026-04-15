@@ -16,6 +16,10 @@ export type ProjectGoogleSheetCredentialsData = {
   google_sheet_id: string | null;
   google_project_id: string | null;
   client_email: string | null;
+  private_key_id: string | null;
+  client_id: string | null;
+  client_x509_cert_url: string | null;
+  private_key: string | null;
 };
 
 // Type for Project Data
@@ -109,6 +113,44 @@ export type CreateProjectRequestData = {
   website_url?: string;
   google_sheet_credentials: CreateProjectRequestGoogleSheetCredentialsData;
   structure: CreateProjectRequestStructureData;
+};
+
+// Type for Update Project Request Google Sheet Credentials Data
+export type UpdateProjectRequestGoogleSheetCredentialsData = {
+  google_sheet_id: string;
+  google_project_id?: string;
+  private_key_id?: string;
+  client_email: string;
+  client_id?: string;
+  client_x509_cert_url?: string;
+  private_key: string;
+};
+
+// Type for Update Project Request Data
+export type UpdateProjectRequestData = {
+  name?: string;
+  category?: string;
+  website_url?: string;
+  google_sheet_credentials?: UpdateProjectRequestGoogleSheetCredentialsData;
+};
+
+// Type for Update Project Response Data
+export type UpdateProjectResponseData = {
+  project: {
+    id: string;
+    name: string;
+    slug: string;
+    category: string | null;
+    website_url: string | null;
+    status: "active" | "archived" | "deleted";
+    updated_at: string;
+  };
+  google_sheet_credentials: {
+    id: string;
+    google_sheet_id: string | null;
+    google_project_id: string | null;
+    client_email: string | null;
+  } | null;
 };
 
 // Type for Update Project Request Data

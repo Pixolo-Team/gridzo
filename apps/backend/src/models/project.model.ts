@@ -96,6 +96,10 @@ export interface ProjectByIdResultData {
       google_sheet_id: string | null;
       google_project_id: string | null;
       client_email: string | null;
+      private_key_id: string | null;
+      client_id: string | null;
+      client_x509_cert_url: string | null;
+      private_key: string | null;
     };
   };
 }
