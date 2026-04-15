@@ -1,6 +1,6 @@
 "use client";
 // REACT //
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 // TYPES //
 import type { MyProjectInvitationData } from "@/types/projects";
@@ -17,69 +17,36 @@ import {
 // API SERVICES //
 import {
   acceptProjectInvitationRequest,
-  getMyProjectInvitationsRequest,
   rejectProjectInvitationRequest,
 } from "@/services/api/projects.api";
+
+// CONTEXTS //
+import { useProjectInvitationsContext } from "@/contexts/InvitationsContext";
 
 // OTHERS //
 import { toast } from "sonner";
 
-const INVITATION_CACHE_TTL_MS = 60 * 1000;
-
 /**
- * Renders the shared notification icon button
+ * Renders the shared notification icon button and invitation panel.
  */
 export default function NotificationButton() {
   // Define Navigation
 
   // Define Context
+  const {
+    invitationItems,
+    isInvitationItemsLoading,
+    removeInvitationItemService,
+  } = useProjectInvitationsContext();
 
   // Define Refs
 
   // Define States
   const [isNotificationPanelOpen, setIsNotificationPanelOpen] =
     useState<boolean>(false);
-  const [invitationItems, setInvitationItems] = useState<
-    MyProjectInvitationData[]
-  >([]);
-  const [isInvitationItemsLoading, setIsInvitationItemsLoading] =
-    useState<boolean>(false);
   const [actionInvitationId, setActionInvitationId] = useState<string>("");
-  const [lastInvitationFetchTimestamp, setLastInvitationFetchTimestamp] =
-    useState<number>(0);
 
   // Helper Functions
-  /**
-   * Fetches pending invitations for the authenticated user.
-   */
-  const getMyProjectInvitationsService = (): void => {
-    // Start loading state before requesting invitations.
-    setIsInvitationItemsLoading(true);
-
-    /** API Call to fetch pending invitations */
-    getMyProjectInvitationsRequest()
-      .then((response) => {
-        if (response.status_code === 200 && response.data) {
-          // Set invitation list from response.
-          setInvitationItems(response.data.invitations);
-          // Store successful fetch time for cache reuse.
-          setLastInvitationFetchTimestamp(Date.now());
-          return;
-        }
-
-        // Fallback to empty list on invalid response.
-        setInvitationItems([]);
-      })
-      .catch(() => {
-        // Fallback to empty list on request failure.
-        setInvitationItems([]);
-      })
-      .finally(() => {
-        // End loading state
-        setIsInvitationItemsLoading(false);
-      });
-  };
-
   /**
    * Accepts the selected invitation and removes it from the panel list.
    */
@@ -92,11 +59,7 @@ export default function NotificationButton() {
       .then((response) => {
         if (response.status_code === 200) {
           // Remove accepted invitation from current list.
-          setInvitationItems((previousInvitationItemsData) => {
-            return previousInvitationItemsData.filter((invitationItemData) => {
-              return invitationItemData.id !== invitationIdData;
-            });
-          });
+          removeInvitationItemService(invitationIdData);
 
           // Show success toast.
           toast.success(
@@ -128,12 +91,7 @@ export default function NotificationButton() {
     rejectProjectInvitationRequest(invitationIdData)
       .then((response) => {
         if (response.status_code === 200) {
-          // Set the invitation items
-          setInvitationItems((previousInvitationItemsData) => {
-            return previousInvitationItemsData.filter((invitationItemData) => {
-              return invitationItemData.id !== invitationIdData;
-            });
-          });
+          removeInvitationItemService(invitationIdData);
 
           // Show success toast
           toast.success(
@@ -167,25 +125,7 @@ export default function NotificationButton() {
   };
 
   /**
-   * Formats invitation expiry for display.
-   */
-  const getInvitationExpiryLabelService = (
-    invitationExpiresAtData: string | null,
-  ): string => {
-    if (!invitationExpiresAtData) {
-      return "No expiry";
-    }
-
-    const invitationExpiryDateData = new Date(invitationExpiresAtData);
-    if (Number.isNaN(invitationExpiryDateData.getTime())) {
-      return "No expiry";
-    }
-
-    return invitationExpiryDateData.toLocaleDateString();
-  };
-
-  /**
-   * Formats the created date as short month/day label.
+   * Formats the created date as month/day label.
    */
   const getInvitationDateLabelService = (
     invitationCreatedAtData: string,
@@ -197,7 +137,7 @@ export default function NotificationButton() {
     }
 
     return invitationCreatedDateData.toLocaleDateString("en-US", {
-      month: "short",
+      month: "long",
       day: "numeric",
     });
   };
@@ -214,22 +154,6 @@ export default function NotificationButton() {
   };
 
   // Use Effects
-  useEffect(() => {
-    if (!isNotificationPanelOpen) {
-      return;
-    }
-
-    // Skip API call when cached payload is still fresh.
-    const isInvitationCacheFreshData =
-      lastInvitationFetchTimestamp > 0 &&
-      Date.now() - lastInvitationFetchTimestamp < INVITATION_CACHE_TTL_MS;
-
-    if (isInvitationCacheFreshData) {
-      return;
-    }
-
-    getMyProjectInvitationsService();
-  }, [isNotificationPanelOpen, lastInvitationFetchTimestamp]);
 
   return (
     <Popover
@@ -256,96 +180,94 @@ export default function NotificationButton() {
       </PopoverTrigger>
 
       <PopoverContent
-        // Align panel with notification trigger on the right.
         align="end"
         sideOffset={8}
-        className="z-40 w-[360px] overflow-hidden rounded-[26px] border border-[#4a4a4f] bg-[#242428] p-0 text-[#e8e8ea] shadow-[0_24px_60px_rgba(0,0,0,0.5)] md:w-[480px]"
+        // Use full-width panel on mobile and constrained card width on larger screens.
+        className="z-40 w-[calc(100vw-1rem)] max-w-[calc(100vw-1rem)] overflow-hidden rounded-xl border border-n-300 bg-n-50 p-5 text-n-900 shadow-[0_16px_48px_rgba(2,6,23,0.12)] sm:w-[min(688px,calc(100vw-2rem))] sm:max-w-[688px] sm:rounded-2xl sm:p-8"
       >
         {/* Notification panel heading */}
-        <div className="border-b border-[#3a3a3f] px-5 py-4">
-          <h3 className="text-[28px] font-semibold leading-none tracking-[-0.02em]">
-            All notifications
-          </h3>
+        <div className="flex flex-col gap-1.5 sm:gap-2.5">
+          <p className="text-xl font-semibold leading-tight text-n-950 md:text-2xl">
+            All Notifications
+          </p>
+          <p className="text-sm leading-tight font-light text-n-600 md:text-base">
+            You have {invitationItems.length} new notifications
+          </p>
         </div>
+
+        <div className="my-4 h-px w-full bg-n-300 sm:my-5" />
 
         {/* Loading state */}
         {isInvitationItemsLoading ? (
-          <p className="py-8 text-center text-sm text-[#b8b8be]">
+          <p className="py-6 text-center text-sm text-n-500">
             Loading invitations...
           </p>
         ) : null}
 
         {/* Empty state */}
         {!isInvitationItemsLoading && invitationItems.length === 0 ? (
-          <p className="py-8 text-center text-sm text-[#b8b8be]">
+          <p className="py-6 text-center text-sm text-n-500">
             No pending invitations.
           </p>
         ) : null}
 
         {/* Notification feed */}
         {!isInvitationItemsLoading && invitationItems.length > 0 ? (
-          <div className="max-h-[420px] overflow-y-auto">
+          <div className="max-h-[64vh] space-y-5 overflow-y-auto pr-1 md:max-h-[60vh] md:space-y-8">
             {invitationItems.map((invitationItem) => (
               <div
                 key={invitationItem.id}
-                className="border-b border-[#34343a] px-5 py-4 last:border-b-0"
+                className="flex items-start gap-2 md:gap-2.5"
               >
-                <div className="flex items-start gap-3">
-                  <div className="mt-0.5 flex size-11 shrink-0 items-center justify-center rounded-full bg-[#5f6dd8] text-lg font-semibold text-white">
-                    {getInvitationAvatarLabelService(invitationItem)}
-                  </div>
+                <div className="flex size-11 shrink-0 items-center justify-center rounded-full border-[1.5px] border-purple-300 bg-purple-50 text-sm font-bold text-purple-600 md:size-12">
+                  {getInvitationAvatarLabelService(invitationItem)}
+                </div>
 
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="truncate text-lg font-semibold leading-tight text-[#f4f4f6]">
-                          {getInviterLabelService(invitationItem)}
-                        </p>
-                        <p className="truncate text-base text-[#d2d2d6]">
-                          Invited you to {invitationItem.project_name}
-                        </p>
-                      </div>
-                      <p className="shrink-0 pt-1 text-sm text-[#93939a]">
-                        {getInvitationDateLabelService(
-                          invitationItem.created_at,
-                        )}
+                <div className="min-w-0 flex gap-3 md:gap-4 flex-col flex-1">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex flex-col gap-1">
+                      <p className="truncate text-xl font-semibold leading-tight text-n-950 sm:text-lg">
+                        {getInviterLabelService(invitationItem)}
+                      </p>
+                      <p className="text-sm leading-tight text-n-800 md:text-base">
+                        <span className="text-n-600">invited you to </span>
+                        <span className="font-medium text-n-800">
+                          {invitationItem.project_name}
+                        </span>
                       </p>
                     </div>
 
-                    <p className="mt-1 text-sm text-[#ababaf]">
-                      Expires:{" "}
-                      {getInvitationExpiryLabelService(
-                        invitationItem.expires_at,
-                      )}
+                    <p className="shrink-0 pt-1 text-xs font-medium text-n-500">
+                      {getInvitationDateLabelService(invitationItem.created_at)}
                     </p>
+                  </div>
 
-                    {/* Invitation actions */}
-                    <div className="mt-3 grid grid-cols-2 gap-2">
-                      <Button
-                        type="button"
-                        size="small"
-                        variant="secondary"
-                        className="h-9 border-[#54545b] bg-transparent text-xs text-[#e8e8ea] hover:bg-[#313136]"
-                        onClick={() =>
-                          handleRejectInvitationService(invitationItem.id)
-                        }
-                        disabled={actionInvitationId === invitationItem.id}
-                      >
-                        Reject
-                      </Button>
-                      <Button
-                        type="button"
-                        size="small"
-                        variant="primary"
-                        className="h-9 bg-[#5f6dd8] text-xs text-white hover:bg-[#6f7be1]"
-                        onClick={() =>
-                          handleAcceptInvitationService(invitationItem.id)
-                        }
-                        disabled={actionInvitationId === invitationItem.id}
-                      >
-                        Accept
-                      </Button>
-                    </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      type="button"
+                      size="small"
+                      variant="secondary"
+                      className="h-10 border-green-300 bg-green-50 text-sm text-green-600 hover:bg-green-100 sm:h-11 sm:text-base"
+                      onClick={() =>
+                        handleAcceptInvitationService(invitationItem.id)
+                      }
+                      disabled={actionInvitationId === invitationItem.id}
+                    >
+                      Accept
+                    </Button>
+
+                    <Button
+                      type="button"
+                      size="small"
+                      variant="secondary"
+                      className="h-10 border-red-300 bg-red-50 text-sm text-red-600 hover:bg-red-100 sm:h-11 sm:text-base"
+                      onClick={() =>
+                        handleRejectInvitationService(invitationItem.id)
+                      }
+                      disabled={actionInvitationId === invitationItem.id}
+                    >
+                      Decline
+                    </Button>
                   </div>
                 </div>
               </div>
