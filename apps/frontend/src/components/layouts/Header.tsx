@@ -64,6 +64,23 @@ export function Header({ onToggleMobileMenu }: HeaderPropsData) {
   };
 
   /**
+   * Checks whether project bottom actions already include notification button.
+   */
+  const checkShouldHideProjectHeaderNotification = (): boolean => {
+    const pathnameSegmentItems = pathname.split("/").filter(Boolean);
+    const projectRootSegmentLengthData = 2;
+    const projectSubRouteSegmentData = pathnameSegmentItems[2];
+
+    // Project root route renders overview bottom actions with notification icon.
+    if (pathnameSegmentItems.length === projectRootSegmentLengthData) {
+      return true;
+    }
+
+    // Structure route also renders bottom actions with notification icon.
+    return projectSubRouteSegmentData === "structure";
+  };
+
+  /**
    * Gets the current project name from the pathname
    */
   const getCurrentProjectName = (): string => {
@@ -101,6 +118,7 @@ export function Header({ onToggleMobileMenu }: HeaderPropsData) {
       <ProjectHeader
         onToggleMobileMenu={onToggleMobileMenu}
         projectName={getCurrentProjectName()}
+        shouldHideNotificationButton={checkShouldHideProjectHeaderNotification()}
       />
     );
   }

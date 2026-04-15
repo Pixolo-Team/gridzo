@@ -54,6 +54,7 @@ export default function UserAccessPage() {
   const [memberItems, setMemberItems] = useState<UserData[]>([]);
   const [usersErrorMessage, setUsersErrorMessage] = useState<string>("");
   const [isUsersLoading, setIsUsersLoading] = useState<boolean>(false);
+  const [hasLoadedUsers, setHasLoadedUsers] = useState<boolean>(false);
 
   // Helper Functions
   /** Function to handle invite email input changes */
@@ -64,7 +65,7 @@ export default function UserAccessPage() {
   /** Function to handle sending invite */
   const handleSendInviteClick = (): void => {
     // Get project ID from project details context
-    const projectIdData = projectDetails?.project.id || "";
+    const projectId = projectDetails?.project.id || "";
 
     // Basic validation to check if project details are available
     if (!projectDetails?.project.id) {
@@ -88,7 +89,7 @@ export default function UserAccessPage() {
     setIsInviteRequestLoading(true);
 
     /** API Call to send user invitation */
-    inviteUserRequest(projectIdData, inviteEmailAddress)
+    inviteUserRequest(projectId, inviteEmailAddress)
       .then((response) => {
         // Handle API Response
         if (response.status_code === 200) {
@@ -99,7 +100,7 @@ export default function UserAccessPage() {
           setInviteEmailAddress("");
 
           // Refresh users and invitations list after successful invite
-          getAllUsersDetails(projectIdData);
+          getAllUsersDetails(projectId);
 
           return;
         }
@@ -120,42 +121,40 @@ export default function UserAccessPage() {
    * Maps project users and pending invitations into table-ready rows.
    */
   const getUserAccessMemberItemsService = (
-    userItemsData: ProjectUserData[],
-    invitationItemsData: ProjectPendingInvitationData[],
+    userItems: ProjectUserData[],
+    invitationItems: ProjectPendingInvitationData[],
   ): UserData[] => {
-    const mappedUserItemsData: UserData[] = userItemsData.map(
-      (userItemData) => ({
-        id: userItemData.id,
-        email: userItemData.email,
-        full_name: userItemData.full_name,
-        avatar_url: null,
-        status: userItemData.status,
-        role: getUserRoleLabelService(userItemData.role),
-      }),
-    );
+    const mappedUserItems: UserData[] = userItems.map((userItem) => ({
+      id: userItem.id,
+      email: userItem.email,
+      full_name: userItem.full_name ?? userItem.email,
+      avatar_url: null,
+      status: userItem.status,
+      role: getUserRoleLabelService(userItem.role),
+    }));
 
-    const mappedInvitationItemsData: UserData[] = invitationItemsData.map(
-      (invitationItemData) => ({
-        id: invitationItemData.id,
-        email: invitationItemData.email,
-        full_name: invitationItemData.email,
+    const mappedInvitationItems: UserData[] = invitationItems.map(
+      (invitationItem) => ({
+        id: invitationItem.id,
+        email: invitationItem.email,
+        full_name: invitationItem.email,
         avatar_url: null,
         status: "invited",
-        role: getUserRoleLabelService(invitationItemData.role),
+        role: getUserRoleLabelService(invitationItem.role),
       }),
     );
 
-    return [...mappedUserItemsData, ...mappedInvitationItemsData];
+    return [...mappedUserItems, ...mappedInvitationItems];
   };
 
   /**
    * Fetches all project users and pending invitations by project ID.
    */
-  const getAllUsersDetails = (projectIdData: string): void => {
+  const getAllUsersDetails = (projectId: string): void => {
     setIsUsersLoading(true);
     setUsersErrorMessage("");
 
-    getAllUsersRequest(projectIdData)
+    getAllUsersRequest(projectId)
       .then((response) => {
         if (response.status_code !== 200 || !response.data) {
           setMemberItems([]);
@@ -176,20 +175,22 @@ export default function UserAccessPage() {
       })
       .finally(() => {
         setIsUsersLoading(false);
+        setHasLoadedUsers(true);
       });
   };
 
-  const inviteInputActionCardData = getUserAccessInviteInputActionCard();
+  const inviteInputActionCardItem = getUserAccessInviteInputActionCard();
 
   // Use Effects
   useEffect(() => {
-    const projectIdData = projectDetails?.project.id;
+    const projectId = projectDetails?.project.id;
 
-    if (!projectIdData) {
+    if (!projectId) {
       return;
     }
 
-    getAllUsersDetails(projectIdData);
+    setHasLoadedUsers(false);
+    getAllUsersDetails(projectId);
   }, [projectDetails?.project.id]);
 
   return (
@@ -202,16 +203,16 @@ export default function UserAccessPage() {
 
       {/* Input Action Card Component */}
       <InputActionCard
-        title={inviteInputActionCardData.title}
-        description={inviteInputActionCardData.description}
-        inputIcon={inviteInputActionCardData.inputIcon}
-        label={inviteInputActionCardData.label}
-        placeholder={inviteInputActionCardData.placeholder}
-        type={inviteInputActionCardData.type}
+        title={inviteInputActionCardItem.title}
+        description={inviteInputActionCardItem.description}
+        inputIcon={inviteInputActionCardItem.inputIcon}
+        label={inviteInputActionCardItem.label}
+        placeholder={inviteInputActionCardItem.placeholder}
+        type={inviteInputActionCardItem.type}
         value={inviteEmailAddress}
         onValueChange={handleInviteEmailAddressChange}
         buttonOneClick={handleSendInviteClick}
-        buttonOneIcon={inviteInputActionCardData.buttonOneIcon}
+        buttonOneIcon={inviteInputActionCardItem.buttonOneIcon}
         buttonOneText={
           isInviteRequestLoading ? "Sending Invite..." : "Send Invite"
         }
@@ -234,9 +235,15 @@ export default function UserAccessPage() {
       ) : null}
 
       {/* UsersTable Component */}
-      {/* Keep table mounted during refetch to avoid UX flicker after invite. */}
-      {!usersErrorMessage && memberItems.length > 0 ? (
-        <UsersTable memberItems={memberItems} />
+      {!usersErrorMessage &&
+      !isProjectDetailsLoading &&
+      hasLoadedUsers &&
+      !isUsersLoading ? (
+        memberItems.length > 0 ? (
+          <UsersTable memberItems={memberItems} />
+        ) : (
+          <p className="text-sm text-n-600">No Members Found.</p>
+        )
       ) : null}
     </section>
   );

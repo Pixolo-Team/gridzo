@@ -38,6 +38,15 @@ export const projectIdParamSchema = z.object({
 export const inviteUserParamsSchema = projectIdParamSchema;
 
 /**
+ * OpenAPI schema for invitation_id path parameter.
+ */
+export const invitationIdParamSchema = z.object({
+  invitation_id: z.string().uuid().openapi({
+    example: "123e4567-e89b-12d3-a456-426614174000",
+  }),
+});
+
+/**
  * OpenAPI schema for GET /project/{projectId} request params.
  */
 export const getProjectByIdRequestParamsSchema = z.object({
@@ -71,6 +80,20 @@ const projectInvitationSchema = z.object({
   status: z.literal("pending"),
 });
 
+const projectInboxInvitationSchema = z.object({
+  id: z.string().uuid(),
+  project_id: z.string().uuid(),
+  project_name: z.string(),
+  project_slug: z.string(),
+  invited_by_user_id: z.string().uuid(),
+  invited_by_name: z.string().nullable(),
+  invited_by_email: z.string().email(),
+  role: z.enum(["owner", "admin", "editor", "viewer"]),
+  status: z.literal("pending"),
+  expires_at: z.string().nullable(),
+  created_at: z.string(),
+});
+
 /**
  * OpenAPI schema for get-all-users success response.
  */
@@ -82,6 +105,19 @@ export const getAllUsersSuccessResponseSchema = z.object({
   data: z.object({
     users: z.array(projectUserSchema),
     invitations: z.array(projectInvitationSchema),
+  }),
+});
+
+/**
+ * OpenAPI schema for get-my-invitations success response.
+ */
+export const getMyInvitationsSuccessResponseSchema = z.object({
+  status: z.boolean(),
+  status_code: z.number(),
+  message: z.string(),
+  error: z.null(),
+  data: z.object({
+    invitations: z.array(projectInboxInvitationSchema),
   }),
 });
 
@@ -160,9 +196,20 @@ export const inviteUserSuccessResponseSchema = z.object({
     project_id: z.string().uuid(),
     invited_user_id: z.string().uuid(),
     role: z.enum(["viewer", "editor", "admin"]),
-    status: z.enum(["pending", "accepted", "declined", "expired"]),
+    status: z.enum(["pending", "accepted", "rejected", "expired"]),
     expires_at: z.string(),
   }),
+});
+
+/**
+ * OpenAPI schema for invitation action success response.
+ */
+export const invitationActionSuccessResponseSchema = z.object({
+  status: z.boolean(),
+  status_code: z.number(),
+  message: z.string(),
+  error: z.null(),
+  data: z.null(),
 });
 
 /**

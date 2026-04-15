@@ -165,3 +165,27 @@ export interface EditProjectResponseData {
     "id" | "google_sheet_id" | "google_project_id" | "client_email"
   > | null;
 }
+
+/**
+ * Pending invitation item returned for authenticated invited user.
+ */
+export interface ProjectInboxInvitationData {
+  id: string;
+  project_id: string;
+  project_name: string;
+  project_slug: string;
+  invited_by_user_id: string;
+  invited_by_name: string | null;
+  invited_by_email: string;
+  role: "owner" | "admin" | "editor" | "viewer";
+  status: "pending";
+  expires_at: string | null;
+  created_at: string;
+}
+
+/**
+ * Combined payload for authenticated user invitation inbox.
+ */
+export interface ProjectInboxInvitationsPayloadData {
+  invitations: ProjectInboxInvitationData[];
+}

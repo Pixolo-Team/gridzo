@@ -1,5 +1,5 @@
 // TYPES //
-import { DashboardProjectVisualData } from "@/types/projects";
+import type { DashboardProjectVisualData } from "@/types/projects";
 import type {
   ProjectPendingInvitationData,
   ProjectUserData,
