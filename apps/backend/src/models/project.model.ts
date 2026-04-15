@@ -96,6 +96,10 @@ export interface ProjectByIdResultData {
       google_sheet_id: string | null;
       google_project_id: string | null;
       client_email: string | null;
+      private_key_id: string | null;
+      client_id: string | null;
+      client_x509_cert_url: string | null;
+      private_key: string | null;
     };
   };
 }
@@ -127,6 +131,39 @@ export interface ProjectPendingInvitationData {
 export interface ProjectUsersPayloadData {
   users: ProjectUserData[];
   invitations: ProjectPendingInvitationData[];
+}
+
+/**
+ * Input payload for editing a project.
+ */
+export interface EditProjectPayloadData {
+  name?: string;
+  slug?: string;
+  category?: string;
+  website_url?: string;
+  google_sheet_credentials?: {
+    google_sheet_id: string;
+    google_project_id?: string;
+    private_key_id?: string;
+    client_email: string;
+    client_id?: string;
+    client_x509_cert_url?: string;
+    private_key: string;
+  };
+}
+
+/**
+ * Safe response payload returned after editing a project.
+ */
+export interface EditProjectResponseData {
+  project: Pick<
+    ProjectData,
+    "id" | "name" | "slug" | "category" | "website_url" | "status" | "updated_at"
+  >;
+  google_sheet_credentials: Pick<
+    GoogleSheetCredentialsData,
+    "id" | "google_sheet_id" | "google_project_id" | "client_email"
+  > | null;
 }
 
 /**

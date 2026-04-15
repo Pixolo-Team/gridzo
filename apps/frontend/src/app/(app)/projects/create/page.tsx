@@ -17,6 +17,7 @@ import { createProjectRequest } from "@/services/api/projects.api";
 
 // CONTEXTS //
 import { useCreateProjectFlowContext } from "@/contexts/create-project-flow.context";
+import { normalizeUrlService } from "@/utils/normalize-url.util";
 
 // CONSTANTS //
 import { ROUTES } from "@/app/constants/routes";
@@ -107,23 +108,6 @@ export default function CreateProjectPage() {
 
     setActiveStep((previousActiveStep) => previousActiveStep - 1);
   }, [activeStep, router]);
-
-  /**
-   * Normalizes URL values by ensuring they include a protocol
-   */
-  const normalizeUrlService = (urlValue: string): string | undefined => {
-    const trimmedUrlValue = urlValue.trim();
-
-    if (!trimmedUrlValue) {
-      return undefined;
-    }
-
-    if (/^https?:\/\//i.test(trimmedUrlValue)) {
-      return trimmedUrlValue;
-    }
-
-    return `https://${trimmedUrlValue}`;
-  };
 
   /**
    * Returns the payload used to create a project

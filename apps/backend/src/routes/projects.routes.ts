@@ -2,6 +2,7 @@
 import {
   acceptProjectInvitationController,
   createProjectController,
+  editProjectController,
   getAllProjectUsersController,
   getAllProjectsController,
   getMyProjectInvitationsController,
@@ -14,6 +15,7 @@ import {
 import {
   acceptProjectInvitationContract,
   createProjectContract,
+  editProjectContract,
   getAllProjectUsersContract,
   getAllProjectsContract,
   getMyProjectInvitationsContract,
@@ -51,4 +53,5 @@ export function registerProjectRoutes(openapiApp: OpenAPIHono): void {
   openapiApp.openapi(getAllProjectsContract, getAllProjectsController);
   openapiApp.openapi(getProjectByIdContract, getProjectByIdController);
   openapiApp.openapi(createProjectContract, createProjectController);
+  openapiApp.openapi(editProjectContract, editProjectController);
 }

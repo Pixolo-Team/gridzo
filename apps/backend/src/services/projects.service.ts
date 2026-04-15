@@ -2,6 +2,8 @@
 import type { ProjectInvitationData } from "@/models/project-invitation.model";
 import type {
   CreateProjectTransactionResultData,
+  EditProjectPayloadData,
+  EditProjectResponseData,
   ProjectByIdResultData,
   ProjectData,
   ProjectInboxInvitationData,
@@ -101,6 +103,17 @@ type CreateProjectServiceResponseData =
   QueryResponseData<CreateProjectTransactionResultData> & {
     statusCode: CreateProjectStatusCodeData;
   };
+
+type EditProjectStatusCodeData =
+  | typeof HTTP_STATUS.OK
+  | typeof HTTP_STATUS.UNAUTHORIZED
+  | typeof HTTP_STATUS.FORBIDDEN
+  | typeof HTTP_STATUS.NOT_FOUND
+  | typeof HTTP_STATUS.INTERNAL_SERVER_ERROR;
+
+type EditProjectServiceResponseData = QueryResponseData<EditProjectResponseData> & {
+  statusCode: EditProjectStatusCodeData;
+};
 
 const projectSelectFields =
   "id, name, slug, category, website_url, status, created_at, updated_at, created_by_user_id, owner_user_id";
@@ -204,6 +217,136 @@ async function resolveUserIdByAuthIdService(
   }
 
   return (userResponseData.data as { id: string }).id;
+}
+
+/**
+ * Checks whether the given project exists in the database.
+ */
+async function checkProjectExistsService(projectIdData: string): Promise<boolean | Error> {
+  const projectResponseData = await supabase
+    .from(tables.PROJECTS)
+    .select("id")
+    .eq("id", projectIdData)
+    .maybeSingle();
+
+  if (projectResponseData.error) {
+    return new Error("Failed to query project");
+  }
+
+  return projectResponseData.data !== null;
+}
+
+/**
+ * Fetches the project membership role for a given user.
+ */
+async function getProjectMemberRoleService(
+  projectIdData: string,
+  userIdData: string,
+): Promise<"owner" | "admin" | "editor" | "viewer" | null | Error> {
+  const membershipResponseData = await supabase
+    .from(tables.PROJECT_USER)
+    .select("role")
+    .eq("project_id", projectIdData)
+    .eq("user_id", userIdData)
+    .maybeSingle();
+
+  if (membershipResponseData.error) {
+    return new Error("Failed to query project membership");
+  }
+
+  if (!membershipResponseData.data) {
+    return null;
+  }
+
+  return membershipResponseData.data.role as "owner" | "admin" | "editor" | "viewer";
+}
+
+/**
+ * Checks whether the given user is project owner or creator.
+ */
+async function checkIsProjectOwnerService(
+  projectIdData: string,
+  userIdData: string,
+): Promise<boolean | Error> {
+  const projectOwnershipResponseData = await supabase
+    .from(tables.PROJECTS)
+    .select("id")
+    .eq("id", projectIdData)
+    .or(`owner_user_id.eq.${userIdData},created_by_user_id.eq.${userIdData}`)
+    .maybeSingle();
+
+  if (projectOwnershipResponseData.error) {
+    return new Error("Failed to query project ownership");
+  }
+
+  return Boolean(projectOwnershipResponseData.data);
+}
+
+/**
+ * Performs a partial update on project fields.
+ */
+async function updateProjectFieldsService(
+  projectIdData: string,
+  payloadData: Pick<
+    EditProjectPayloadData,
+    "name" | "slug" | "category" | "website_url"
+  >,
+): Promise<EditProjectResponseData["project"] | Error> {
+  const updateFieldsData: Record<string, unknown> = {
+    updated_at: new Date().toISOString(),
+  };
+
+  if (payloadData.name !== undefined) {
+    updateFieldsData.name = payloadData.name;
+  }
+
+  if (payloadData.slug !== undefined) {
+    updateFieldsData.slug = payloadData.slug;
+  }
+
+  if (payloadData.category !== undefined) {
+    updateFieldsData.category = payloadData.category;
+  }
+
+  if (payloadData.website_url !== undefined) {
+    updateFieldsData.website_url = payloadData.website_url;
+  }
+
+  const updatedProjectResponseData = await supabase
+    .from(tables.PROJECTS)
+    .update(updateFieldsData)
+    .eq("id", projectIdData)
+    .select("id, name, slug, category, website_url, status, updated_at")
+    .single();
+
+  if (updatedProjectResponseData.error || !updatedProjectResponseData.data) {
+    return new Error("Failed to update project");
+  }
+
+  return updatedProjectResponseData.data as EditProjectResponseData["project"];
+}
+
+/**
+ * Upserts Google Sheet credentials for a project.
+ */
+async function upsertGoogleCredentialsService(
+  projectIdData: string,
+  credentialsData: NonNullable<EditProjectPayloadData["google_sheet_credentials"]>,
+): Promise<EditProjectResponseData["google_sheet_credentials"] | Error> {
+  const upsertResponseData = await supabase
+    .from(tables.GOOGLE_SHEET_CREDENTIALS)
+    .upsert(
+      { ...credentialsData, project_id: projectIdData, updated_at: new Date().toISOString() },
+      { onConflict: "project_id" },
+    )
+    .select("id, google_sheet_id, google_project_id, client_email")
+    .single();
+
+  if (upsertResponseData.error || !upsertResponseData.data) {
+    return new Error("Failed to update Google Sheet credentials");
+  }
+
+  return upsertResponseData.data as EditProjectResponseData["google_sheet_credentials"];
 }
 
 /**
@@ -1142,7 +1285,7 @@ export async function getProjectByIdService(
     const { data: projectItem, error: projectError } = await supabase
       .from(tables.PROJECTS)
       .select(
-        "id, name, slug, category, website_url, status, google_sheet_credentials(id, google_sheet_id, google_project_id, client_email), project_structure_versions(id, version, is_current, json_code, php_code)",
+        "id, name, slug, category, website_url, status, google_sheet_credentials(id, google_sheet_id, google_project_id, client_email, private_key_id, client_id, client_x509_cert_url, private_key), project_structure_versions(id, version, is_current, json_code, php_code)",
       )
       .eq("id", projectIdData)
       .eq("project_structure_versions.is_current", true)
@@ -1208,6 +1351,10 @@ export async function getProjectByIdService(
             google_sheet_id: credentialsItem.google_sheet_id,
             google_project_id: credentialsItem.google_project_id,
             client_email: credentialsItem.client_email,
+            private_key_id: credentialsItem.private_key_id,
+            client_id: credentialsItem.client_id,
+            client_x509_cert_url: credentialsItem.client_x509_cert_url,
+            private_key: credentialsItem.private_key,
           },
         },
       },
@@ -1318,6 +1465,138 @@ export async function createProjectService(
     return {
       data: null,
       error: new Error("Failed to create project."),
+      statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+    };
+  }
+}
+
+/**
+ * Partially updates a project and optionally upserts Google Sheet credentials.
+ */
+export async function editProjectService(
+  projectIdData: string,
+  authIdData: string,
+  payloadData: EditProjectPayloadData,
+): Promise<EditProjectServiceResponseData> {
+  try {
+    const userIdData = await resolveInternalUserIdByAuthIdService(authIdData);
+
+    if (!userIdData) {
+      return {
+        data: null,
+        error: new Error("Authenticated user not found"),
+        statusCode: HTTP_STATUS.UNAUTHORIZED,
+      };
+    }
+
+    const projectExistsData = await checkProjectExistsService(projectIdData);
+
+    if (projectExistsData instanceof Error) {
+      logger.error("[projects.service] failed to check project existence", projectExistsData);
+      return {
+        data: null,
+        error: new Error("Failed to verify project"),
+        statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+      };
+    }
+
+    if (!projectExistsData) {
+      return {
+        data: null,
+        error: new Error("Project not found"),
+        statusCode: HTTP_STATUS.NOT_FOUND,
+      };
+    }
+
+    const memberRoleData = await getProjectMemberRoleService(projectIdData, userIdData);
+    const isProjectOwnerData = await checkIsProjectOwnerService(
+      projectIdData,
+      userIdData,
+    );
+
+    if (memberRoleData instanceof Error) {
+      logger.error("[projects.service] failed to check project membership", memberRoleData);
+      return {
+        data: null,
+        error: new Error("Failed to verify project membership"),
+        statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+      };
+    }
+
+    if (isProjectOwnerData instanceof Error) {
+      logger.error("[projects.service] failed to check project ownership", isProjectOwnerData);
+      return {
+        data: null,
+        error: new Error("Failed to verify project ownership"),
+        statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+      };
+    }
+
+    const checkHasEditPermissionData =
+      isProjectOwnerData ||
+      (memberRoleData !== null && ["owner", "admin"].includes(memberRoleData));
+
+    if (!checkHasEditPermissionData) {
+      return {
+        data: null,
+        error: new Error("You do not have permission to update this project"),
+        statusCode: HTTP_STATUS.FORBIDDEN,
+      };
+    }
+
+    const { google_sheet_credentials: googleCredentialsData, ...projectFieldsData } =
+      payloadData;
+    const updatedProjectData = await updateProjectFieldsService(
+      projectIdData,
+      projectFieldsData,
+    );
+
+    if (updatedProjectData instanceof Error) {
+      logger.error("[projects.service] failed to update project fields", updatedProjectData);
+      return {
+        data: null,
+        error: new Error("Failed to update project"),
+        statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+      };
+    }
+
+    let updatedCredentialsData: EditProjectResponseData["google_sheet_credentials"] =
+      null;
+
+    if (googleCredentialsData) {
+      const credentialsResultData = await upsertGoogleCredentialsService(
+        projectIdData,
+        googleCredentialsData,
+      );
+
+      if (credentialsResultData instanceof Error) {
+        logger.error(
+          "[projects.service] failed to upsert Google Sheet credentials",
+          credentialsResultData,
+        );
+        return {
+          data: null,
+          error: new Error("Failed to update Google Sheet credentials"),
+          statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+        };
+      }
+
+      updatedCredentialsData = credentialsResultData;
+    }
+
+    return {
+      data: {
+        project: updatedProjectData,
+        google_sheet_credentials: updatedCredentialsData,
+      },
+      error: null,
+      statusCode: HTTP_STATUS.OK,
+    };
+  } catch (errorData: unknown) {
+    logger.error("[projects.service] unexpected error", errorData);
+    return {
+      data: null,
+      error: new Error("Failed to update project"),
       statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
     };
   }
