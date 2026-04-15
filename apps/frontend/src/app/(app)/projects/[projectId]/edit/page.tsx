@@ -2,6 +2,7 @@
 
 // REACT //
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 // COMPONENTS //
 import Link from "next/link";
@@ -40,6 +41,7 @@ type EditProjectFormValueData = Record<string, string>;
  */
 export default function EditProjectPage() {
   // Define Navigation
+  const router = useRouter();
 
   // Define Context
   const { projectDetails, refreshProjectDetailsService } =
@@ -131,6 +133,7 @@ export default function EditProjectPage() {
 
     return {
       name: getFieldValue("project-name").trim() || undefined,
+      slug: getFieldValue("slug").trim() || undefined,
       category: getFieldValue("project-category").trim() || undefined,
       website_url: normalizeUrlService(getFieldValue("website-url")),
       google_sheet_credentials: googleSheetCredentialsData,
@@ -256,6 +259,13 @@ export default function EditProjectPage() {
 
         // Show success and sync context with latest backend state.
         toast.success(updateProjectResponseData.message);
+
+        const updatedSlug = updateProjectResponseData.data?.project.slug;
+        if (updatedSlug && projectDetails?.project.slug !== updatedSlug) {
+          // Move to the new slug route so all subsequent project fetches use latest identifier.
+          router.replace(ROUTES.APP.PROJECTS.EDIT(updatedSlug));
+          return;
+        }
 
         return refreshProjectDetailsService();
       })

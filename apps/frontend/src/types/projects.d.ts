@@ -129,6 +129,7 @@ export type UpdateProjectRequestGoogleSheetCredentialsData = {
 // Type for Update Project Request Data
 export type UpdateProjectRequestData = {
   name?: string;
+  slug?: string;
   category?: string;
   website_url?: string;
   google_sheet_credentials?: UpdateProjectRequestGoogleSheetCredentialsData;

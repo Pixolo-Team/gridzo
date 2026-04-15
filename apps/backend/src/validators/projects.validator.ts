@@ -273,6 +273,7 @@ export const editProjectGoogleCredentialsSchema = z.object({
 export const editProjectBodySchema = z
   .object({
     name: z.string().min(1).optional().openapi({ example: "Updated Project Name" }),
+    slug: z.string().min(1).optional().openapi({ example: "updated-project-name" }),
     category: z.string().min(1).optional().openapi({ example: "marketing-site" }),
     website_url: z.string().url().optional().openapi({ example: "https://example.com" }),
     google_sheet_credentials: editProjectGoogleCredentialsSchema.optional(),
@@ -280,6 +281,7 @@ export const editProjectBodySchema = z
   .refine(
     (bodyData) =>
       bodyData.name !== undefined ||
+      bodyData.slug !== undefined ||
       bodyData.category !== undefined ||
       bodyData.website_url !== undefined ||
       bodyData.google_sheet_credentials !== undefined,

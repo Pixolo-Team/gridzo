@@ -262,7 +262,10 @@ async function checkIsProjectOwnerService(
  */
 async function updateProjectFieldsService(
   projectIdData: string,
-  payloadData: Pick<EditProjectPayloadData, "name" | "category" | "website_url">,
+  payloadData: Pick<
+    EditProjectPayloadData,
+    "name" | "slug" | "category" | "website_url"
+  >,
 ): Promise<EditProjectResponseData["project"] | Error> {
   const updateFieldsData: Record<string, unknown> = {
     updated_at: new Date().toISOString(),
@@ -270,6 +273,10 @@ async function updateProjectFieldsService(
 
   if (payloadData.name !== undefined) {
     updateFieldsData.name = payloadData.name;
+  }
+
+  if (payloadData.slug !== undefined) {
+    updateFieldsData.slug = payloadData.slug;
   }
 
   if (payloadData.category !== undefined) {

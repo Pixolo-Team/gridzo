@@ -138,6 +138,7 @@ export interface ProjectUsersPayloadData {
  */
 export interface EditProjectPayloadData {
   name?: string;
+  slug?: string;
   category?: string;
   website_url?: string;
   google_sheet_credentials?: {
