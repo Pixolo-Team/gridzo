@@ -93,15 +93,22 @@ export function AppHeader({ onToggleMobileMenu }: AppHeaderPropsData) {
       />
 
       {/* Menu Trigger */}
-      <Button
-        type="button"
-        aria-label="Open side menu"
-        variant="ghost"
-        className="size-11 rounded-full p-0 hover:bg-n-100"
-        onClick={onToggleMobileMenu}
-      >
-        <HamburgerMenu1 primaryColor="var(--color-n-500)" className="size-5" />
-      </Button>
+      <div className="flex items-center gap-2">
+        <NotificationButton />
+
+        <Button
+          type="button"
+          aria-label="Open side menu"
+          variant="ghost"
+          className="size-11 rounded-full p-0 hover:bg-n-100"
+          onClick={onToggleMobileMenu}
+        >
+          <HamburgerMenu1
+            primaryColor="var(--color-n-500)"
+            className="size-5"
+          />
+        </Button>
+      </div>
     </>
   );
 

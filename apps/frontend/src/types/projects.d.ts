@@ -57,7 +57,7 @@ export type InviteUserResponseData = {
   project_id: string;
   invited_user_id: string;
   role: "viewer" | "editor" | "admin";
-  status: "pending" | "accepted" | "declined" | "expired";
+  status: "pending" | "accepted" | "rejected" | "expired";
   expires_at: string;
 };
 
@@ -82,6 +82,26 @@ export type ProjectPendingInvitationData = {
 export type GetAllProjectUsersResponseData = {
   users: ProjectUserData[];
   invitations: ProjectPendingInvitationData[];
+};
+
+// Type for My Pending Project Invitation Data
+export type MyProjectInvitationData = {
+  id: string;
+  project_id: string;
+  project_name: string;
+  project_slug: string;
+  invited_by_user_id: string;
+  invited_by_name: string | null;
+  invited_by_email: string;
+  role: "owner" | "admin" | "editor" | "viewer";
+  status: "pending";
+  expires_at: string | null;
+  created_at: string;
+};
+
+// Type for Get My Pending Invitations Response Data
+export type GetMyProjectInvitationsResponseData = {
+  invitations: MyProjectInvitationData[];
 };
 
 // Type for Create Project Request Google Sheet Credentials Data

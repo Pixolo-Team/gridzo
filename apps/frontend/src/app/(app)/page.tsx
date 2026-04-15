@@ -26,9 +26,16 @@ export default function HomePage() {
 
   // Use Effects
   useEffect(() => {
-    if (!isLoading && !user) {
-      router.replace(ROUTES.AUTH.LOGIN);
+    if (isLoading) {
+      return;
     }
+
+    if (!user) {
+      router.replace(ROUTES.AUTH.LOGIN);
+      return;
+    }
+
+    router.replace(ROUTES.APP.DASHBOARD);
   }, [isLoading, user, router]);
 
   if (isLoading) {
@@ -43,24 +50,5 @@ export default function HomePage() {
     return null;
   }
 
-  return (
-    <section className="flex min-h-screen items-center justify-center px-6 py-8">
-      <div className="w-full max-w-xl rounded-xl border border-n-300 bg-n-50 p-6">
-        <h1 className="mb-4 text-2xl font-semibold text-n-950">Welcome back</h1>
-        <div className="space-y-2 text-sm text-n-800">
-          <p>
-            <span className="font-medium text-n-900">Name:</span>{" "}
-            {user.full_name ?? "N/A"}
-          </p>
-          <p>
-            <span className="font-medium text-n-900">Email:</span> {user.email}
-          </p>
-          <p>
-            <span className="font-medium text-n-900">Status:</span>{" "}
-            {user.status}
-          </p>
-        </div>
-      </div>
-    </section>
-  );
+  return null;
 }

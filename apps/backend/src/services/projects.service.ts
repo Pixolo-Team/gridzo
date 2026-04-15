@@ -4,6 +4,8 @@ import type {
   CreateProjectTransactionResultData,
   ProjectByIdResultData,
   ProjectData,
+  ProjectInboxInvitationData,
+  ProjectInboxInvitationsPayloadData,
   ProjectPendingInvitationData,
   ProjectUserData,
   ProjectUsersPayloadData,
@@ -53,6 +55,27 @@ type InviteUserServiceResponseData = QueryResponseData<
   statusCode: InviteUserStatusCodeData;
 };
 
+type GetMyProjectInvitationsStatusCodeData =
+  | typeof HTTP_STATUS.OK
+  | typeof HTTP_STATUS.UNAUTHORIZED
+  | typeof HTTP_STATUS.INTERNAL_SERVER_ERROR;
+
+type GetMyProjectInvitationsServiceResponseData =
+  QueryResponseData<ProjectInboxInvitationsPayloadData> & {
+    statusCode: GetMyProjectInvitationsStatusCodeData;
+  };
+
+type RespondProjectInvitationStatusCodeData =
+  | typeof HTTP_STATUS.OK
+  | typeof HTTP_STATUS.UNAUTHORIZED
+  | typeof HTTP_STATUS.NOT_FOUND
+  | typeof HTTP_STATUS.CONFLICT
+  | typeof HTTP_STATUS.INTERNAL_SERVER_ERROR;
+
+type RespondProjectInvitationServiceResponseData = QueryResponseData<null> & {
+  statusCode: RespondProjectInvitationStatusCodeData;
+};
+
 type ProjectsStatusCodeData =
   | typeof HTTP_STATUS.OK
   | typeof HTTP_STATUS.UNAUTHORIZED
@@ -63,9 +86,10 @@ type ProjectsServiceResponseData = QueryResponseData<ProjectWithRoleData[]> & {
   statusCode: ProjectsStatusCodeData;
 };
 
-type ProjectByIdServiceResponseData = QueryResponseData<ProjectByIdResultData> & {
-  statusCode: ProjectsStatusCodeData;
-};
+type ProjectByIdServiceResponseData =
+  QueryResponseData<ProjectByIdResultData> & {
+    statusCode: ProjectsStatusCodeData;
+  };
 
 type CreateProjectStatusCodeData =
   | typeof HTTP_STATUS.CREATED
@@ -150,7 +174,8 @@ async function resolveAuthUserIdByTokenService(
   accessTokenData: string,
 ): Promise<string | null> {
   const supabaseClient = createSupabaseClientByTokenRequest(accessTokenData);
-  const authUserResponseData = await supabaseClient.auth.getUser(accessTokenData);
+  const authUserResponseData =
+    await supabaseClient.auth.getUser(accessTokenData);
 
   if (authUserResponseData.error || !authUserResponseData.data.user) {
     return null;
@@ -230,14 +255,13 @@ async function resolveProjectIdByIdentifierService(
 async function checkProjectAccessService(
   projectIdData: string,
   internalUserIdData: string,
-  authUserIdData: string,
 ): Promise<boolean> {
   const { data: projectMembershipItem, error: projectMembershipError } =
     await supabase
       .from(tables.PROJECT_USER)
       .select("project_id")
       .eq("project_id", projectIdData)
-      .or(`user_id.eq.${internalUserIdData},user_id.eq.${authUserIdData}`)
+      .eq("user_id", internalUserIdData)
       .maybeSingle();
 
   if (projectMembershipError) {
@@ -259,9 +283,7 @@ async function checkProjectAccessService(
     .or(
       [
         `owner_user_id.eq.${internalUserIdData}`,
-        `owner_user_id.eq.${authUserIdData}`,
         `created_by_user_id.eq.${internalUserIdData}`,
-        `created_by_user_id.eq.${authUserIdData}`,
       ].join(","),
     )
     .maybeSingle();
@@ -275,6 +297,19 @@ async function checkProjectAccessService(
   }
 
   return Boolean(ownedProjectItem);
+}
+
+/**
+ * Checks whether an invitation has already expired.
+ */
+function checkIsInvitationExpiredService(
+  invitationExpiresAtData: string | null,
+): boolean {
+  if (!invitationExpiresAtData) {
+    return false;
+  }
+
+  return new Date(invitationExpiresAtData).getTime() <= Date.now();
 }
 
 /**
@@ -371,13 +406,16 @@ async function fetchPendingInvitationsService(
     }
 
     (invitedUserItemsData ?? []).forEach((invitedUserItemData) => {
-      invitedUserEmailMapData.set(invitedUserItemData.id, invitedUserItemData.email);
+      invitedUserEmailMapData.set(
+        invitedUserItemData.id,
+        invitedUserItemData.email,
+      );
     });
   }
 
   return invitationItemsData.map((invitationItemData) => {
     const invitationEmailData = invitationItemData.invited_user_id
-      ? invitedUserEmailMapData.get(invitationItemData.invited_user_id) ?? ""
+      ? (invitedUserEmailMapData.get(invitationItemData.invited_user_id) ?? "")
       : "";
 
     return {
@@ -458,7 +496,6 @@ export async function getAllProjectUsersService(
   const hasProjectAccessData = await checkProjectAccessService(
     projectIdData,
     internalUserIdData,
-    authUserIdData,
   );
 
   if (!hasProjectAccessData) {
@@ -502,9 +539,8 @@ export async function inviteUserToProjectService(
 ): Promise<InviteUserServiceResponseData> {
   try {
     const supabaseClient = createSupabaseClientByTokenRequest(accessTokenData);
-    const inviterAuthUserIdData = await resolveAuthUserIdByTokenService(
-      accessTokenData,
-    );
+    const inviterAuthUserIdData =
+      await resolveAuthUserIdByTokenService(accessTokenData);
 
     if (!inviterAuthUserIdData) {
       return {
@@ -530,7 +566,6 @@ export async function inviteUserToProjectService(
     const hasProjectAccessData = await checkProjectAccessService(
       projectIdData,
       inviterUserIdData,
-      inviterAuthUserIdData,
     );
 
     if (!hasProjectAccessData) {
@@ -577,7 +612,9 @@ export async function inviteUserToProjectService(
         invited_by_user_id: inviterUserIdData,
         role: "viewer",
         status: "pending",
-        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        expires_at: new Date(
+          Date.now() + 7 * 24 * 60 * 60 * 1000,
+        ).toISOString(),
       })
       .select("id, project_id, invited_user_id, role, status, expires_at")
       .single();
@@ -612,6 +649,333 @@ export async function inviteUserToProjectService(
     return {
       data: null,
       error: new Error("Failed to invite user to project."),
+      statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+    };
+  }
+}
+
+/**
+ * Fetches pending project invitations for authenticated user.
+ */
+export async function getMyProjectInvitationsService(
+  authUserIdData: string,
+): Promise<GetMyProjectInvitationsServiceResponseData> {
+  try {
+    const internalUserIdData =
+      await resolveInternalUserIdByAuthIdService(authUserIdData);
+
+    if (!internalUserIdData) {
+      return {
+        data: null,
+        error: new Error("Authenticated user not found."),
+        statusCode: HTTP_STATUS.UNAUTHORIZED,
+      };
+    }
+
+    const { data: invitationItemsData, error: invitationItemsError } =
+      await supabase
+        .from(tables.PROJECT_INVITATIONS)
+        .select(
+          "id, project_id, invited_by_user_id, role, status, expires_at, created_at",
+        )
+        .eq("invited_user_id", internalUserIdData)
+        .eq("status", "pending")
+        .order("created_at", { ascending: false });
+
+    if (invitationItemsError) {
+      logger.error(
+        "[projects.service] failed to fetch user pending invitations",
+        invitationItemsError,
+      );
+      return {
+        data: null,
+        error: new Error("Failed to fetch pending invitations."),
+        statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+      };
+    }
+
+    const filteredInvitationItemsData = (invitationItemsData ?? []).filter(
+      (invitationItemData) => {
+        return !checkIsInvitationExpiredService(invitationItemData.expires_at);
+      },
+    );
+
+    if (filteredInvitationItemsData.length === 0) {
+      return {
+        data: {
+          invitations: [],
+        },
+        error: null,
+        statusCode: HTTP_STATUS.OK,
+      };
+    }
+
+    const projectIdItemsData = Array.from(
+      new Set(
+        filteredInvitationItemsData.map((invitationItemData) => {
+          return invitationItemData.project_id;
+        }),
+      ),
+    );
+    const inviterIdItemsData = Array.from(
+      new Set(
+        filteredInvitationItemsData.map((invitationItemData) => {
+          return invitationItemData.invited_by_user_id;
+        }),
+      ),
+    );
+
+    const [projectItemsResponseData, inviterItemsResponseData] =
+      await Promise.all([
+        supabase
+          .from(tables.PROJECTS)
+          .select("id, name, slug")
+          .in("id", projectIdItemsData),
+        supabase
+          .from(tables.USERS)
+          .select("id, full_name, email")
+          .in("id", inviterIdItemsData),
+      ]);
+
+    if (projectItemsResponseData.error || inviterItemsResponseData.error) {
+      logger.error("[projects.service] failed to map invitation metadata", {
+        projectError: projectItemsResponseData.error,
+        inviterError: inviterItemsResponseData.error,
+      });
+      return {
+        data: null,
+        error: new Error("Failed to fetch pending invitations."),
+        statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+      };
+    }
+
+    const projectMapData = new Map<
+      string,
+      {
+        name: string;
+        slug: string;
+      }
+    >();
+    (projectItemsResponseData.data ?? []).forEach((projectItemData) => {
+      projectMapData.set(projectItemData.id, {
+        name: projectItemData.name,
+        slug: projectItemData.slug,
+      });
+    });
+
+    const inviterMapData = new Map<
+      string,
+      {
+        full_name: string | null;
+        email: string;
+      }
+    >();
+    (inviterItemsResponseData.data ?? []).forEach((inviterItemData) => {
+      inviterMapData.set(inviterItemData.id, {
+        full_name: inviterItemData.full_name,
+        email: inviterItemData.email,
+      });
+    });
+
+    const mappedInvitationItemsData: ProjectInboxInvitationData[] =
+      filteredInvitationItemsData
+        .map((invitationItemData) => {
+          const projectItemData = projectMapData.get(
+            invitationItemData.project_id,
+          );
+          const inviterItemData = inviterMapData.get(
+            invitationItemData.invited_by_user_id,
+          );
+
+          if (!projectItemData || !inviterItemData) {
+            return null;
+          }
+
+          return {
+            id: invitationItemData.id,
+            project_id: invitationItemData.project_id,
+            project_name: projectItemData.name,
+            project_slug: projectItemData.slug,
+            invited_by_user_id: invitationItemData.invited_by_user_id,
+            invited_by_name: inviterItemData.full_name,
+            invited_by_email: inviterItemData.email,
+            role: invitationItemData.role as ProjectInboxInvitationData["role"],
+            status: "pending",
+            expires_at: invitationItemData.expires_at,
+            created_at: invitationItemData.created_at,
+          };
+        })
+        .filter(
+          (
+            invitationItemData,
+          ): invitationItemData is ProjectInboxInvitationData => {
+            return Boolean(invitationItemData);
+          },
+        );
+
+    return {
+      data: {
+        invitations: mappedInvitationItemsData,
+      },
+      error: null,
+      statusCode: HTTP_STATUS.OK,
+    };
+  } catch (errorData: unknown) {
+    logger.error(
+      "[projects.service] unexpected error while fetching pending invitations",
+      errorData,
+    );
+    return {
+      data: null,
+      error: new Error("Failed to fetch pending invitations."),
+      statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+    };
+  }
+}
+
+/**
+ * Accepts or rejects a pending invitation for authenticated user.
+ */
+export async function respondProjectInvitationService(
+  authUserIdData: string,
+  accessTokenData: string,
+  invitationIdData: string,
+  actionData: "accept" | "reject",
+): Promise<RespondProjectInvitationServiceResponseData> {
+  try {
+    const internalUserIdData =
+      await resolveInternalUserIdByAuthIdService(authUserIdData);
+
+    if (!internalUserIdData) {
+      return {
+        data: null,
+        error: new Error("Authenticated user not found."),
+        statusCode: HTTP_STATUS.UNAUTHORIZED,
+      };
+    }
+
+    const supabaseClient = createSupabaseClientByTokenRequest(accessTokenData);
+    const invitationResponseData = await supabaseClient
+      .from(tables.PROJECT_INVITATIONS)
+      .select("id, project_id, invited_user_id, role, status, expires_at")
+      .eq("id", invitationIdData)
+      .maybeSingle();
+
+    if (invitationResponseData.error) {
+      logger.error("[projects.service] failed to fetch invitation by id", {
+        invitationIdData,
+        error: invitationResponseData.error,
+      });
+      return {
+        data: null,
+        error: new Error("Failed to process invitation."),
+        statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+      };
+    }
+
+    if (!invitationResponseData.data) {
+      return {
+        data: null,
+        error: new Error("Invitation not found."),
+        statusCode: HTTP_STATUS.NOT_FOUND,
+      };
+    }
+
+    if (invitationResponseData.data.invited_user_id !== internalUserIdData) {
+      return {
+        data: null,
+        error: new Error("You are not allowed to respond to this invitation."),
+        statusCode: HTTP_STATUS.UNAUTHORIZED,
+      };
+    }
+
+    if (invitationResponseData.data.status !== "pending") {
+      return {
+        data: null,
+        error: new Error("Invitation is already processed."),
+        statusCode: HTTP_STATUS.CONFLICT,
+      };
+    }
+
+    if (
+      checkIsInvitationExpiredService(
+        invitationResponseData.data.expires_at ?? null,
+      )
+    ) {
+      return {
+        data: null,
+        error: new Error("Invitation has expired."),
+        statusCode: HTTP_STATUS.CONFLICT,
+      };
+    }
+
+    if (actionData === "accept") {
+      const projectMembershipResponseData = await supabaseClient
+        .from(tables.PROJECT_USER)
+        .upsert(
+          {
+            project_id: invitationResponseData.data.project_id,
+            user_id: internalUserIdData,
+            role: invitationResponseData.data.role,
+          },
+          { onConflict: "project_id,user_id" },
+        )
+        .select("id")
+        .single();
+
+      if (projectMembershipResponseData.error) {
+        logger.error("[projects.service] failed to upsert project membership", {
+          invitationIdData,
+          error: projectMembershipResponseData.error,
+        });
+        return {
+          data: null,
+          error: new Error("Failed to process invitation."),
+          statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+        };
+      }
+    }
+
+    const invitationStatusData =
+      actionData === "accept" ? "accepted" : "rejected";
+    const invitationUpdateResponseData = await supabaseClient
+      .from(tables.PROJECT_INVITATIONS)
+      .update({
+        status: invitationStatusData,
+        responded_at: new Date().toISOString(),
+      })
+      .eq("id", invitationIdData)
+      .select("id")
+      .single();
+
+    if (invitationUpdateResponseData.error) {
+      logger.error("[projects.service] failed to update invitation status", {
+        invitationIdData,
+        error: invitationUpdateResponseData.error,
+      });
+      return {
+        data: null,
+        error: new Error("Failed to process invitation."),
+        statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+      };
+    }
+
+    return {
+      data: null,
+      error: null,
+      statusCode: HTTP_STATUS.OK,
+    };
+  } catch (errorData: unknown) {
+    logger.error(
+      "[projects.service] unexpected error while responding invitation",
+      {
+        invitationIdData,
+        error: errorData,
+      },
+    );
+    return {
+      data: null,
+      error: new Error("Failed to process invitation."),
       statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
     };
   }
@@ -654,25 +1018,25 @@ export async function getAllProjectsService(
       };
     }
 
-    const projectItems: ProjectWithRoleData[] = (projectMembershipItems ?? []).map(
-      (membershipItem) => {
-        const projectRecord = membershipItem.projects as unknown as ProjectData;
+    const projectItems: ProjectWithRoleData[] = (
+      projectMembershipItems ?? []
+    ).map((membershipItem) => {
+      const projectRecord = membershipItem.projects as unknown as ProjectData;
 
-        return {
-          id: projectRecord.id,
-          name: projectRecord.name,
-          slug: projectRecord.slug,
-          category: projectRecord.category,
-          website_url: projectRecord.website_url,
-          status: projectRecord.status,
-          created_at: projectRecord.created_at,
-          updated_at: projectRecord.updated_at,
-          created_by_user_id: projectRecord.created_by_user_id,
-          owner_user_id: projectRecord.owner_user_id,
-          role: membershipItem.role as "owner" | "admin" | "editor" | "viewer",
-        };
-      },
-    );
+      return {
+        id: projectRecord.id,
+        name: projectRecord.name,
+        slug: projectRecord.slug,
+        category: projectRecord.category,
+        website_url: projectRecord.website_url,
+        status: projectRecord.status,
+        created_at: projectRecord.created_at,
+        updated_at: projectRecord.updated_at,
+        created_by_user_id: projectRecord.created_by_user_id,
+        owner_user_id: projectRecord.owner_user_id,
+        role: membershipItem.role as "owner" | "admin" | "editor" | "viewer",
+      };
+    });
 
     if (projectItems.length > 0) {
       return {
@@ -765,7 +1129,6 @@ export async function getProjectByIdService(
     const hasProjectAccessData = await checkProjectAccessService(
       projectIdData,
       internalUserIdData,
-      authUserIdData,
     );
 
     if (!hasProjectAccessData) {
@@ -786,7 +1149,10 @@ export async function getProjectByIdService(
       .maybeSingle();
 
     if (projectError) {
-      logger.error("[projects.service] failed to fetch project by id", projectError);
+      logger.error(
+        "[projects.service] failed to fetch project by id",
+        projectError,
+      );
       return {
         data: null,
         error: new Error("Failed to fetch project."),
@@ -802,7 +1168,9 @@ export async function getProjectByIdService(
       };
     }
 
-    const structureVersionItem = Array.isArray(projectItem.project_structure_versions)
+    const structureVersionItem = Array.isArray(
+      projectItem.project_structure_versions,
+    )
       ? projectItem.project_structure_versions[0]
       : null;
     const credentialsItem = Array.isArray(projectItem.google_sheet_credentials)
@@ -847,7 +1215,10 @@ export async function getProjectByIdService(
       statusCode: HTTP_STATUS.OK,
     };
   } catch (errorData: unknown) {
-    logger.error("[projects.service] unexpected error while fetching project", errorData);
+    logger.error(
+      "[projects.service] unexpected error while fetching project",
+      errorData,
+    );
     return {
       data: null,
       error: new Error("Failed to fetch project."),
@@ -900,7 +1271,8 @@ export async function createProjectService(
         p_google_sheet_id: payloadData.google_sheet_credentials.google_sheet_id,
         p_google_project_id:
           payloadData.google_sheet_credentials.google_project_id ?? null,
-        p_private_key_id: payloadData.google_sheet_credentials.private_key_id ?? null,
+        p_private_key_id:
+          payloadData.google_sheet_credentials.private_key_id ?? null,
         p_client_email: payloadData.google_sheet_credentials.client_email,
         p_client_id: payloadData.google_sheet_credentials.client_id ?? null,
         p_client_x509_cert_url:
@@ -933,7 +1305,8 @@ export async function createProjectService(
       };
     }
 
-    const resultData = rpcResponseData.data as CreateProjectTransactionResultData;
+    const resultData =
+      rpcResponseData.data as CreateProjectTransactionResultData;
 
     return {
       data: resultData,
