@@ -125,7 +125,7 @@ export default function AuthCallbackPage() {
         return;
       }
 
-      router.replace(ROUTES.APP.HOME);
+      router.replace(ROUTES.APP.DASHBOARD);
     } catch {
       router.replace(ROUTES.AUTH.LOGIN);
     }
