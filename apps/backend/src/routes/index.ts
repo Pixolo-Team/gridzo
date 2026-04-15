@@ -1,7 +1,7 @@
 // ROUTES //
 import { registerAuthSessionRoutes } from "@/routes/auth-session.routes";
 import { registerHealthRoutes } from "@/routes/health.routes";
-import { registerProjectsRoutes } from "@/routes/projects.routes";
+import { registerProjectRoutes } from "@/routes/projects.routes";
 import { openapiApp } from "@/routes/openapi.routes";
 
 /**
@@ -11,7 +11,7 @@ import { openapiApp } from "@/routes/openapi.routes";
 export function registerRoutes(): void {
   registerAuthSessionRoutes(openapiApp);
   registerHealthRoutes(openapiApp);
-  registerProjectsRoutes(openapiApp);
+  registerProjectRoutes(openapiApp);
 }
 
 export const app = openapiApp;
