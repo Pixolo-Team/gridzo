@@ -1,11 +1,11 @@
 {
-  "name": "@pixsheet/backend",
+  "name": "gridzo",
   "version": "0.1.0",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsc",
+    "build": "npm install && tsc && tsc-alias -p tsconfig.json --resolve-full-paths --resolve-full-extension .js",
     "start": "node dist/index.js",
     "type-check": "tsc --noEmit --project tsconfig.json"
   },
@@ -13,14 +13,14 @@
     "@hono/node-server": "^1.14.2",
     "@hono/zod-openapi": "^0.16.4",
     "@supabase/supabase-js": "^2.50.0",
+    "@types/node": "^25.6.0",
     "dotenv": "^16.6.1",
     "hono": "^4.6.10",
+    "tsc-alias": "^1.8.16",
+    "typescript": "^5",
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "tsc-alias": "^1.8.16",
-    "@types/node": "^25.5.2",
-    "tsx": "^4.20.6",
-    "typescript": "^5"
+    "tsx": "^4.20.6"
   }
 }

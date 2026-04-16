@@ -15,6 +15,7 @@ import { ROUTES } from "@/app/constants/routes";
 interface ProjectHeaderPropsData {
   onToggleMobileMenu: () => void;
   projectName: string;
+  shouldHideNotificationButton: boolean;
 }
 
 /**
@@ -23,6 +24,7 @@ interface ProjectHeaderPropsData {
 export default function ProjectHeader({
   onToggleMobileMenu,
   projectName,
+  shouldHideNotificationButton,
 }: ProjectHeaderPropsData) {
   // Define Navigation
 
@@ -166,9 +168,22 @@ export default function ProjectHeader({
         </div>
 
         {/* Tablet Actions */}
-        <div className="flex shrink-0 items-center gap-4">
-          {renderDeployButton()}
-          <NotificationButton />
+        <div className="flex shrink-0 items-center gap-2">
+          {/* Hide header notification when bottom action bar already renders it. */}
+          {!shouldHideNotificationButton ? <NotificationButton /> : null}
+
+          <Button
+            type="button"
+            aria-label="Open side menu"
+            variant="ghost"
+            className="size-11 rounded-full p-0 hover:bg-n-100"
+            onClick={onToggleMobileMenu}
+          >
+            <HamburgerMenu1
+              primaryColor="var(--color-n-500)"
+              className="size-5"
+            />
+          </Button>
         </div>
       </div>
 
@@ -207,18 +222,23 @@ export default function ProjectHeader({
         </div>
 
         {/* Menu Trigger */}
-        <Button
-          type="button"
-          aria-label="Open side menu"
-          variant="ghost"
-          className="ml-auto size-11 shrink-0 p-0"
-          onClick={onToggleMobileMenu}
-        >
-          <HamburgerMenu1
-            primaryColor="var(--color-n-500)"
-            className="size-5"
-          />
-        </Button>
+        <div className="ml-auto flex shrink-0 items-center gap-2">
+          {/* Hide header notification when bottom action bar already renders it. */}
+          {!shouldHideNotificationButton ? <NotificationButton /> : null}
+
+          <Button
+            type="button"
+            aria-label="Open side menu"
+            variant="ghost"
+            className="size-11 shrink-0 p-0"
+            onClick={onToggleMobileMenu}
+          >
+            <HamburgerMenu1
+              primaryColor="var(--color-n-500)"
+              className="size-5"
+            />
+          </Button>
+        </div>
       </div>
     </HeaderShell>
   );

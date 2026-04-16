@@ -17,7 +17,7 @@ export async function createAuthSessionRequest(
   try {
     const config: AxiosRequestConfig = {
       method: "post",
-      url: `${CONSTANTS.LOCAL_API_URL}/auth/session`,
+      url: `${CONSTANTS.API_URL}/auth/session`,
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },

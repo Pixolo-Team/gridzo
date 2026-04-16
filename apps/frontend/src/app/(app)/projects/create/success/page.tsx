@@ -5,7 +5,9 @@ import CreateProjectSuccessStep from "@/components/projects/create-project/Creat
 import { ROUTES } from "@/app/constants/routes";
 
 interface CreateProjectSuccessPagePropsData {
-  searchParams?: Record<string, string | string[] | undefined>;
+  searchParams?:
+    | Record<string, string | string[] | undefined>
+    | Promise<Record<string, string | string[] | undefined>>;
 }
 
 /**
@@ -15,7 +17,7 @@ export default async function CreateProjectSuccessPage({
   searchParams,
 }: CreateProjectSuccessPagePropsData) {
   // Define Navigation
-  const resolvedSearchParams = searchParams ?? {};
+  const resolvedSearchParams = await Promise.resolve(searchParams ?? {});
 
   // Define Context
 
@@ -41,7 +43,12 @@ export default async function CreateProjectSuccessPage({
    * Gets the target dashboard route for the created project
    */
   const getProjectDashboardHref = (): string => {
+    const projectId = getSearchParamValue("projectId");
     const projectSlug = getSearchParamValue("slug");
+
+    if (projectId) {
+      return ROUTES.APP.PROJECTS.DETAIL(projectId);
+    }
 
     if (!projectSlug) {
       return ROUTES.APP.DASHBOARD;
@@ -54,7 +61,6 @@ export default async function CreateProjectSuccessPage({
 
   return (
     <CreateProjectSuccessStep
-      ownerName={getSearchParamValue("owner")}
       projectDashboardHref={getProjectDashboardHref()}
       projectName={getSearchParamValue("projectName")}
       websiteUrl={getSearchParamValue("websiteUrl")}

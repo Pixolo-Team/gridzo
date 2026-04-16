@@ -6,22 +6,30 @@ import { useRouter } from "next/navigation";
 
 // TYPES //
 import type { CreateProjectStepData } from "@/types/create-project";
+import type { CreateProjectRequestData } from "@/types/projects";
 
 // COMPONENTS //
 import { CreateProjectProgress } from "@/components/projects/create-project/CreateProjectProgress";
 import CreateProjectStepContent from "@/components/projects/create-project/CreateProjectStepContent";
 
+// API SERVICES //
+import { createProjectRequest } from "@/services/api/projects.api";
+
 // CONTEXTS //
 import { useCreateProjectFlowContext } from "@/contexts/create-project-flow.context";
+import { normalizeUrlService } from "@/utils/normalize-url.util";
 
 // CONSTANTS //
 import { ROUTES } from "@/app/constants/routes";
+
+// OTHERS //
+import { toast } from "sonner";
 
 // DATA //
 import { createProjectStepItems } from "@/app/data/create-project";
 
 /**
- * Renders the create project page flow with three UI-only setup steps
+ * Renders the create project page flow with three setup steps
  */
 export default function CreateProjectPage() {
   // Define Navigation
@@ -50,6 +58,12 @@ export default function CreateProjectPage() {
     "structure-php-content": "",
     "website-url": "",
   });
+  const [
+    createProjectSubmissionErrorMessage,
+    setCreateProjectSubmissionErrorMessage,
+  ] = useState<string>("");
+  const [isSubmittingProject, setIsSubmittingProject] =
+    useState<boolean>(false);
 
   // Helper Functions
   /**
@@ -73,6 +87,10 @@ export default function CreateProjectPage() {
     fieldId: string,
     value: string,
   ): void => {
+    if (createProjectSubmissionErrorMessage) {
+      setCreateProjectSubmissionErrorMessage("");
+    }
+
     setCreateProjectFormField((previousCreateProjectFormField) => ({
       ...previousCreateProjectFormField,
       [fieldId]: value,
@@ -92,16 +110,97 @@ export default function CreateProjectPage() {
   }, [activeStep, router]);
 
   /**
-   * Navigates to the next step or completes the UI flow on the final step
+   * Returns the payload used to create a project
    */
-  const handleNextAction = (): void => {
-    if (checkIsFinalCreateProjectStep()) {
-      const createProjectSuccessSearchParams = new URLSearchParams({
-        owner: createProjectFormField.owner ?? "",
-        projectName: createProjectFormField["project-name"] ?? "",
-        slug: createProjectFormField.slug ?? "",
-        websiteUrl: createProjectFormField["website-url"] ?? "",
+  const getCreateProjectPayloadService = (): CreateProjectRequestData => {
+    return {
+      name: createProjectFormField["project-name"],
+      slug: createProjectFormField.slug,
+      category: createProjectFormField["project-category"] || undefined,
+      website_url: normalizeUrlService(createProjectFormField["website-url"]),
+      google_sheet_credentials: {
+        google_sheet_id: createProjectFormField["google-sheet-id"],
+        google_project_id: createProjectFormField["project-id"] || undefined,
+        private_key_id: createProjectFormField["private-key-id"] || undefined,
+        client_email: createProjectFormField["client-email"],
+        client_id: createProjectFormField["client-id"] || undefined,
+        client_x509_cert_url: normalizeUrlService(
+          createProjectFormField["client-x509-cert-url"],
+        ),
+        private_key: createProjectFormField["private-key"],
+      },
+      structure: {
+        php_code: createProjectFormField["structure-php-content"] || undefined,
+        json_code: {},
+      },
+    };
+  };
+
+  /**
+   * Builds success page params from current form values
+   */
+  const getCreateProjectSuccessSearchParamsService = (): URLSearchParams => {
+    return new URLSearchParams({
+      projectName: createProjectFormField["project-name"] ?? "",
+      slug: createProjectFormField.slug ?? "",
+      projectId: "",
+      websiteUrl: createProjectFormField["website-url"] ?? "",
+    });
+  };
+
+  /** Function to create a project via API */
+  const createProjectService = (): Promise<string | null> => {
+    // Set submitting to true
+    setIsSubmittingProject(true);
+
+    // Make API call to create project with form values as payload
+    return createProjectRequest(getCreateProjectPayloadService())
+      .then((response) => {
+        // If project creation was successful, return created project ID
+        if (response.status_code === 201 && response.status) {
+          // Show success message in Toast
+          toast.success(response.message);
+          return response.data?.project?.id ?? null;
+        }
+
+        // Set Create project submission error message to response message
+        setCreateProjectSubmissionErrorMessage(response.message);
+        toast.error(response.message);
+        return null;
+      })
+      .catch(() => {
+        const errorMessage = "Failed to create project. Please try again.";
+
+        // Set Create project submission error message to response message
+        setCreateProjectSubmissionErrorMessage(errorMessage);
+        toast.error(errorMessage);
+        return null;
+      })
+      .finally(() => {
+        setIsSubmittingProject(false);
       });
+  };
+
+  /**
+   * Navigates to the next step or creates the project on the final step
+   */
+  const handleNextAction = async (): Promise<void> => {
+    if (checkIsFinalCreateProjectStep()) {
+      if (isSubmittingProject) {
+        return;
+      }
+
+      setCreateProjectSubmissionErrorMessage("");
+
+      const createdProjectId = await createProjectService();
+
+      if (!createdProjectId) {
+        return;
+      }
+
+      const createProjectSuccessSearchParams =
+        getCreateProjectSuccessSearchParamsService();
+      createProjectSuccessSearchParams.set("projectId", createdProjectId);
 
       router.push(
         `${ROUTES.APP.PROJECTS.CREATE_SUCCESS}?${createProjectSuccessSearchParams.toString()}`,
@@ -109,6 +208,7 @@ export default function CreateProjectPage() {
       return;
     }
 
+    setCreateProjectSubmissionErrorMessage("");
     setActiveStep((previousActiveStep) => previousActiveStep + 1);
   };
 
@@ -136,11 +236,20 @@ export default function CreateProjectPage() {
           {/* Step Content */}
           <CreateProjectStepContent
             createProjectFormData={createProjectFormField}
+            isNextActionDisabled={
+              isSubmittingProject && checkIsFinalCreateProjectStep()
+            }
             stepData={getCurrentCreateProjectStep()}
             onBackAction={handleBackAction}
             onNextAction={handleNextAction}
             onValueChange={handleCreateProjectFieldValueChange}
           />
+
+          {createProjectSubmissionErrorMessage ? (
+            <p className="text-sm text-destructive">
+              {createProjectSubmissionErrorMessage}
+            </p>
+          ) : null}
         </div>
       </div>
     </section>

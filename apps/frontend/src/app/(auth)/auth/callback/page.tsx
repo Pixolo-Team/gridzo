@@ -4,15 +4,19 @@
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
+// API SERVICES //
+import { createAuthSessionRequest } from "@/services/api/auth-session.api";
+
+// CONTEXTS //
+import { useAuthContext } from "@/contexts/AuthContext";
+
 // SERVICES //
-import { createAuthSessionRequest } from "@/services/auth-session.request";
 import {
   parseOAuthCallbackParamsService,
   type OAuthCallbackParamsData,
 } from "@/services/oauth-callback-params.service";
 
 // CONSTANTS //
-import { CONSTANTS } from "@/constants/constants";
 import { ROUTES } from "@/app/constants/routes";
 
 // OTHERS //
@@ -26,6 +30,7 @@ export default function AuthCallbackPage() {
   const router = useRouter();
 
   // Define Context
+  const { setAuthSessionService } = useAuthContext();
 
   // Define Refs
   const hasFetchedRef = useRef<boolean>(false);
@@ -77,10 +82,10 @@ export default function AuthCallbackPage() {
   };
 
   /**
-   * Creates backend auth session and stores authenticated user in local storage.
+   * Creates backend auth session and updates app auth state.
    */
   const createBackendAuthSessionService = async (
-    accessToken: string
+    accessToken: string,
   ): Promise<boolean> => {
     const authSessionResponse = await createAuthSessionRequest(accessToken);
 
@@ -92,9 +97,9 @@ export default function AuthCallbackPage() {
       return false;
     }
 
-    window.localStorage.setItem(
-      CONSTANTS.AUTH_USER_STORAGE_KEY,
-      JSON.stringify(authSessionResponse.data.user),
+    setAuthSessionService(
+      { token: authSessionResponse.data.token },
+      authSessionResponse.data.user,
     );
 
     return true;
@@ -112,16 +117,15 @@ export default function AuthCallbackPage() {
         return;
       }
 
-      const isAuthSessionCreated = await createBackendAuthSessionService(
-        accessToken,
-      );
+      const isAuthSessionCreated =
+        await createBackendAuthSessionService(accessToken);
 
       if (!isAuthSessionCreated) {
         router.replace(ROUTES.AUTH.LOGIN);
         return;
       }
 
-      router.replace(ROUTES.APP.HOME);
+      router.replace(ROUTES.APP.DASHBOARD);
     } catch {
       router.replace(ROUTES.AUTH.LOGIN);
     }

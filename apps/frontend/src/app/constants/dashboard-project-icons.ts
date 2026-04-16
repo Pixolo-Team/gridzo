@@ -2,12 +2,14 @@
 import type { IconComponentData } from "@/types/icon";
 
 // COMPONENTS //
+import DocumentationNewsletter from "@/components/icons/neevo-icons/DocumentationNewsletter";
+import GraphicTemplateWebsiteUi from "@/components/icons/neevo-icons/GraphicTemplateWebsiteUi";
 import ShoppingCart2 from "@/components/icons/neevo-icons/ShoppingCart2";
-import Store2 from "@/components/icons/neevo-icons/Store2";
-import TemplateThemeDesignLayout from "@/components/icons/neevo-icons/TemplateThemeDesignLayout";
+import WebApplicationLearning from "@/components/icons/neevo-icons/WebApplicationLearning";
 
 export const dashboardProjectIconMap = {
+  DocumentationNewsletter,
+  GraphicTemplateWebsiteUi,
   ShoppingCart2,
-  Store2,
-  TemplateThemeDesignLayout,
+  WebApplicationLearning,
 } satisfies Record<string, IconComponentData>;

@@ -6,6 +6,10 @@ import type { CreateProjectFieldOptionData } from "@/types/create-project";
  */
 export const editProjectCategoryOptionItems: CreateProjectFieldOptionData[] = [
   {
+    label: "Web App",
+    value: "web-app",
+  },
+  {
     label: "Real Estate",
     value: "real-estate",
   },
@@ -39,19 +43,17 @@ export const editProjectDetails = {
  * Provides the dummy edit-project form values keyed by field id
  */
 export const editProjectFormValues = {
-  "client-email": "your-service-account@your-project.iam.gserviceaccount.com",
-  "client-id": "redacted-client-id.apps.googleusercontent.com",
-  "client-x509-cert-url": "https://example.com/redacted-client-cert-url",
-  "google-sheet-id": "redacted-google-sheet-id",
-  "private-key": `-----BEGIN PRIVATE KEY-----
-[REDACTED_PRIVATE_KEY_CONTENT]
------END PRIVATE KEY-----`,
-  "private-key-id": "redacted-private-key-id",
-  "project-category": "internal-tool",
-  "project-id": "your-project-id",
-  "project-name": "Internal Analytics Tool",
-  slug: "pixolo.io/project-slug",
-  "website-url": "pixolo.io/your-website",
+  "client-email": "",
+  "client-id": "",
+  "client-x509-cert-url": "",
+  "google-sheet-id": "",
+  "private-key": "",
+  "private-key-id": "",
+  "project-category": "",
+  "project-id": "",
+  "project-name": "",
+  slug: "",
+  "website-url": "",
 } as const;
 
 /**

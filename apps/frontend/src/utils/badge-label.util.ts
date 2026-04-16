@@ -1,7 +1,13 @@
 /**
  * Gets the badge initials from the provided badge name
  */
-export function getBadgeLabelUtil(badgeName: string): string {
+export function getBadgeLabelUtil(
+  badgeName: string | null | undefined,
+): string {
+  if (typeof badgeName !== "string") {
+    return "";
+  }
+
   return badgeName
     .trim()
     .split(/\s+/)
