@@ -1,16 +1,18 @@
 "use client";
 
-// REACT //
 import { useEffect, useMemo, useState } from "react";
 
-// COMPONENTS //
 import CodeEditor from "@/components/ui/CodeEditor";
 import PageIntro from "@/components/ui/PageIntro";
 
-// TYPES //
 import type { ProjectStructureData } from "@/types/projects";
 
-// CONTEXTS //
+import { updateStructureRequest } from "@/services/api/structure.api";
+import { normalizePhpCode } from "@/utils/normalization.util";
+
+// LIBRARIES //
+import { toast } from "sonner";
+
 import { useProjectDetailsContext } from "@/contexts/ProjectContext";
 
 type StructureEditorModeData = "php" | "json";
@@ -83,12 +85,55 @@ export default function ProjectStructurePage() {
    * Handles save action for current editor data.
    */
   const handleSaveClick = (): void => {
-    setEditorContent((previousEditorContent) => {
-      return {
-        ...previousEditorContent,
-        [editorMode]: previousEditorContent[editorMode],
-      };
-    });
+    // Resolve current project id before attempting save.
+    const projectIdData = projectDetails?.project.id;
+
+    if (!projectIdData) {
+      toast.error("Project details are not ready yet.");
+      return;
+    }
+
+    let parsedJsonCodeData: Record<string, unknown>;
+
+    try {
+      // Parse JSON editor content and enforce object-only payload.
+      const parsedJsonData = JSON.parse(editorContent.json) as unknown;
+
+      if (
+        !parsedJsonData ||
+        typeof parsedJsonData !== "object" ||
+        Array.isArray(parsedJsonData)
+      ) {
+        toast.error("JSON code must be a valid JSON object.");
+        return;
+      }
+
+      parsedJsonCodeData = parsedJsonData as Record<string, unknown>;
+    } catch {
+      // Stop save when JSON syntax is invalid.
+      toast.error("JSON code must be valid JSON.");
+      return;
+    }
+
+    // Normalize PHP content to satisfy backend validation.
+    const normalizedPhpCodeData = normalizePhpCode(editorContent.php);
+
+    // Submit structure update request.
+    updateStructureRequest(projectIdData, {
+      json_code: parsedJsonCodeData,
+      php_code: normalizedPhpCodeData,
+    })
+      .then((updateStructureResponseData) => {
+        if (!updateStructureResponseData.status) {
+          toast.error(updateStructureResponseData.message);
+          return;
+        }
+
+        toast.success(updateStructureResponseData.message);
+      })
+      .catch(() => {
+        toast.error("Failed to update structure.");
+      });
   };
 
   /**

@@ -39,7 +39,7 @@ import {
  * OpenAPI contract for updating a project's structure.
  */
 export const updateProjectStructureContract = createRoute({
-  method: "post",
+  method: "patch",
   path: "/project-structures/{project_id}/update",
   tags: ["Project Structures"],
   summary: "Insert a new project structure version and set it as current",

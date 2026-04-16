@@ -1,6 +1,3 @@
-// MODELS //
-import type { ProjectStructureVersionData } from "@/models/project.model";
-
 // TYPES //
 import type { QueryResponseData } from "@/common/types/query.response.type";
 
@@ -22,8 +19,14 @@ type UpdateProjectStructureStatusCodeData =
   | typeof HTTP_STATUS.NOT_FOUND
   | typeof HTTP_STATUS.INTERNAL_SERVER_ERROR;
 
+interface UpdateProjectStructureData {
+  structure_version_id: string;
+  version: string;
+  is_current: boolean;
+}
+
 type UpdateProjectStructureServiceResponseData =
-  QueryResponseData<ProjectStructureVersionData> & {
+  QueryResponseData<UpdateProjectStructureData> & {
     statusCode: UpdateProjectStructureStatusCodeData;
   };
 
@@ -81,7 +84,7 @@ export async function updateProjectStructureService(
   authorizationHeaderData: string | undefined,
   projectIdData: string,
   jsonCodeData: Record<string, unknown>,
-  phpCodeData: string,
+  phpCodeData?: string,
 ): Promise<UpdateProjectStructureServiceResponseData> {
   // Validate bearer token before any DB operation.
   const accessTokenData = extractAccessTokenService(authorizationHeaderData);
@@ -95,7 +98,9 @@ export async function updateProjectStructureService(
   }
 
   // Validate PHP code syntax before any DB operation.
-  if (!validatePhpCodeService(phpCodeData)) {
+  const normalizedPhpCodeData = phpCodeData ?? "<?php\n";
+
+  if (!validatePhpCodeService(normalizedPhpCodeData)) {
     return {
       data: null,
       error: new Error(
@@ -149,7 +154,15 @@ export async function updateProjectStructureService(
       };
     }
 
-    const userIdData = (userRowResponseData.data as { id: string }).id;
+    const userIdData = (userRowResponseData.data as { id?: string }).id;
+
+    if (!userIdData) {
+      return {
+        data: null,
+        error: new Error("Authenticated user id is missing."),
+        statusCode: HTTP_STATUS.UNAUTHORIZED,
+      };
+    }
 
     // Check project membership.
     const projectUserResponseData = await supabaseClient
@@ -231,10 +244,11 @@ export async function updateProjectStructureService(
         project_id: projectIdData,
         version: nextVersionData,
         json_code: jsonCodeData,
-        php_code: phpCodeData,
+        php_code: normalizedPhpCodeData,
         is_current: true,
+        created_by_user_id: userIdData,
       })
-      .select("id, version, is_current, updated_at")
+      .select("id, version, is_current")
       .single();
 
     if (insertVersionResponseData.error || !insertVersionResponseData.data) {
@@ -244,21 +258,28 @@ export async function updateProjectStructureService(
       );
       return {
         data: null,
-        error: new Error("Failed to insert new structure version."),
+        error: new Error(
+          insertVersionResponseData.error?.message ??
+            "Failed to insert new structure version.",
+        ),
         statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
       };
     }
 
     return {
-      data: insertVersionResponseData.data as ProjectStructureVersionData,
+      data: {
+        structure_version_id: (insertVersionResponseData.data as { id: string })
+          .id,
+        version: (insertVersionResponseData.data as { version: string })
+          .version,
+        is_current: (insertVersionResponseData.data as { is_current: boolean })
+          .is_current,
+      },
       error: null,
       statusCode: HTTP_STATUS.OK,
     };
   } catch (errorData: unknown) {
-    logger.error(
-      "[project-structures.service] unexpected error",
-      errorData,
-    );
+    logger.error("[project-structures.service] unexpected error", errorData);
     return {
       data: null,
       error: new Error("Failed to update project structure."),

@@ -18,30 +18,8 @@ import type {
 // CONSTANTS //
 import { CONSTANTS } from "@/constants/constants";
 
-// OTHERS //
-import { supabase } from "@/lib/supabase";
-
-/**
- * Resolves the latest available access token for authenticated API requests.
- */
-async function getAccessTokenForApiRequestService(): Promise<string> {
-  const sessionResponseData = await supabase.auth.getSession();
-  const sessionAccessTokenData =
-    sessionResponseData.data.session?.access_token ?? null;
-
-  if (sessionAccessTokenData) {
-    localStorage.setItem(CONSTANTS.ACCESS_TOKEN_KEY, sessionAccessTokenData);
-    return sessionAccessTokenData;
-  }
-
-  const localAccessTokenData = localStorage.getItem(CONSTANTS.ACCESS_TOKEN_KEY);
-
-  if (!localAccessTokenData) {
-    throw new Error("Missing access token. Please sign in again.");
-  }
-
-  return localAccessTokenData;
-}
+// UTILS //
+import { getAccessTokenForApiRequest } from "@/utils/auth.util";
 
 /**
  * Creates a new project with the provided payload.
@@ -50,7 +28,7 @@ export const createProjectRequest = async (
   projectPayload: CreateProjectRequestData,
 ): Promise<ApiResponseData<CreateProjectResponseData>> => {
   // Resolve latest token for authorized create-project request
-  const token = await getAccessTokenForApiRequestService();
+  const token = await getAccessTokenForApiRequest();
 
   // Set up the API Call Config
   const config: AxiosRequestConfig = {
@@ -73,7 +51,7 @@ export const getAllProjectsRequest = async (): Promise<
   ApiResponseData<ProjectListItemData[]>
 > => {
   // Resolve latest token for authorized request
-  const token = await getAccessTokenForApiRequestService();
+  const token = await getAccessTokenForApiRequest();
 
   // Set up the API Call Config
   const config: AxiosRequestConfig = {
@@ -95,7 +73,7 @@ export const getProjectByIdRequest = async (
   projectId: string,
 ): Promise<ApiResponseData<GetProjectByIdResponseData>> => {
   // Resolve latest token for authorized request
-  const token = await getAccessTokenForApiRequestService();
+  const token = await getAccessTokenForApiRequest();
 
   // Set up the API Call Config
   const config: AxiosRequestConfig = {
@@ -118,7 +96,7 @@ export const inviteUserRequest = async (
   emailId: string,
 ): Promise<ApiResponseData<InviteUserResponseData>> => {
   // Resolve latest token for authorized request
-  const token = await getAccessTokenForApiRequestService();
+  const token = await getAccessTokenForApiRequest();
 
   // Set up the API Call Config
   const config: AxiosRequestConfig = {
@@ -141,7 +119,7 @@ export const getAllUsersRequest = async (
   projectId: string,
 ): Promise<ApiResponseData<GetAllProjectUsersResponseData>> => {
   // Resolve latest token for authorized request
-  const token = await getAccessTokenForApiRequestService();
+  const token = await getAccessTokenForApiRequest();
 
   // Set up the API Call Config
   const config: AxiosRequestConfig = {
@@ -166,7 +144,7 @@ export const updateProjectRequest = async (
   projectPayload: UpdateProjectRequestData,
 ): Promise<ApiResponseData<UpdateProjectResponseData>> => {
   // Resolve latest token for authorized request
-  const token = await getAccessTokenForApiRequestService();
+  const token = await getAccessTokenForApiRequest();
 
   // Set up the API Call Config
   const config: AxiosRequestConfig = {
@@ -190,7 +168,7 @@ export const getMyProjectInvitationsRequest = async (): Promise<
   ApiResponseData<GetMyProjectInvitationsResponseData>
 > => {
   // Resolve latest token for authorized request
-  const token = await getAccessTokenForApiRequestService();
+  const token = await getAccessTokenForApiRequest();
 
   // Set up the API Call Config
   const config: AxiosRequestConfig = {
@@ -214,7 +192,7 @@ export const acceptProjectInvitationRequest = async (
   invitationId: string,
 ): Promise<ApiResponseData<null>> => {
   // Resolve latest token for authorized request
-  const token = await getAccessTokenForApiRequestService();
+  const token = await getAccessTokenForApiRequest();
 
   // Set up the API Call Config
   const config: AxiosRequestConfig = {
@@ -235,7 +213,7 @@ export const rejectProjectInvitationRequest = async (
   invitationId: string,
 ): Promise<ApiResponseData<null>> => {
   // Resolve latest token for authorized request
-  const token = await getAccessTokenForApiRequestService();
+  const token = await getAccessTokenForApiRequest();
 
   // Set up the API Call Config
   const config: AxiosRequestConfig = {

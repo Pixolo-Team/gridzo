@@ -31,7 +31,7 @@ import { useProjectDetailsContext } from "@/contexts/ProjectContext";
 import { ROUTES } from "@/app/constants/routes";
 
 // UTILS //
-import { normalizeUrlService } from "@/utils/normalize-url.util";
+import { normalizeUrlService } from "@/utils/normalization.util";
 
 // OTHERS //
 import { toast } from "sonner";
