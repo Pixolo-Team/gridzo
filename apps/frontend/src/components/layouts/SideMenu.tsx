@@ -12,6 +12,7 @@ import Cog from "@/components/icons/neevo-icons/Cog";
 import DashboardSquare from "@/components/icons/neevo-icons/DashboardSquare";
 import DeployRules from "@/components/icons/neevo-icons/DeployRules";
 import Logout1 from "@/components/icons/neevo-icons/Logout1";
+import { ModeToggle } from "@/components/ui/ModeToggle";
 import PortraitSetting from "@/components/icons/neevo-icons/PortraitSetting";
 import {
   Popover,
@@ -320,13 +321,14 @@ export function SideMenu({
       {/* Desktop Side Menu */}
       <aside className="hidden h-full w-96 shrink-0 border-r border-n-300 bg-n-50 xl:flex xl:flex-col xl:justify-between">
         {/* Desktop Brand */}
-        <div className="px-7 py-5">
+        <div className="flex items-center justify-between px-7 py-5">
           <BrandLogo
             className="flex h-12 w-30 items-center"
             imageClassName="h-auto w-full object-contain"
             width={120}
             height={36}
           />
+          <ModeToggle />
         </div>
 
         <div className="flex min-h-0 flex-1 flex-col justify-between">
@@ -365,14 +367,17 @@ export function SideMenu({
               onClick={onCloseMobileMenu}
             />
 
-            <button
-              type="button"
-              aria-label="Close side menu"
-              className="flex size-10 items-center justify-center rounded-full transition-colors hover:bg-n-100"
-              onClick={onCloseMobileMenu}
-            >
-              <Close primaryColor="var(--color-n-500)" className="size-5" />
-            </button>
+            <div className="flex items-center gap-2">
+              <ModeToggle />
+              <button
+                type="button"
+                aria-label="Close side menu"
+                className="flex size-10 items-center justify-center rounded-full transition-colors hover:bg-n-100"
+                onClick={onCloseMobileMenu}
+              >
+                <Close primaryColor="var(--color-n-500)" className="size-5" />
+              </button>
+            </div>
           </div>
 
           <div className="flex min-h-0 flex-1 flex-col justify-between">

@@ -7,6 +7,7 @@ import { Toaster } from "@/components/ui/sonner";
 
 // CONTEXTS //
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 
 // OTHERS //
 import { cn } from "@/lib/utils";
@@ -47,10 +48,21 @@ export default function RootLayout({
   // Use Effects
 
   return (
-    <html lang="en" className={cn("font-sans", geist.variable)}>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={cn("font-sans", geist.variable)}
+    >
       <body className="antialiased font-sans min-h-screen bg-n-100">
-        <AuthProvider>{children}</AuthProvider>
-        <Toaster richColors position="top-right" />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <AuthProvider>{children}</AuthProvider>
+          <Toaster richColors position="top-right" />
+        </ThemeProvider>
       </body>
     </html>
   );
