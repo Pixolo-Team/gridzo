@@ -7,18 +7,35 @@ import { supabase } from "@/lib/supabase";
 // CONSTANTS //
 import { ROUTES } from "@/app/constants/routes";
 
-type GoogleSignInResponseData = OAuthResponse | { data: null; error: AuthError };
+type GoogleSignInResponseData =
+  | OAuthResponse
+  | { data: null; error: AuthError };
+
+/**
+ * Resolves OAuth callback base URL from env first, then browser origin.
+ */
+const getOAuthRedirectBaseUrlService = (): string => {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
+
+  if (appUrl) {
+    return appUrl.replace(/\/+$/, "");
+  }
+
+  return window.location.origin;
+};
 
 /**
  * Initiates Google OAuth sign-in flow via Supabase.
  */
 export async function signInWithGoogleRequest(): Promise<GoogleSignInResponseData> {
   try {
+    const redirectBaseUrl = getOAuthRedirectBaseUrlService();
+
     // Trigger Google OAuth flow via Supabase Auth
     const googleSignInResponseData = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}${ROUTES.AUTH.CALLBACK}`,
+        redirectTo: `${redirectBaseUrl}${ROUTES.AUTH.CALLBACK}`,
       },
     });
 
