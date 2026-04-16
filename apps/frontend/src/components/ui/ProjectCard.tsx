@@ -6,7 +6,7 @@ import Link from "next/link";
 import LineArrowSynchronize1 from "@/components/icons/neevo-icons/LineArrowSynchronize1";
 
 // UTILS //
-import { getBadgeLabelUtil } from "@/utils/badge-label.util";
+import { getBadgeLabelUtil } from "@/utils/labels.util";
 
 interface ProjectCardPropsData {
   badgeName: string;

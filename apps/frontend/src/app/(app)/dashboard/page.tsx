@@ -24,7 +24,7 @@ import { dashboardProjectIconMap } from "@/app/constants/dashboard-project-icons
 import { ROUTES } from "@/app/constants/routes";
 
 // UTILS //
-import { getLastSyncLabelService } from "@/utils/get-last-sync-label.util";
+import { getLastSyncLabelService } from "@/utils/labels.util";
 import { getDashboardProjectVisuals } from "@/utils/projects.util";
 
 // OTHERS //

@@ -2,6 +2,24 @@
 import { z } from "@hono/zod-openapi";
 
 /**
+ * OpenAPI schema for project-structures request headers.
+ */
+export const projectStructuresRequestHeadersSchema = z.object({
+  authorization: z.string().openapi({
+    example: "Bearer eyJhbGciOi...",
+  }),
+});
+
+/**
+ * OpenAPI schema for project-structures path params.
+ */
+export const projectStructuresPathParamsSchema = z.object({
+  project_id: z.string().uuid().openapi({
+    example: "123e4567-e89b-12d3-a456-426614174000",
+  }),
+});
+
+/**
  * OpenAPI schema for projects request headers.
  */
 export const projectsRequestHeadersSchema = z.object({
@@ -304,7 +322,10 @@ export const editProjectGoogleCredentialsSchema = z.object({
   private_key_id: z.string().min(1).optional().openapi({
     example: "private-key-id",
   }),
-  client_email: z.string().email().openapi({ example: "service-account@mail.com" }),
+  client_email: z
+    .string()
+    .email()
+    .openapi({ example: "service-account@mail.com" }),
   client_id: z.string().min(1).optional().openapi({ example: "123456" }),
   client_x509_cert_url: z.string().url().optional().openapi({
     example: "https://example.com/cert",
@@ -319,10 +340,26 @@ export const editProjectGoogleCredentialsSchema = z.object({
  */
 export const editProjectBodySchema = z
   .object({
-    name: z.string().min(1).optional().openapi({ example: "Updated Project Name" }),
-    slug: z.string().min(1).optional().openapi({ example: "updated-project-name" }),
-    category: z.string().min(1).optional().openapi({ example: "marketing-site" }),
-    website_url: z.string().url().optional().openapi({ example: "https://example.com" }),
+    name: z
+      .string()
+      .min(1)
+      .optional()
+      .openapi({ example: "Updated Project Name" }),
+    slug: z
+      .string()
+      .min(1)
+      .optional()
+      .openapi({ example: "updated-project-name" }),
+    category: z
+      .string()
+      .min(1)
+      .optional()
+      .openapi({ example: "marketing-site" }),
+    website_url: z
+      .string()
+      .url()
+      .optional()
+      .openapi({ example: "https://example.com" }),
     google_sheet_credentials: editProjectGoogleCredentialsSchema.optional(),
   })
   .refine(
@@ -395,3 +432,41 @@ export const createProjectErrorResponseSchema =
  * OpenAPI schema for PATCH /projects/:project_id error response.
  */
 export const editProjectErrorResponseSchema = getAllProjectsErrorResponseSchema;
+
+/**
+ * OpenAPI schema for update project structure request body.
+ */
+export const updateProjectStructureBodySchema = z.object({
+  json_code: z.record(z.unknown()).openapi({
+    example: { sheet_name: "Inventory_Q1" },
+  }),
+  php_code: z.string().optional().openapi({
+    example: "<?php return [];",
+  }),
+});
+
+/**
+ * OpenAPI schema for update project structure success response.
+ */
+export const updateProjectStructureSuccessResponseSchema = z.object({
+  status: z.boolean(),
+  status_code: z.number(),
+  message: z.string(),
+  error: z.null(),
+  data: z.object({
+    structure_version_id: z.string().uuid(),
+    version: z.string(),
+    is_current: z.boolean(),
+  }),
+});
+
+/**
+ * OpenAPI schema for project structures error response.
+ */
+export const projectStructuresErrorResponseSchema = z.object({
+  status: z.boolean(),
+  status_code: z.number(),
+  message: z.string(),
+  error: z.string(),
+  data: z.null(),
+});

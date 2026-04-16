@@ -1,4 +1,13 @@
 /**
+ * Project user row model from the project_user table.
+ */
+export interface ProjectUserData {
+  project_id: string;
+  user_id: string;
+  role: string;
+}
+
+/**
  * Project row model from the projects table.
  */
 export interface ProjectData {
