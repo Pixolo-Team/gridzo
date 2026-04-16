@@ -253,7 +253,7 @@ export function SideMenu({
           <PopoverTrigger asChild>
             <button
               type="button"
-              className="flex w-full items-center gap-[18px] rounded-xl p-1 text-left transition-colors hover:bg-n-100"
+              className="flex w-full items-center gap-3 rounded-xl p-1 text-left transition-colors hover:bg-n-100"
               aria-label="Open profile menu"
             >
               <div className="size-12 overflow-hidden rounded-full">
@@ -272,11 +272,11 @@ export function SideMenu({
 
               <div className="flex min-w-0 flex-col gap-0.5 flex-1">
                 {/* User Name */}
-                <p className="truncate text-lg font-semibold leading-normal text-n-950">
+                <p className="truncate text-lg font-semibold leading-tight text-n-950">
                   {user ? user.full_name : "Guest"}
                 </p>
                 {/* User Email */}
-                <p className="truncate text-sm leading-normal text-n-500">
+                <p className="truncate text-sm leading-tight text-n-500">
                   {user ? user.email : "guest@gmail.com"}
                 </p>
               </div>
@@ -288,7 +288,7 @@ export function SideMenu({
             side="top"
             align="start"
             sideOffset={10}
-            className="w-[300px] rounded-xl border-n-300 bg-n-50 p-2"
+            className="rounded-xl border-n-300 bg-n-50 p-2 w-64 md:w-80"
           >
             {/* Logout row */}
             <Button
