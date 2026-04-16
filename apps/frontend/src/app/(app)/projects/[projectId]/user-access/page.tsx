@@ -85,6 +85,24 @@ export default function UserAccessPage() {
       return;
     }
 
+    const normalizedInviteEmailData = inviteEmailAddress.trim().toLowerCase();
+    const hasExistingActiveOrPendingAccessData = memberItems.some(
+      (memberItem) => {
+        const normalizedMemberEmailData = memberItem.email.trim().toLowerCase();
+        const hasBlockingStatusData = memberItem.status !== "rejected";
+
+        return (
+          normalizedMemberEmailData === normalizedInviteEmailData &&
+          hasBlockingStatusData
+        );
+      },
+    );
+
+    if (hasExistingActiveOrPendingAccessData) {
+      toast.error("This user already has project access or a pending invite.");
+      return;
+    }
+
     // Set loading state to true before API call
     setIsInviteRequestLoading(true);
 
@@ -139,12 +157,36 @@ export default function UserAccessPage() {
         email: invitationItem.email,
         full_name: invitationItem.email,
         avatar_url: null,
-        status: "invited",
+        status: invitationItem.status === "pending" ? "invited" : "rejected",
         role: getUserRoleLabelService(invitationItem.role),
       }),
     );
+    const memberItemMapData = new Map<string, UserData>();
 
-    return [...mappedUserItems, ...mappedInvitationItems];
+    mappedUserItems.forEach((mappedUserItem) => {
+      memberItemMapData.set(mappedUserItem.email.trim().toLowerCase(), {
+        ...mappedUserItem,
+      });
+    });
+
+    mappedInvitationItems.forEach((mappedInvitationItem) => {
+      const invitationEmailData = mappedInvitationItem.email.trim().toLowerCase();
+      const existingMemberItemData = memberItemMapData.get(invitationEmailData);
+
+      if (!existingMemberItemData) {
+        memberItemMapData.set(invitationEmailData, mappedInvitationItem);
+        return;
+      }
+
+      if (
+        existingMemberItemData.status === "rejected" &&
+        mappedInvitationItem.status === "invited"
+      ) {
+        memberItemMapData.set(invitationEmailData, mappedInvitationItem);
+      }
+    });
+
+    return Array.from(memberItemMapData.values());
   };
 
   /**

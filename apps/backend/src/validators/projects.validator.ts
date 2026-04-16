@@ -95,7 +95,7 @@ const projectInvitationSchema = z.object({
   id: z.string().uuid(),
   email: z.string().email(),
   role: z.enum(["owner", "admin", "editor", "viewer"]),
-  status: z.literal("pending"),
+  status: z.enum(["pending", "rejected", "revoked"]),
 });
 
 const projectInboxInvitationSchema = z.object({

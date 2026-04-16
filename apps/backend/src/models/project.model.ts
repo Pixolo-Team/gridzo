@@ -125,13 +125,13 @@ export interface ProjectUserData {
 }
 
 /**
- * Pending invitation row model for get-all-users response.
+ * Invitation row model for get-all-users response.
  */
 export interface ProjectPendingInvitationData {
   id: string;
   email: string;
   role: "owner" | "admin" | "editor" | "viewer";
-  status: "pending";
+  status: "pending" | "rejected" | "revoked";
 }
 
 /**

@@ -259,20 +259,20 @@ export const rejectProjectInvitationContract = createRoute({
 });
 
 /**
- * OpenAPI contract for fetching all users and pending invitations of a project.
+ * OpenAPI contract for fetching all users and project invitations.
  */
 export const getAllProjectUsersContract = createRoute({
   method: "get",
   path: "/projects/{project_id}/get-all-users",
   tags: ["Projects"],
-  summary: "Get all users and pending invitations for a project",
+  summary: "Get all users and invitations for a project",
   request: {
     headers: projectRequestHeadersSchema,
     params: projectIdParamSchema,
   },
   responses: {
     200: {
-      description: "Users and pending invitations fetched successfully",
+      description: "Users and invitations fetched successfully",
       content: {
         "application/json": {
           schema: getAllUsersSuccessResponseSchema,
@@ -360,6 +360,14 @@ export const inviteUserToProjectContract = createRoute({
     },
     404: {
       description: "User not found",
+      content: {
+        "application/json": {
+          schema: inviteUserErrorResponseSchema,
+        },
+      },
+    },
+    409: {
+      description: "User already has access or already has a pending invite",
       content: {
         "application/json": {
           schema: inviteUserErrorResponseSchema,
