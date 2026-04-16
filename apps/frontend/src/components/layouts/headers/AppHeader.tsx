@@ -1,6 +1,3 @@
-// REACT //
-import { useState } from "react";
-
 // COMPONENTS //
 import Link from "next/link";
 import AddSquare from "@/components/icons/neevo-icons/AddSquare";
@@ -13,6 +10,9 @@ import HeaderShell from "@/components/layouts/headers/HeaderShell";
 
 // CONSTANTS //
 import { ROUTES } from "@/app/constants/routes";
+
+// CONTEXTS //
+import { useDashboardSearchContext } from "@/contexts/DashboardSearchContext";
 
 // NEXT //
 
@@ -27,25 +27,26 @@ export function AppHeader({ onToggleMobileMenu }: AppHeaderPropsData) {
   // Define Navigation
 
   // Define Context
+  const { searchValue, setSearchValueService, clearSearchValueService } =
+    useDashboardSearchContext();
 
   // Define Refs
 
   // Define States
-  const [searchValue, setSearchValue] = useState<string>("");
 
   // Helper Functions
   /**
    * Clears the search value
    */
   const clearSearchValue = (): void => {
-    setSearchValue("");
+    clearSearchValueService();
   };
 
   /**
    * Updates the search value from the search input field
    */
-  const handleSearchChange = (value: string) => {
-    setSearchValue(value);
+  const handleSearchChange = (value: string): void => {
+    setSearchValueService(value);
   };
 
   /**

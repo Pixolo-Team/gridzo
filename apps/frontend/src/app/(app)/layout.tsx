@@ -12,6 +12,7 @@ import { SideMenu } from "@/components/layouts/SideMenu";
 // CONTEXTS //
 import { useAuthContext } from "@/contexts/AuthContext";
 import { CreateProjectFlowProvider } from "@/contexts/create-project-flow.context";
+import { DashboardSearchProvider } from "@/contexts/DashboardSearchContext";
 import { ProjectInvitationsProvider } from "@/contexts/InvitationsContext";
 
 // CONSTANTS //
@@ -79,23 +80,25 @@ export default function AppLayout({
 
   return (
     <CreateProjectFlowProvider>
-      <ProjectInvitationsProvider>
-        {/* App Shell */}
-        <div className="h-screen overflow-hidden bg-n-100 xl:flex">
-          {/* Side Menu */}
-          <SideMenu
-            isMobileMenuOpen={isMobileMenuOpen}
-            onCloseMobileMenu={closeMobileMenu}
-          />
+      <DashboardSearchProvider>
+        <ProjectInvitationsProvider>
+          {/* App Shell */}
+          <div className="h-screen overflow-hidden bg-n-100 xl:flex">
+            {/* Side Menu */}
+            <SideMenu
+              isMobileMenuOpen={isMobileMenuOpen}
+              onCloseMobileMenu={closeMobileMenu}
+            />
 
-          {/* Main Content Area */}
-          <main className="flex h-full min-w-0 flex-1 flex-col overflow-hidden bg-n-100">
-            <Header onToggleMobileMenu={toggleMobileMenu} />
-            {/* Page Content Scroll Area */}
-            <div className="flex-1 overflow-y-auto">{children}</div>
-          </main>
-        </div>
-      </ProjectInvitationsProvider>
+            {/* Main Content Area */}
+            <main className="flex h-full min-w-0 flex-1 flex-col overflow-hidden bg-n-100">
+              <Header onToggleMobileMenu={toggleMobileMenu} />
+              {/* Page Content Scroll Area */}
+              <div className="flex-1 overflow-y-auto">{children}</div>
+            </main>
+          </div>
+        </ProjectInvitationsProvider>
+      </DashboardSearchProvider>
     </CreateProjectFlowProvider>
   );
 }
