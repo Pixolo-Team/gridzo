@@ -58,7 +58,7 @@ export const createProjectRequest = async (
       Authorization: `Bearer ${token}`,
     },
     method: "post",
-    url: `${CONSTANTS.LOCAL_API_URL}/projects`,
+    url: `${CONSTANTS.API_URL}/projects`,
     data: projectPayload,
   };
 
@@ -81,7 +81,7 @@ export const getAllProjectsRequest = async (): Promise<
       Authorization: `Bearer ${token}`,
     },
     method: "get",
-    url: `${CONSTANTS.LOCAL_API_URL}/projects/all`,
+    url: `${CONSTANTS.API_URL}/projects/all`,
   };
 
   // Make API Call
@@ -103,7 +103,7 @@ export const getProjectByIdRequest = async (
       Authorization: `Bearer ${token}`,
     },
     method: "get",
-    url: `${CONSTANTS.LOCAL_API_URL}/project/${projectId}`,
+    url: `${CONSTANTS.API_URL}/project/${projectId}`,
   };
 
   // Make API Call
@@ -126,7 +126,7 @@ export const inviteUserRequest = async (
       Authorization: `Bearer ${token}`,
     },
     method: "post",
-    url: `${CONSTANTS.LOCAL_API_URL}/project/${projectId}/invite-user`,
+    url: `${CONSTANTS.API_URL}/project/${projectId}/invite-user`,
     data: { email: emailId },
   };
 
@@ -149,12 +149,14 @@ export const getAllUsersRequest = async (
       Authorization: `Bearer ${token}`,
     },
     method: "get",
-    url: `${CONSTANTS.LOCAL_API_URL}/projects/${projectId}/get-all-users`,
+    url: `${CONSTANTS.API_URL}/projects/${projectId}/get-all-users`,
   };
 
   // Make API Call
   const response =
-    await axios.request<ApiResponseData<GetAllProjectUsersResponseData>>(config);
+    await axios.request<ApiResponseData<GetAllProjectUsersResponseData>>(
+      config,
+    );
   return response.data;
 };
 
@@ -173,7 +175,7 @@ export const updateProjectRequest = async (
       "Content-Type": "application/json",
     },
     method: "patch",
-    url: `${CONSTANTS.LOCAL_API_URL}/projects/${projectId}`,
+    url: `${CONSTANTS.API_URL}/projects/${projectId}`,
     data: projectPayload,
   };
 
@@ -196,12 +198,14 @@ export const getMyProjectInvitationsRequest = async (): Promise<
       Authorization: `Bearer ${token}`,
     },
     method: "get",
-    url: `${CONSTANTS.LOCAL_API_URL}/projects/invitations/me`,
+    url: `${CONSTANTS.API_URL}/projects/invitations/me`,
   };
 
   // Make API Call
   const response =
-    await axios.request<ApiResponseData<GetMyProjectInvitationsResponseData>>(config);
+    await axios.request<ApiResponseData<GetMyProjectInvitationsResponseData>>(
+      config,
+    );
   return response.data;
 };
 
@@ -218,7 +222,7 @@ export const acceptProjectInvitationRequest = async (
       Authorization: `Bearer ${token}`,
     },
     method: "post",
-    url: `${CONSTANTS.LOCAL_API_URL}/projects/invitations/${invitationId}/accept`,
+    url: `${CONSTANTS.API_URL}/projects/invitations/${invitationId}/accept`,
   };
 
   // Make API Call
@@ -239,7 +243,7 @@ export const rejectProjectInvitationRequest = async (
       Authorization: `Bearer ${token}`,
     },
     method: "post",
-    url: `${CONSTANTS.LOCAL_API_URL}/projects/invitations/${invitationId}/reject`,
+    url: `${CONSTANTS.API_URL}/projects/invitations/${invitationId}/reject`,
   };
 
   // Make API Call
