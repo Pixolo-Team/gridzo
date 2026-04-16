@@ -43,7 +43,11 @@ export default function ProjectCard({
   // Use Effects
 
   return (
-    <article className="overflow-hidden rounded-2xl bg-n-50 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+    <Link
+      href={href}
+      className="group block overflow-hidden rounded-2xl bg-n-50 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition-transform hover:-translate-y-0.5"
+      aria-label={`Open project ${title}`}
+    >
       {/* Card Hero */}
       <div
         className={`flex h-40 items-center justify-center md:h-44 ${backgroundClassName}`}
@@ -79,15 +83,12 @@ export default function ProjectCard({
             </div>
 
             {/* CTA */}
-            <Link
-              href={href}
-              className="text-xs font-medium text-n-600 transition-colors hover:text-n-800 md:text-base"
-            >
+            <span className="text-xs font-medium text-n-600 transition-colors group-hover:text-n-800 md:text-base">
               Open Project
-            </Link>
+            </span>
           </div>
         </div>
       </div>
-    </article>
+    </Link>
   );
 }
