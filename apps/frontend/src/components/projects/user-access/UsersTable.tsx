@@ -136,7 +136,14 @@ export default function UsersTable({ memberItems }: UsersTablePropsData) {
                 </TableCell>
 
                 <TableCell className="hidden px-6 py-4 text-center md:table-cell">
-                  <span className="inline-flex rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700">
+                  <span
+                    className={cn(
+                      "inline-flex rounded-full border px-2 py-1 text-xs font-medium",
+                      getMemberRoleLabel(memberItem.role) === "Member"
+                        ? "border-amber-200 bg-amber-50 text-amber-500"
+                        : "border-sky-200 bg-sky-50 text-sky-600",
+                    )}
+                  >
                     {getMemberRoleLabel(memberItem.role)}
                   </span>
                 </TableCell>
