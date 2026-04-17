@@ -1,7 +1,7 @@
 /**
  * Project user row model from the project_user table.
  */
-export interface ProjectUserData {
+export interface ProjectMembershipData {
   project_id: string;
   user_id: string;
   role: string;
