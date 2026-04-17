@@ -17,8 +17,9 @@ import { serve } from "@hono/node-server";
 import { config } from "@/config";
 import { requestLogger } from "@/middlewares";
 
-const CORS_ALLOWED_ORIGINS = (process.env.CORS_ALLOWED_ORIGINS ??
-  "http://localhost:3000")
+const CORS_ALLOWED_ORIGINS = (
+  process.env.CORS_ALLOWED_ORIGINS ?? "http://localhost:3000"
+)
   .split(",")
   .map((origin) => origin.trim())
   .filter(Boolean);

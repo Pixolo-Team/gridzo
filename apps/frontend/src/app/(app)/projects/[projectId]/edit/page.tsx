@@ -54,8 +54,12 @@ export default function EditProjectPage() {
   const router = useRouter();
 
   // Define Context
-  const { projectDetails, refreshProjectDetailsService } =
-    useProjectDetailsContext();
+  const {
+    currentProjectRole,
+    projectDetails,
+    isProjectDetailsLoading,
+    refreshProjectDetailsService,
+  } = useProjectDetailsContext();
 
   // Define Refs
 
@@ -300,6 +304,30 @@ export default function EditProjectPage() {
       };
     });
   }, [projectDetails]);
+
+  useEffect(() => {
+    if (isProjectDetailsLoading || !projectDetails?.project.id) {
+      return;
+    }
+
+    // Wait for the membership lookup before applying the owner-only redirect.
+    if (currentProjectRole !== "owner") {
+      router.replace(ROUTES.APP.PROJECTS.DETAIL(projectDetails.project.id));
+    }
+  }, [
+    currentProjectRole,
+    isProjectDetailsLoading,
+    projectDetails?.project.id,
+    router,
+  ]);
+
+  if (
+    !isProjectDetailsLoading &&
+    projectDetails?.project.id &&
+    currentProjectRole !== "owner"
+  ) {
+    return null;
+  }
 
   return (
     <>

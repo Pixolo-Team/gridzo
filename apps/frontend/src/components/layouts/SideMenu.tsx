@@ -1,7 +1,12 @@
 "use client";
 
+// REACT //
+import { useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+
 // TYPES //
 import type { IconComponentData } from "@/types/icon";
+import type { ProjectListItemData } from "@/types/projects";
 
 // COMPONENTS //
 import Image from "next/image";
@@ -27,8 +32,8 @@ import { useAuthContext } from "@/contexts/AuthContext";
 // CONSTANTS //
 import { ROUTES } from "@/app/constants/routes";
 
-// NAVIGATION //
-import { usePathname, useRouter } from "next/navigation";
+// API SERVICES //
+import { getAllProjectsRequest } from "@/services/api/projects.api";
 
 // OTHERS //
 import { cn } from "@/lib/utils";
@@ -77,6 +82,9 @@ export function SideMenu({
   // Define Refs
 
   // Define States
+  const [currentProjectRole, setCurrentProjectRole] = useState<
+    ProjectListItemData["role"] | null
+  >(null);
 
   // Helper Functions
   /** Checks whether the current route is within a project details area */
@@ -108,7 +116,7 @@ export function SideMenu({
       return appSidebarNavigationItems;
     }
 
-    return [
+    const projectSidebarNavigationItems: SidebarNavigationItemData[] = [
       {
         id: "project-dashboard",
         href: ROUTES.APP.PROJECTS.DETAIL(projectId),
@@ -142,6 +150,15 @@ export function SideMenu({
         label: "Project Settings",
       },
     ];
+
+    if (currentProjectRole === "owner") {
+      return projectSidebarNavigationItems;
+    }
+
+    return projectSidebarNavigationItems.filter(
+      (sidebarNavigationItemData) =>
+        sidebarNavigationItemData.id === "project-dashboard",
+    );
   };
 
   /**
@@ -315,6 +332,54 @@ export function SideMenu({
   );
 
   // Use Effects
+  useEffect(() => {
+    if (pathname === ROUTES.APP.PROJECTS.CREATE) {
+      setCurrentProjectRole(null);
+      return;
+    }
+
+    const pathnameSegmentItems = pathname.split("/").filter(Boolean);
+    const isProjectNavigationRouteData = pathname.startsWith("/projects/");
+    const projectIdData = pathnameSegmentItems[1];
+    if (!isProjectNavigationRouteData || !projectIdData) {
+      setCurrentProjectRole(null);
+      return;
+    }
+
+    let isSubscribedData = true;
+
+    // Load membership from the shared projects API so navigation reflects access rules.
+    getAllProjectsRequest()
+      .then((projectListResponseData) => {
+        if (!isSubscribedData) {
+          return;
+        }
+
+        if (!projectListResponseData.status || !projectListResponseData.data) {
+          setCurrentProjectRole(null);
+          return;
+        }
+
+        const matchedProjectData = projectListResponseData.data.find(
+          (projectItemData) =>
+            projectItemData.id === projectIdData ||
+            projectItemData.slug === projectIdData,
+        );
+
+        setCurrentProjectRole(matchedProjectData?.role ?? null);
+      })
+      .catch(() => {
+        if (!isSubscribedData) {
+          return;
+        }
+
+        setCurrentProjectRole(null);
+      });
+
+    return () => {
+      isSubscribedData = false;
+    };
+  }, [pathname]);
 
   return (
     <>

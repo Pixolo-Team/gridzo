@@ -30,7 +30,7 @@ export default function AppLayout({
   const router = useRouter();
 
   // Define Context
-  const { session, user, isLoading } = useAuthContext();
+  const { session, isLoading } = useAuthContext();
 
   // Define Refs
 
@@ -60,10 +60,10 @@ export default function AppLayout({
       return;
     }
 
-    if (!session || !user) {
+    if (!session) {
       router.replace(ROUTES.AUTH.LOGIN);
     }
-  }, [isLoading, session, user, router]);
+  }, [isLoading, session, router]);
 
   useEffect(() => {
     // Lock body scroll while the mobile menu is open so the overlay stays fixed.
@@ -74,7 +74,7 @@ export default function AppLayout({
     };
   }, [isMobileMenuOpen]);
 
-  if (isLoading || !session || !user) {
+  if (isLoading || !session) {
     return null;
   }
 

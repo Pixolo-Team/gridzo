@@ -2,6 +2,14 @@
 
 // REACT //
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+
+// TYPES //
+import type { UserData } from "@/types/user";
+import type {
+  ProjectPendingInvitationData,
+  ProjectUserData,
+} from "@/types/projects";
 
 // COMPONENTS //
 import UsersTable from "@/components/projects/user-access/UsersTable";
@@ -17,14 +25,12 @@ import {
 // CONTEXTS //
 import { useProjectDetailsContext } from "@/contexts/ProjectContext";
 
+// CONSTANTS //
+import { ROUTES } from "@/app/constants/routes";
+
 // UTILS //
 import { getUserRoleLabelService } from "@/utils/projects.util";
 import { validateEmail } from "@/utils/validations.util";
-import type { UserData } from "@/types/user";
-import type {
-  ProjectPendingInvitationData,
-  ProjectUserData,
-} from "@/types/projects";
 
 // OTHERS //
 import { toast } from "sonner";
@@ -37,9 +43,11 @@ import { getUserAccessInviteInputActionCard } from "@/app/data/user-access.data"
  */
 export default function UserAccessPage() {
   // Define Navigation
+  const router = useRouter();
 
   // Define Context
   const {
+    currentProjectRole,
     projectDetails,
     projectDetailsErrorMessage,
     isProjectDetailsLoading,
@@ -170,7 +178,9 @@ export default function UserAccessPage() {
     });
 
     mappedInvitationItems.forEach((mappedInvitationItem) => {
-      const invitationEmailData = mappedInvitationItem.email.trim().toLowerCase();
+      const invitationEmailData = mappedInvitationItem.email
+        .trim()
+        .toLowerCase();
       const existingMemberItemData = memberItemMapData.get(invitationEmailData);
 
       if (!existingMemberItemData) {
@@ -227,13 +237,36 @@ export default function UserAccessPage() {
   useEffect(() => {
     const projectId = projectDetails?.project.id;
 
-    if (!projectId) {
+    if (!projectId || currentProjectRole !== "owner") {
       return;
     }
 
     setHasLoadedUsers(false);
     getAllUsersDetails(projectId);
-  }, [projectDetails?.project.id]);
+  }, [currentProjectRole, projectDetails?.project.id]);
+
+  useEffect(() => {
+    if (isProjectDetailsLoading || !projectDetails?.project.id) {
+      return;
+    }
+
+    if (currentProjectRole !== "owner") {
+      router.replace(ROUTES.APP.PROJECTS.DETAIL(projectDetails.project.id));
+    }
+  }, [
+    currentProjectRole,
+    isProjectDetailsLoading,
+    projectDetails?.project.id,
+    router,
+  ]);
+
+  if (
+    !isProjectDetailsLoading &&
+    projectDetails?.project.id &&
+    currentProjectRole !== "owner"
+  ) {
+    return null;
+  }
 
   return (
     <section className="flex flex-col gap-11 px-6 py-8 md:gap-9 md:px-9 md:py-10">

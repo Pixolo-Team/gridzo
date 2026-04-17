@@ -1,19 +1,32 @@
 "use client";
 
+// REACT //
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 
+// TYPES //
+import type { ProjectStructureData } from "@/types/projects";
+
+// COMPONENTS //
 import CodeEditor from "@/components/ui/CodeEditor";
 import PageIntro from "@/components/ui/PageIntro";
 
-import type { ProjectStructureData } from "@/types/projects";
-
+// API SERVICES //
 import { updateStructureRequest } from "@/services/api/structure.api";
+
+// CONTEXTS //
+import { useProjectDetailsContext } from "@/contexts/ProjectContext";
+
+// CONSTANTS //
+import { ROUTES } from "@/app/constants/routes";
+
+// UTILS //
 import { normalizePhpCode } from "@/utils/normalization.util";
 
-// LIBRARIES //
+// OTHERS //
 import { toast } from "sonner";
 
-import { useProjectDetailsContext } from "@/contexts/ProjectContext";
+// LIBRARIES //
 
 type StructureEditorModeData = "php" | "json";
 
@@ -56,9 +69,11 @@ function getStructureJsonTextService(
  */
 export default function ProjectStructurePage() {
   // Define Navigation
+  const router = useRouter();
 
   // Define Context
   const {
+    currentProjectRole,
     projectDetails,
     isProjectDetailsLoading,
     projectDetailsErrorMessage,
@@ -164,6 +179,29 @@ export default function ProjectStructurePage() {
       json: getStructureJsonTextService(currentStructureVersion.json_code),
     });
   }, [currentStructureVersion]);
+
+  useEffect(() => {
+    if (isProjectDetailsLoading || !projectDetails?.project.id) {
+      return;
+    }
+
+    if (currentProjectRole !== "owner") {
+      router.replace(ROUTES.APP.PROJECTS.DETAIL(projectDetails.project.id));
+    }
+  }, [
+    currentProjectRole,
+    isProjectDetailsLoading,
+    projectDetails?.project.id,
+    router,
+  ]);
+
+  if (
+    !isProjectDetailsLoading &&
+    projectDetails?.project.id &&
+    currentProjectRole !== "owner"
+  ) {
+    return null;
+  }
 
   return (
     <section className="flex min-h-full flex-col gap-8 bg-n-100 px-6 py-8 md:px-9 md:py-10">

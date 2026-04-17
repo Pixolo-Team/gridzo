@@ -1,7 +1,8 @@
 "use client";
 
 // REACT //
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 // SERVICES //
 import { signInWithGoogleRequest } from "@/services/api/auth.api";
@@ -15,28 +16,51 @@ import { Button } from "@/components/ui/button";
 // DATA //
 import { footerLinkItems } from "@/app/data/footer-links";
 
+// CONTEXTS //
+import { useAuthContext } from "@/contexts/AuthContext";
+
+// CONSTANTS //
+import { ROUTES } from "@/app/constants/routes";
+import { CONSTANTS } from "@/constants/constants";
+
 /** Login page */
 export default function LoginPage() {
   // Define Navigation
+  const router = useRouter();
 
   // Define Context
+  const { isLoading: isAuthLoading, session } = useAuthContext();
 
   // Define Refs
 
   // Define States
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [hasStoredAccessToken, setHasStoredAccessToken] =
+    useState<boolean>(false);
+  const [isGoogleAuthLoading, setIsGoogleAuthLoading] =
+    useState<boolean>(false);
 
   // Helper Functions
+  /**
+   * Checks whether a persisted access token exists in local storage.
+   */
+  const checkHasAccessTokenService = (): boolean => {
+    const accessTokenData = window.localStorage.getItem(
+      CONSTANTS.ACCESS_TOKEN_KEY,
+    );
+
+    return Boolean(accessTokenData);
+  };
+
   /**
    * Handles Google Auth logic by triggering the OAuth flow
    */
   const handleGoogleAuth = async (): Promise<void> => {
-    setIsLoading(true);
+    setIsGoogleAuthLoading(true);
 
     const { data, error } = await signInWithGoogleRequest();
 
     if (error) {
-      setIsLoading(false);
+      setIsGoogleAuthLoading(false);
       return;
     }
 
@@ -46,10 +70,27 @@ export default function LoginPage() {
       return;
     }
 
-    setIsLoading(false);
+    setIsGoogleAuthLoading(false);
   };
 
   // Use Effects
+  useEffect(() => {
+    if (isAuthLoading) {
+      return;
+    }
+
+    // Read local storage only after mount so auth redirect stays SSR-safe.
+    const hasStoredAccessTokenData = checkHasAccessTokenService();
+    setHasStoredAccessToken(hasStoredAccessTokenData);
+
+    if (session?.token || hasStoredAccessTokenData) {
+      router.replace(ROUTES.APP.DASHBOARD);
+    }
+  }, [isAuthLoading, router, session?.token]);
+
+  if (!isAuthLoading && (session?.token || hasStoredAccessToken)) {
+    return null;
+  }
 
   return (
     <section className="min-h-screen">
@@ -89,7 +130,7 @@ export default function LoginPage() {
                 className="h-12 w-full gap-3 rounded-lg px-6 py-3 text-sm"
                 aria-label="Sign up with Google"
                 onClick={handleGoogleAuth}
-                disabled={isLoading}
+                disabled={isGoogleAuthLoading}
               >
                 <span className="size-5 shrink-0">
                   <Image
@@ -102,7 +143,9 @@ export default function LoginPage() {
                   />
                 </span>
                 <span>
-                  {isLoading ? "Opening Google..." : "Continue with Google"}
+                  {isGoogleAuthLoading
+                    ? "Opening Google..."
+                    : "Continue with Google"}
                 </span>
               </Button>
 
