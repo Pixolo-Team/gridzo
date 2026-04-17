@@ -44,6 +44,7 @@ type GetAllProjectUsersServiceResponseData =
 
 type InviteUserStatusCodeData =
   | typeof HTTP_STATUS.OK
+  | typeof HTTP_STATUS.CONFLICT
   | typeof HTTP_STATUS.UNAUTHORIZED
   | typeof HTTP_STATUS.NOT_FOUND
   | typeof HTTP_STATUS.INTERNAL_SERVER_ERROR;
