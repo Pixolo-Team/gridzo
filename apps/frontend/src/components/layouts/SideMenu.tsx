@@ -1,7 +1,12 @@
 "use client";
 
+// REACT //
+import { useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+
 // TYPES //
 import type { IconComponentData } from "@/types/icon";
+import type { ProjectListItemData } from "@/types/projects";
 
 // COMPONENTS //
 import Image from "next/image";
@@ -12,6 +17,7 @@ import Cog from "@/components/icons/neevo-icons/Cog";
 import DashboardSquare from "@/components/icons/neevo-icons/DashboardSquare";
 import DeployRules from "@/components/icons/neevo-icons/DeployRules";
 import Logout1 from "@/components/icons/neevo-icons/Logout1";
+import { ModeToggle } from "@/components/ui/ModeToggle";
 import PortraitSetting from "@/components/icons/neevo-icons/PortraitSetting";
 import {
   Popover,
@@ -26,8 +32,8 @@ import { useAuthContext } from "@/contexts/AuthContext";
 // CONSTANTS //
 import { ROUTES } from "@/app/constants/routes";
 
-// NAVIGATION //
-import { usePathname, useRouter } from "next/navigation";
+// API SERVICES //
+import { getAllProjectsRequest } from "@/services/api/projects.api";
 
 // OTHERS //
 import { cn } from "@/lib/utils";
@@ -76,6 +82,9 @@ export function SideMenu({
   // Define Refs
 
   // Define States
+  const [currentProjectRole, setCurrentProjectRole] = useState<
+    ProjectListItemData["role"] | null
+  >(null);
 
   // Helper Functions
   /** Checks whether the current route is within a project details area */
@@ -107,7 +116,7 @@ export function SideMenu({
       return appSidebarNavigationItems;
     }
 
-    return [
+    const projectSidebarNavigationItems: SidebarNavigationItemData[] = [
       {
         id: "project-dashboard",
         href: ROUTES.APP.PROJECTS.DETAIL(projectId),
@@ -141,6 +150,15 @@ export function SideMenu({
         label: "Project Settings",
       },
     ];
+
+    if (currentProjectRole === "owner") {
+      return projectSidebarNavigationItems;
+    }
+
+    return projectSidebarNavigationItems.filter(
+      (sidebarNavigationItemData) =>
+        sidebarNavigationItemData.id === "project-dashboard",
+    );
   };
 
   /**
@@ -253,7 +271,7 @@ export function SideMenu({
           <PopoverTrigger asChild>
             <button
               type="button"
-              className="flex w-full items-center gap-[18px] rounded-xl p-1 text-left transition-colors hover:bg-n-100"
+              className="flex w-full items-center gap-3 rounded-xl p-1 text-left transition-colors hover:bg-n-100"
               aria-label="Open profile menu"
             >
               <div className="size-12 overflow-hidden rounded-full">
@@ -272,11 +290,11 @@ export function SideMenu({
 
               <div className="flex min-w-0 flex-col gap-0.5 flex-1">
                 {/* User Name */}
-                <p className="truncate text-lg font-semibold leading-normal text-n-950">
+                <p className="truncate text-lg font-semibold leading-tight text-n-950">
                   {user ? user.full_name : "Guest"}
                 </p>
                 {/* User Email */}
-                <p className="truncate text-sm leading-normal text-n-500">
+                <p className="truncate text-sm leading-tight text-n-500">
                   {user ? user.email : "guest@gmail.com"}
                 </p>
               </div>
@@ -288,7 +306,7 @@ export function SideMenu({
             side="top"
             align="start"
             sideOffset={10}
-            className="w-[300px] rounded-xl border-n-300 bg-n-50 p-2"
+            className="rounded-xl border-n-300 bg-n-50 p-2 w-64 md:w-80"
           >
             {/* Logout row */}
             <Button
@@ -314,19 +332,68 @@ export function SideMenu({
   );
 
   // Use Effects
+  useEffect(() => {
+    if (pathname === ROUTES.APP.PROJECTS.CREATE) {
+      setCurrentProjectRole(null);
+      return;
+    }
+
+    const pathnameSegmentItems = pathname.split("/").filter(Boolean);
+    const isProjectNavigationRouteData = pathname.startsWith("/projects/");
+    const projectIdData = pathnameSegmentItems[1];
+    if (!isProjectNavigationRouteData || !projectIdData) {
+      setCurrentProjectRole(null);
+      return;
+    }
+
+    let isSubscribedData = true;
+
+    // Load membership from the shared projects API so navigation reflects access rules.
+    getAllProjectsRequest()
+      .then((projectListResponseData) => {
+        if (!isSubscribedData) {
+          return;
+        }
+
+        if (!projectListResponseData.status || !projectListResponseData.data) {
+          setCurrentProjectRole(null);
+          return;
+        }
+
+        const matchedProjectData = projectListResponseData.data.find(
+          (projectItemData) =>
+            projectItemData.id === projectIdData ||
+            projectItemData.slug === projectIdData,
+        );
+
+        setCurrentProjectRole(matchedProjectData?.role ?? null);
+      })
+      .catch(() => {
+        if (!isSubscribedData) {
+          return;
+        }
+
+        setCurrentProjectRole(null);
+      });
+
+    return () => {
+      isSubscribedData = false;
+    };
+  }, [pathname]);
 
   return (
     <>
       {/* Desktop Side Menu */}
       <aside className="hidden h-full w-96 shrink-0 border-r border-n-300 bg-n-50 xl:flex xl:flex-col xl:justify-between">
         {/* Desktop Brand */}
-        <div className="px-7 py-5">
+        <div className="flex items-center justify-between px-7 py-5">
           <BrandLogo
             className="flex h-12 w-30 items-center"
             imageClassName="h-auto w-full object-contain"
             width={120}
             height={36}
           />
+          <ModeToggle />
         </div>
 
         <div className="flex min-h-0 flex-1 flex-col justify-between">
@@ -365,14 +432,17 @@ export function SideMenu({
               onClick={onCloseMobileMenu}
             />
 
-            <button
-              type="button"
-              aria-label="Close side menu"
-              className="flex size-10 items-center justify-center rounded-full transition-colors hover:bg-n-100"
-              onClick={onCloseMobileMenu}
-            >
-              <Close primaryColor="var(--color-n-500)" className="size-5" />
-            </button>
+            <div className="flex items-center gap-2">
+              <ModeToggle />
+              <button
+                type="button"
+                aria-label="Close side menu"
+                className="flex size-10 items-center justify-center rounded-full transition-colors hover:bg-n-100"
+                onClick={onCloseMobileMenu}
+              >
+                <Close primaryColor="var(--color-n-500)" className="size-5" />
+              </button>
+            </div>
           </div>
 
           <div className="flex min-h-0 flex-1 flex-col justify-between">

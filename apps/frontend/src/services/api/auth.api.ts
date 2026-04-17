@@ -7,7 +7,9 @@ import { supabase } from "@/lib/supabase";
 // CONSTANTS //
 import { ROUTES } from "@/app/constants/routes";
 
-type GoogleSignInResponseData = OAuthResponse | { data: null; error: AuthError };
+type GoogleSignInResponseData =
+  | OAuthResponse
+  | { data: null; error: AuthError };
 
 /**
  * Initiates Google OAuth sign-in flow via Supabase.

@@ -1,17 +1,26 @@
+"use client";
+
 // REACT //
-import type { ImgHTMLAttributes, SourceHTMLAttributes } from "react";
+import { useEffect, useState } from "react";
+import type { CSSProperties } from "react";
+
+// STYLES //
+import { useTheme } from "next-themes";
+
+// COMPONENTS //
+import Image from "next/image";
 
 interface ThemeImagePropsData {
   alt: string;
   className?: string;
   darkClassName?: string;
   darkSrc?: string;
-  height?: number;
+  height: number;
   lightClassName?: string;
   lightSrc: string;
   sizes?: string;
-  style?: ImgHTMLAttributes<HTMLImageElement>["style"];
-  width?: number;
+  style?: CSSProperties;
+  width: number;
 }
 
 /**
@@ -28,7 +37,6 @@ export default function ThemeImage({
   sizes,
   style,
   width,
-  ...props
 }: ThemeImagePropsData) {
   // Define Navigation
 
@@ -37,35 +45,31 @@ export default function ThemeImage({
   // Define Refs
 
   // Define States
+  const [isMounted, setIsMounted] = useState<boolean>(false);
+  const { resolvedTheme } = useTheme();
 
   // Helper Functions
   /**
    * Gets the dark image source, falling back to the light asset when needed
    */
   const resolvedDarkSrc = darkSrc ?? lightSrc;
+  const resolvedImageSource =
+    isMounted && resolvedTheme === "dark" ? resolvedDarkSrc : lightSrc;
 
   // Use Effects
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   return (
-    <picture>
-      <source
-        srcSet={resolvedDarkSrc}
-        media="(prefers-color-scheme: dark)"
-        {...({ sizes } satisfies Partial<
-          SourceHTMLAttributes<HTMLSourceElement>
-        >)}
-      />
-
-      <img
-        {...(props as ImgHTMLAttributes<HTMLImageElement>)}
-        src={lightSrc}
-        alt={alt}
-        width={width}
-        height={height}
-        sizes={sizes}
-        style={style}
-        className={className ?? lightClassName ?? darkClassName}
-      />
-    </picture>
+    <Image
+      src={resolvedImageSource}
+      alt={alt}
+      width={width}
+      height={height}
+      sizes={sizes}
+      style={style}
+      className={className ?? lightClassName ?? darkClassName}
+    />
   );
 }

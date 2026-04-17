@@ -18,30 +18,8 @@ import type {
 // CONSTANTS //
 import { CONSTANTS } from "@/constants/constants";
 
-// OTHERS //
-import { supabase } from "@/lib/supabase";
-
-/**
- * Resolves the latest available access token for authenticated API requests.
- */
-async function getAccessTokenForApiRequestService(): Promise<string> {
-  const sessionResponseData = await supabase.auth.getSession();
-  const sessionAccessTokenData =
-    sessionResponseData.data.session?.access_token ?? null;
-
-  if (sessionAccessTokenData) {
-    localStorage.setItem(CONSTANTS.ACCESS_TOKEN_KEY, sessionAccessTokenData);
-    return sessionAccessTokenData;
-  }
-
-  const localAccessTokenData = localStorage.getItem(CONSTANTS.ACCESS_TOKEN_KEY);
-
-  if (!localAccessTokenData) {
-    throw new Error("Missing access token. Please sign in again.");
-  }
-
-  return localAccessTokenData;
-}
+// UTILS //
+import { getAccessTokenForApiRequest } from "@/utils/auth.util";
 
 /**
  * Creates a new project with the provided payload.
@@ -50,7 +28,7 @@ export const createProjectRequest = async (
   projectPayload: CreateProjectRequestData,
 ): Promise<ApiResponseData<CreateProjectResponseData>> => {
   // Resolve latest token for authorized create-project request
-  const token = await getAccessTokenForApiRequestService();
+  const token = await getAccessTokenForApiRequest();
 
   // Set up the API Call Config
   const config: AxiosRequestConfig = {
@@ -58,7 +36,7 @@ export const createProjectRequest = async (
       Authorization: `Bearer ${token}`,
     },
     method: "post",
-    url: `${CONSTANTS.LOCAL_API_URL}/projects`,
+    url: `${CONSTANTS.API_URL}/projects`,
     data: projectPayload,
   };
 
@@ -73,7 +51,7 @@ export const getAllProjectsRequest = async (): Promise<
   ApiResponseData<ProjectListItemData[]>
 > => {
   // Resolve latest token for authorized request
-  const token = await getAccessTokenForApiRequestService();
+  const token = await getAccessTokenForApiRequest();
 
   // Set up the API Call Config
   const config: AxiosRequestConfig = {
@@ -81,7 +59,7 @@ export const getAllProjectsRequest = async (): Promise<
       Authorization: `Bearer ${token}`,
     },
     method: "get",
-    url: `${CONSTANTS.LOCAL_API_URL}/projects/all`,
+    url: `${CONSTANTS.API_URL}/projects/all`,
   };
 
   // Make API Call
@@ -95,7 +73,7 @@ export const getProjectByIdRequest = async (
   projectId: string,
 ): Promise<ApiResponseData<GetProjectByIdResponseData>> => {
   // Resolve latest token for authorized request
-  const token = await getAccessTokenForApiRequestService();
+  const token = await getAccessTokenForApiRequest();
 
   // Set up the API Call Config
   const config: AxiosRequestConfig = {
@@ -103,7 +81,7 @@ export const getProjectByIdRequest = async (
       Authorization: `Bearer ${token}`,
     },
     method: "get",
-    url: `${CONSTANTS.LOCAL_API_URL}/project/${projectId}`,
+    url: `${CONSTANTS.API_URL}/project/${projectId}`,
   };
 
   // Make API Call
@@ -118,7 +96,7 @@ export const inviteUserRequest = async (
   emailId: string,
 ): Promise<ApiResponseData<InviteUserResponseData>> => {
   // Resolve latest token for authorized request
-  const token = await getAccessTokenForApiRequestService();
+  const token = await getAccessTokenForApiRequest();
 
   // Set up the API Call Config
   const config: AxiosRequestConfig = {
@@ -126,7 +104,7 @@ export const inviteUserRequest = async (
       Authorization: `Bearer ${token}`,
     },
     method: "post",
-    url: `${CONSTANTS.LOCAL_API_URL}/project/${projectId}/invite-user`,
+    url: `${CONSTANTS.API_URL}/project/${projectId}/invite-user`,
     data: { email: emailId },
   };
 
@@ -141,7 +119,7 @@ export const getAllUsersRequest = async (
   projectId: string,
 ): Promise<ApiResponseData<GetAllProjectUsersResponseData>> => {
   // Resolve latest token for authorized request
-  const token = await getAccessTokenForApiRequestService();
+  const token = await getAccessTokenForApiRequest();
 
   // Set up the API Call Config
   const config: AxiosRequestConfig = {
@@ -149,12 +127,14 @@ export const getAllUsersRequest = async (
       Authorization: `Bearer ${token}`,
     },
     method: "get",
-    url: `${CONSTANTS.LOCAL_API_URL}/projects/${projectId}/get-all-users`,
+    url: `${CONSTANTS.API_URL}/projects/${projectId}/get-all-users`,
   };
 
   // Make API Call
   const response =
-    await axios.request<ApiResponseData<GetAllProjectUsersResponseData>>(config);
+    await axios.request<ApiResponseData<GetAllProjectUsersResponseData>>(
+      config,
+    );
   return response.data;
 };
 
@@ -164,7 +144,7 @@ export const updateProjectRequest = async (
   projectPayload: UpdateProjectRequestData,
 ): Promise<ApiResponseData<UpdateProjectResponseData>> => {
   // Resolve latest token for authorized request
-  const token = await getAccessTokenForApiRequestService();
+  const token = await getAccessTokenForApiRequest();
 
   // Set up the API Call Config
   const config: AxiosRequestConfig = {
@@ -173,7 +153,7 @@ export const updateProjectRequest = async (
       "Content-Type": "application/json",
     },
     method: "patch",
-    url: `${CONSTANTS.LOCAL_API_URL}/projects/${projectId}`,
+    url: `${CONSTANTS.API_URL}/projects/${projectId}`,
     data: projectPayload,
   };
 
@@ -188,7 +168,7 @@ export const getMyProjectInvitationsRequest = async (): Promise<
   ApiResponseData<GetMyProjectInvitationsResponseData>
 > => {
   // Resolve latest token for authorized request
-  const token = await getAccessTokenForApiRequestService();
+  const token = await getAccessTokenForApiRequest();
 
   // Set up the API Call Config
   const config: AxiosRequestConfig = {
@@ -196,12 +176,14 @@ export const getMyProjectInvitationsRequest = async (): Promise<
       Authorization: `Bearer ${token}`,
     },
     method: "get",
-    url: `${CONSTANTS.LOCAL_API_URL}/projects/invitations/me`,
+    url: `${CONSTANTS.API_URL}/projects/invitations/me`,
   };
 
   // Make API Call
   const response =
-    await axios.request<ApiResponseData<GetMyProjectInvitationsResponseData>>(config);
+    await axios.request<ApiResponseData<GetMyProjectInvitationsResponseData>>(
+      config,
+    );
   return response.data;
 };
 
@@ -210,7 +192,7 @@ export const acceptProjectInvitationRequest = async (
   invitationId: string,
 ): Promise<ApiResponseData<null>> => {
   // Resolve latest token for authorized request
-  const token = await getAccessTokenForApiRequestService();
+  const token = await getAccessTokenForApiRequest();
 
   // Set up the API Call Config
   const config: AxiosRequestConfig = {
@@ -218,7 +200,7 @@ export const acceptProjectInvitationRequest = async (
       Authorization: `Bearer ${token}`,
     },
     method: "post",
-    url: `${CONSTANTS.LOCAL_API_URL}/projects/invitations/${invitationId}/accept`,
+    url: `${CONSTANTS.API_URL}/projects/invitations/${invitationId}/accept`,
   };
 
   // Make API Call
@@ -231,7 +213,7 @@ export const rejectProjectInvitationRequest = async (
   invitationId: string,
 ): Promise<ApiResponseData<null>> => {
   // Resolve latest token for authorized request
-  const token = await getAccessTokenForApiRequestService();
+  const token = await getAccessTokenForApiRequest();
 
   // Set up the API Call Config
   const config: AxiosRequestConfig = {
@@ -239,7 +221,7 @@ export const rejectProjectInvitationRequest = async (
       Authorization: `Bearer ${token}`,
     },
     method: "post",
-    url: `${CONSTANTS.LOCAL_API_URL}/projects/invitations/${invitationId}/reject`,
+    url: `${CONSTANTS.API_URL}/projects/invitations/${invitationId}/reject`,
   };
 
   // Make API Call

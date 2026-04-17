@@ -2,16 +2,31 @@
 
 // REACT //
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+
+// TYPES //
+import type { ProjectStructureData } from "@/types/projects";
 
 // COMPONENTS //
 import CodeEditor from "@/components/ui/CodeEditor";
 import PageIntro from "@/components/ui/PageIntro";
 
-// TYPES //
-import type { ProjectStructureData } from "@/types/projects";
+// API SERVICES //
+import { updateStructureRequest } from "@/services/api/structure.api";
 
 // CONTEXTS //
 import { useProjectDetailsContext } from "@/contexts/ProjectContext";
+
+// CONSTANTS //
+import { ROUTES } from "@/app/constants/routes";
+
+// UTILS //
+import { normalizePhpCode } from "@/utils/normalization.util";
+
+// OTHERS //
+import { toast } from "sonner";
+
+// LIBRARIES //
 
 type StructureEditorModeData = "php" | "json";
 
@@ -54,9 +69,11 @@ function getStructureJsonTextService(
  */
 export default function ProjectStructurePage() {
   // Define Navigation
+  const router = useRouter();
 
   // Define Context
   const {
+    currentProjectRole,
     projectDetails,
     isProjectDetailsLoading,
     projectDetailsErrorMessage,
@@ -83,12 +100,55 @@ export default function ProjectStructurePage() {
    * Handles save action for current editor data.
    */
   const handleSaveClick = (): void => {
-    setEditorContent((previousEditorContent) => {
-      return {
-        ...previousEditorContent,
-        [editorMode]: previousEditorContent[editorMode],
-      };
-    });
+    // Resolve current project id before attempting save.
+    const projectIdData = projectDetails?.project.id;
+
+    if (!projectIdData) {
+      toast.error("Project details are not ready yet.");
+      return;
+    }
+
+    let parsedJsonCodeData: Record<string, unknown>;
+
+    try {
+      // Parse JSON editor content and enforce object-only payload.
+      const parsedJsonData = JSON.parse(editorContent.json) as unknown;
+
+      if (
+        !parsedJsonData ||
+        typeof parsedJsonData !== "object" ||
+        Array.isArray(parsedJsonData)
+      ) {
+        toast.error("JSON code must be a valid JSON object.");
+        return;
+      }
+
+      parsedJsonCodeData = parsedJsonData as Record<string, unknown>;
+    } catch {
+      // Stop save when JSON syntax is invalid.
+      toast.error("JSON code must be valid JSON.");
+      return;
+    }
+
+    // Normalize PHP content to satisfy backend validation.
+    const normalizedPhpCodeData = normalizePhpCode(editorContent.php);
+
+    // Submit structure update request.
+    updateStructureRequest(projectIdData, {
+      json_code: parsedJsonCodeData,
+      php_code: normalizedPhpCodeData,
+    })
+      .then((updateStructureResponseData) => {
+        if (!updateStructureResponseData.status) {
+          toast.error(updateStructureResponseData.message);
+          return;
+        }
+
+        toast.success(updateStructureResponseData.message);
+      })
+      .catch(() => {
+        toast.error("Failed to update structure.");
+      });
   };
 
   /**
@@ -119,6 +179,29 @@ export default function ProjectStructurePage() {
       json: getStructureJsonTextService(currentStructureVersion.json_code),
     });
   }, [currentStructureVersion]);
+
+  useEffect(() => {
+    if (isProjectDetailsLoading || !projectDetails?.project.id) {
+      return;
+    }
+
+    if (currentProjectRole !== "owner") {
+      router.replace(ROUTES.APP.PROJECTS.DETAIL(projectDetails.project.id));
+    }
+  }, [
+    currentProjectRole,
+    isProjectDetailsLoading,
+    projectDetails?.project.id,
+    router,
+  ]);
+
+  if (
+    !isProjectDetailsLoading &&
+    projectDetails?.project.id &&
+    currentProjectRole !== "owner"
+  ) {
+    return null;
+  }
 
   return (
     <section className="flex min-h-full flex-col gap-8 bg-n-100 px-6 py-8 md:px-9 md:py-10">

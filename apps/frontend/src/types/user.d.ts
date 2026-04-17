@@ -4,7 +4,7 @@ export type UserData = {
   email: string;
   full_name: string | null;
   avatar_url: string | null;
-  status: "active" | "invited" | "disabled" | "inactive";
+  status: "active" | "invited" | "disabled" | "inactive" | "rejected";
   role?: UserRoleData;
 };
 

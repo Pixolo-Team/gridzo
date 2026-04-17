@@ -2,6 +2,14 @@
 
 // REACT //
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+
+// TYPES //
+import type { UserData } from "@/types/user";
+import type {
+  ProjectPendingInvitationData,
+  ProjectUserData,
+} from "@/types/projects";
 
 // COMPONENTS //
 import UsersTable from "@/components/projects/user-access/UsersTable";
@@ -17,14 +25,12 @@ import {
 // CONTEXTS //
 import { useProjectDetailsContext } from "@/contexts/ProjectContext";
 
+// CONSTANTS //
+import { ROUTES } from "@/app/constants/routes";
+
 // UTILS //
 import { getUserRoleLabelService } from "@/utils/projects.util";
 import { validateEmail } from "@/utils/validations.util";
-import type { UserData } from "@/types/user";
-import type {
-  ProjectPendingInvitationData,
-  ProjectUserData,
-} from "@/types/projects";
 
 // OTHERS //
 import { toast } from "sonner";
@@ -37,9 +43,11 @@ import { getUserAccessInviteInputActionCard } from "@/app/data/user-access.data"
  */
 export default function UserAccessPage() {
   // Define Navigation
+  const router = useRouter();
 
   // Define Context
   const {
+    currentProjectRole,
     projectDetails,
     projectDetailsErrorMessage,
     isProjectDetailsLoading,
@@ -82,6 +90,24 @@ export default function UserAccessPage() {
     // Validate email format
     if (!validateEmail(inviteEmailAddress)) {
       toast.error("Please enter a valid email address.");
+      return;
+    }
+
+    const normalizedInviteEmailData = inviteEmailAddress.trim().toLowerCase();
+    const hasExistingActiveOrPendingAccessData = memberItems.some(
+      (memberItem) => {
+        const normalizedMemberEmailData = memberItem.email.trim().toLowerCase();
+        const hasBlockingStatusData = memberItem.status !== "rejected";
+
+        return (
+          normalizedMemberEmailData === normalizedInviteEmailData &&
+          hasBlockingStatusData
+        );
+      },
+    );
+
+    if (hasExistingActiveOrPendingAccessData) {
+      toast.error("This user already has project access or a pending invite.");
       return;
     }
 
@@ -139,12 +165,38 @@ export default function UserAccessPage() {
         email: invitationItem.email,
         full_name: invitationItem.email,
         avatar_url: null,
-        status: "invited",
+        status: invitationItem.status === "pending" ? "invited" : "rejected",
         role: getUserRoleLabelService(invitationItem.role),
       }),
     );
+    const memberItemMapData = new Map<string, UserData>();
 
-    return [...mappedUserItems, ...mappedInvitationItems];
+    mappedUserItems.forEach((mappedUserItem) => {
+      memberItemMapData.set(mappedUserItem.email.trim().toLowerCase(), {
+        ...mappedUserItem,
+      });
+    });
+
+    mappedInvitationItems.forEach((mappedInvitationItem) => {
+      const invitationEmailData = mappedInvitationItem.email
+        .trim()
+        .toLowerCase();
+      const existingMemberItemData = memberItemMapData.get(invitationEmailData);
+
+      if (!existingMemberItemData) {
+        memberItemMapData.set(invitationEmailData, mappedInvitationItem);
+        return;
+      }
+
+      if (
+        existingMemberItemData.status === "rejected" &&
+        mappedInvitationItem.status === "invited"
+      ) {
+        memberItemMapData.set(invitationEmailData, mappedInvitationItem);
+      }
+    });
+
+    return Array.from(memberItemMapData.values());
   };
 
   /**
@@ -185,13 +237,36 @@ export default function UserAccessPage() {
   useEffect(() => {
     const projectId = projectDetails?.project.id;
 
-    if (!projectId) {
+    if (!projectId || currentProjectRole !== "owner") {
       return;
     }
 
     setHasLoadedUsers(false);
     getAllUsersDetails(projectId);
-  }, [projectDetails?.project.id]);
+  }, [currentProjectRole, projectDetails?.project.id]);
+
+  useEffect(() => {
+    if (isProjectDetailsLoading || !projectDetails?.project.id) {
+      return;
+    }
+
+    if (currentProjectRole !== "owner") {
+      router.replace(ROUTES.APP.PROJECTS.DETAIL(projectDetails.project.id));
+    }
+  }, [
+    currentProjectRole,
+    isProjectDetailsLoading,
+    projectDetails?.project.id,
+    router,
+  ]);
+
+  if (
+    !isProjectDetailsLoading &&
+    projectDetails?.project.id &&
+    currentProjectRole !== "owner"
+  ) {
+    return null;
+  }
 
   return (
     <section className="flex flex-col gap-11 px-6 py-8 md:gap-9 md:px-9 md:py-10">

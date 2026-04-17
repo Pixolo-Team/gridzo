@@ -79,7 +79,7 @@ export type ProjectPendingInvitationData = {
   id: string;
   email: string;
   role: "owner" | "admin" | "editor" | "viewer";
-  status: "pending";
+  status: "pending" | "rejected" | "revoked";
 };
 
 // Type for Get All Project Users Response Data

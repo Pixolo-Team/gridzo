@@ -1,4 +1,13 @@
 /**
+ * Project user row model from the project_user table.
+ */
+export interface ProjectUserData {
+  project_id: string;
+  user_id: string;
+  role: string;
+}
+
+/**
  * Project row model from the projects table.
  */
 export interface ProjectData {
@@ -116,13 +125,13 @@ export interface ProjectUserData {
 }
 
 /**
- * Pending invitation row model for get-all-users response.
+ * Invitation row model for get-all-users response.
  */
 export interface ProjectPendingInvitationData {
   id: string;
   email: string;
   role: "owner" | "admin" | "editor" | "viewer";
-  status: "pending";
+  status: "pending" | "rejected" | "revoked";
 }
 
 /**

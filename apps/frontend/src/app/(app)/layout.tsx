@@ -12,6 +12,7 @@ import { SideMenu } from "@/components/layouts/SideMenu";
 // CONTEXTS //
 import { useAuthContext } from "@/contexts/AuthContext";
 import { CreateProjectFlowProvider } from "@/contexts/create-project-flow.context";
+import { DashboardSearchProvider } from "@/contexts/DashboardSearchContext";
 import { ProjectInvitationsProvider } from "@/contexts/InvitationsContext";
 
 // CONSTANTS //
@@ -29,7 +30,7 @@ export default function AppLayout({
   const router = useRouter();
 
   // Define Context
-  const { session, user, isLoading } = useAuthContext();
+  const { session, isLoading } = useAuthContext();
 
   // Define Refs
 
@@ -59,10 +60,10 @@ export default function AppLayout({
       return;
     }
 
-    if (!session || !user) {
+    if (!session) {
       router.replace(ROUTES.AUTH.LOGIN);
     }
-  }, [isLoading, session, user, router]);
+  }, [isLoading, session, router]);
 
   useEffect(() => {
     // Lock body scroll while the mobile menu is open so the overlay stays fixed.
@@ -73,29 +74,31 @@ export default function AppLayout({
     };
   }, [isMobileMenuOpen]);
 
-  if (isLoading || !session || !user) {
+  if (isLoading || !session) {
     return null;
   }
 
   return (
     <CreateProjectFlowProvider>
-      <ProjectInvitationsProvider>
-        {/* App Shell */}
-        <div className="h-screen overflow-hidden bg-n-100 xl:flex">
-          {/* Side Menu */}
-          <SideMenu
-            isMobileMenuOpen={isMobileMenuOpen}
-            onCloseMobileMenu={closeMobileMenu}
-          />
+      <DashboardSearchProvider>
+        <ProjectInvitationsProvider>
+          {/* App Shell */}
+          <div className="h-screen overflow-hidden bg-n-100 xl:flex">
+            {/* Side Menu */}
+            <SideMenu
+              isMobileMenuOpen={isMobileMenuOpen}
+              onCloseMobileMenu={closeMobileMenu}
+            />
 
-          {/* Main Content Area */}
-          <main className="flex h-full min-w-0 flex-1 flex-col overflow-hidden bg-n-100">
-            <Header onToggleMobileMenu={toggleMobileMenu} />
-            {/* Page Content Scroll Area */}
-            <div className="flex-1 overflow-y-auto">{children}</div>
-          </main>
-        </div>
-      </ProjectInvitationsProvider>
+            {/* Main Content Area */}
+            <main className="flex h-full min-w-0 flex-1 flex-col overflow-hidden bg-n-100">
+              <Header onToggleMobileMenu={toggleMobileMenu} />
+              {/* Page Content Scroll Area */}
+              <div className="flex-1 overflow-y-auto">{children}</div>
+            </main>
+          </div>
+        </ProjectInvitationsProvider>
+      </DashboardSearchProvider>
     </CreateProjectFlowProvider>
   );
 }

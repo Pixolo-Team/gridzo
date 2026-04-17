@@ -17,7 +17,7 @@ import { createProjectRequest } from "@/services/api/projects.api";
 
 // CONTEXTS //
 import { useCreateProjectFlowContext } from "@/contexts/create-project-flow.context";
-import { normalizeUrlService } from "@/utils/normalize-url.util";
+import { normalizeUrlService } from "@/utils/normalization.util";
 
 // CONSTANTS //
 import { ROUTES } from "@/app/constants/routes";

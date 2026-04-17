@@ -23,7 +23,10 @@ interface UsersTablePropsData {
 
 const statusDotToneClassNameMap: Partial<Record<UserData["status"], string>> = {
   active: "bg-success-500",
+  invited: "bg-yellow-500",
+  rejected: "bg-red-500",
   inactive: "bg-n-300",
+  disabled: "bg-n-400",
 };
 
 /**
@@ -40,7 +43,7 @@ export default function UsersTable({ memberItems }: UsersTablePropsData) {
 
   // Helper Functions
   /**
-   * Returns the status dot tone for mobile member rows
+   * Returns the status dot tone class for member rows.
    */
   const getStatusDotToneClassName = (status: UserData["status"]): string => {
     return statusDotToneClassNameMap[status] ?? "bg-n-300";
@@ -139,7 +142,15 @@ export default function UsersTable({ memberItems }: UsersTablePropsData) {
                 </TableCell>
 
                 <TableCell className="hidden px-6 py-4 text-center text-sm text-n-700 md:table-cell">
-                  {getMemberStatusLabel(memberItem.status)}
+                  <div className="inline-flex items-center gap-2">
+                    <span
+                      className={cn(
+                        "size-2 rounded-full",
+                        getStatusDotToneClassName(memberItem.status),
+                      )}
+                    />
+                    <span>{getMemberStatusLabel(memberItem.status)}</span>
+                  </div>
                 </TableCell>
 
                 <TableCell className="w-12 px-3 py-3 text-right md:w-auto md:px-6 md:py-4 md:text-center">

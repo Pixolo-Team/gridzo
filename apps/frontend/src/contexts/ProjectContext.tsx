@@ -12,12 +12,19 @@ import {
 import type { ReactNode } from "react";
 
 // TYPES //
-import type { GetProjectByIdResponseData } from "@/types/projects";
+import type {
+  GetProjectByIdResponseData,
+  ProjectListItemData,
+} from "@/types/projects";
 
 // SERVICES //
-import { getProjectByIdRequest } from "@/services/api/projects.api";
+import {
+  getAllProjectsRequest,
+  getProjectByIdRequest,
+} from "@/services/api/projects.api";
 
 type ProjectDetailsContextData = {
+  currentProjectRole: ProjectListItemData["role"] | null;
   projectDetails: GetProjectByIdResponseData | null;
   projectDetailsErrorMessage: string;
   isProjectDetailsLoading: boolean;
@@ -47,6 +54,9 @@ export function ProjectDetailsProvider({
   // Define Refs
 
   // Define States
+  const [currentProjectRole, setCurrentProjectRole] = useState<
+    ProjectListItemData["role"] | null
+  >(null);
   const [projectDetails, setProjectDetails] =
     useState<GetProjectByIdResponseData | null>(null);
   const [projectDetailsErrorMessage, setProjectDetailsErrorMessage] =
@@ -61,6 +71,7 @@ export function ProjectDetailsProvider({
   const refreshProjectDetailsService = useCallback(async (): Promise<void> => {
     setIsProjectDetailsLoading(true);
     setProjectDetailsErrorMessage("");
+    setCurrentProjectRole(null);
 
     try {
       const response = await getProjectByIdRequest(projectId);
@@ -75,7 +86,26 @@ export function ProjectDetailsProvider({
 
       setProjectDetails(response.data);
       setProjectDetailsErrorMessage("");
+
+      try {
+        const projectListResponseData = await getAllProjectsRequest();
+        const currentProjectIdData = response.data.project.id;
+        const currentProjectSlugData = response.data.project.slug;
+
+        if (projectListResponseData.status && projectListResponseData.data) {
+          const currentProjectMembershipData =
+            projectListResponseData.data.find(
+              (projectItemData) =>
+                projectItemData.id === currentProjectIdData ||
+                projectItemData.slug === currentProjectSlugData,
+            );
+          setCurrentProjectRole(currentProjectMembershipData?.role ?? null);
+        }
+      } catch {
+        setCurrentProjectRole(null);
+      }
     } catch {
+      setCurrentProjectRole(null);
       setProjectDetails(null);
       setProjectDetailsErrorMessage("Failed to fetch project.");
     } finally {
@@ -85,12 +115,14 @@ export function ProjectDetailsProvider({
 
   const projectDetailsContextValue = useMemo(() => {
     return {
+      currentProjectRole,
       projectDetails,
       projectDetailsErrorMessage,
       isProjectDetailsLoading,
       refreshProjectDetailsService,
     };
   }, [
+    currentProjectRole,
     projectDetails,
     projectDetailsErrorMessage,
     isProjectDetailsLoading,
@@ -129,4 +161,11 @@ export function useProjectDetailsContext(): ProjectDetailsContextData {
   }
 
   return projectDetailsContext;
+}
+
+/**
+ * Returns project details context when available, otherwise null.
+ */
+export function useOptionalProjectDetailsContext(): ProjectDetailsContextData | null {
+  return useContext(ProjectDetailsContext);
 }

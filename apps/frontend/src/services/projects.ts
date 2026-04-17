@@ -22,7 +22,7 @@ export const getAllProjectsRequest = async (): Promise<
       Authorization: `Bearer ${token}`,
     },
     method: "get",
-    url: `${CONSTANTS.LOCAL_API_URL}/projects/all`,
+    url: `${CONSTANTS.API_URL}/projects/all`,
   };
 
   // Make API Call

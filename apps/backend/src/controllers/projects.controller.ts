@@ -219,6 +219,7 @@ export const inviteUserToProjectController: RouteHandler<
 
   if (inviteResponseData.error || !inviteResponseData.data) {
     const errorStatusCodeData =
+      inviteResponseData.statusCode === HTTP_STATUS.CONFLICT ||
       inviteResponseData.statusCode === HTTP_STATUS.UNAUTHORIZED ||
       inviteResponseData.statusCode === HTTP_STATUS.NOT_FOUND ||
       inviteResponseData.statusCode === HTTP_STATUS.INTERNAL_SERVER_ERROR

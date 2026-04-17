@@ -120,22 +120,14 @@ export function AuthProvider({ children }: AuthProviderPropsData) {
       CONSTANTS.AUTH_USER_STORAGE_KEY,
     );
 
-    if (!storedAccessTokenData || !storedUserData) {
-      clearAuthSessionService();
-      setIsLoading(false);
-      return;
-    }
-
-    const parsedUserData = parseStoredAuthDataService<UserData>(storedUserData);
-
-    if (!parsedUserData) {
+    if (!storedAccessTokenData) {
       clearAuthSessionService();
       setIsLoading(false);
       return;
     }
 
     setSession({ token: storedAccessTokenData });
-    setUser(parsedUserData);
+    setUser(parseStoredAuthDataService<UserData>(storedUserData));
     setIsLoading(false);
   }, [clearAuthSessionService]);
 

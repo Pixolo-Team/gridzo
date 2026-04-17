@@ -499,31 +499,36 @@ async function fetchProjectUsersService(
 }
 
 /**
- * Fetches all pending invitations for a project from project_invitations joined with users.
+ * Fetches relevant invitation rows for a project from project_invitations joined with users.
  */
-async function fetchPendingInvitationsService(
+async function fetchProjectInvitationsService(
   projectIdData: string,
 ): Promise<ProjectPendingInvitationData[] | null> {
   const { data, error } = await supabase
     .from(tables.PROJECT_INVITATIONS)
     .select("id, role, status, invited_user_id")
-    .eq("project_id", projectIdData)
-    .eq("status", "pending");
+    .eq("project_id", projectIdData);
 
   if (error) {
     logger.error(
-      "[projects.service] failed to fetch pending invitations",
+      "[projects.service] failed to fetch project invitations",
       error,
     );
     return null;
   }
 
-  const invitationItemsData = (data ?? []) as {
+  const invitationItemsData = ((data ?? []) as {
     id: string;
     role: string;
     status: string;
     invited_user_id: string | null;
-  }[];
+  }[]).filter((invitationItemData) => {
+    return (
+      invitationItemData.status === "pending" ||
+      invitationItemData.status === "rejected" ||
+      invitationItemData.status === "revoked"
+    );
+  });
 
   const invitedUserIdItemsData = invitationItemsData
     .map((invitationItemData) => invitationItemData.invited_user_id)
@@ -565,13 +570,18 @@ async function fetchPendingInvitationsService(
       id: invitationItemData.id,
       email: invitationEmailData,
       role: invitationItemData.role as ProjectPendingInvitationData["role"],
-      status: "pending",
+      status:
+        invitationItemData.status === "pending"
+          ? "pending"
+          : invitationItemData.status === "revoked"
+            ? "revoked"
+            : "rejected",
     };
   });
 }
 
 /**
- * Fetches all active project members and pending invitations for a project.
+ * Fetches all active project members and invitation rows for a project.
  */
 export async function getAllProjectUsersService(
   projectIdData: string,
@@ -649,12 +659,12 @@ export async function getAllProjectUsersService(
     };
   }
 
-  const [projectUsersData, pendingInvitationsData] = await Promise.all([
+  const [projectUsersData, projectInvitationsData] = await Promise.all([
     fetchProjectUsersService(projectIdData),
-    fetchPendingInvitationsService(projectIdData),
+    fetchProjectInvitationsService(projectIdData),
   ]);
 
-  if (projectUsersData === null || pendingInvitationsData === null) {
+  if (projectUsersData === null || projectInvitationsData === null) {
     return {
       data: null,
       error: new Error("Failed to fetch project users."),
@@ -665,7 +675,7 @@ export async function getAllProjectUsersService(
   return {
     data: {
       users: projectUsersData,
-      invitations: pendingInvitationsData,
+      invitations: projectInvitationsData,
     },
     error: null,
     statusCode: HTTP_STATUS.OK,
@@ -746,6 +756,60 @@ export async function inviteUserToProjectService(
     }
 
     const invitedUserIdData = existingUserResponseData.data.id as string;
+    const existingProjectMembershipResponseData = await supabaseClient
+      .from(tables.PROJECT_USER)
+      .select("id")
+      .eq("project_id", projectIdData)
+      .eq("user_id", invitedUserIdData)
+      .maybeSingle();
+
+    if (existingProjectMembershipResponseData.error) {
+      logger.error(
+        "[projects.service] failed to check existing project membership",
+        existingProjectMembershipResponseData.error,
+      );
+      return {
+        data: null,
+        error: new Error("Failed to verify existing project membership."),
+        statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+      };
+    }
+
+    if (existingProjectMembershipResponseData.data) {
+      return {
+        data: null,
+        error: new Error("User already has access to this project."),
+        statusCode: HTTP_STATUS.CONFLICT,
+      };
+    }
+
+    const existingPendingInvitationResponseData = await supabaseClient
+      .from(tables.PROJECT_INVITATIONS)
+      .select("id")
+      .eq("project_id", projectIdData)
+      .eq("invited_user_id", invitedUserIdData)
+      .eq("status", "pending")
+      .maybeSingle();
+
+    if (existingPendingInvitationResponseData.error) {
+      logger.error(
+        "[projects.service] failed to check existing pending invitation",
+        existingPendingInvitationResponseData.error,
+      );
+      return {
+        data: null,
+        error: new Error("Failed to verify existing invitation."),
+        statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
+      };
+    }
+
+    if (existingPendingInvitationResponseData.data) {
+      return {
+        data: null,
+        error: new Error("A pending invitation already exists for this user."),
+        statusCode: HTTP_STATUS.CONFLICT,
+      };
+    }
 
     const createdInvitationResponseData = await supabaseClient
       .from(tables.PROJECT_INVITATIONS)

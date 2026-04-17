@@ -23,8 +23,11 @@ import { getAllProjectsRequest } from "@/services/api/projects.api";
 import { dashboardProjectIconMap } from "@/app/constants/dashboard-project-icons";
 import { ROUTES } from "@/app/constants/routes";
 
+// CONTEXTS //
+import { useDashboardSearchContext } from "@/contexts/DashboardSearchContext";
+
 // UTILS //
-import { getLastSyncLabelService } from "@/utils/get-last-sync-label.util";
+import { getLastSyncLabelService } from "@/utils/labels.util";
 import { getDashboardProjectVisuals } from "@/utils/projects.util";
 
 // OTHERS //
@@ -35,23 +38,24 @@ export default function DashboardPage() {
   // Define Navigation
 
   // Define Context
+  const { searchValue, setSearchValueService, clearSearchValueService } =
+    useDashboardSearchContext();
 
   // Define Refs
 
   // Define States
-  const [searchValue, setSearchValue] = useState<string>("");
   const [projects, setProjects] = useState<ProjectListItemData[]>([]);
   const [projectsErrorMessage, setProjectsErrorMessage] = useState<string>("");
 
   // Helper Functions
   /** Clears the dashboard search input value */
   const clearSearchValue = (): void => {
-    setSearchValue("");
+    clearSearchValueService();
   };
 
   /** Updates the dashboard search value from the search input field */
-  const handleSearchChange = (value: string) => {
-    setSearchValue(value);
+  const handleSearchChange = (value: string): void => {
+    setSearchValueService(value);
   };
 
   /**

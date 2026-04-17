@@ -17,6 +17,5 @@ export default function AuthLayout({
   // Helper Functions
 
   // Use Effects
-
   return <main className="min-h-screen bg-n-100">{children}</main>;
 }

@@ -16,7 +16,7 @@ export default function HomePage() {
   const router = useRouter();
 
   // Define Context
-  const { user, isLoading } = useAuthContext();
+  const { session, isLoading } = useAuthContext();
 
   // Define Refs
 
@@ -30,13 +30,13 @@ export default function HomePage() {
       return;
     }
 
-    if (!user) {
+    if (!session) {
       router.replace(ROUTES.AUTH.LOGIN);
       return;
     }
 
     router.replace(ROUTES.APP.DASHBOARD);
-  }, [isLoading, user, router]);
+  }, [isLoading, session, router]);
 
   if (isLoading) {
     return (
@@ -46,7 +46,7 @@ export default function HomePage() {
     );
   }
 
-  if (!user) {
+  if (!session) {
     return null;
   }
 
