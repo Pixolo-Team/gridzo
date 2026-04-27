@@ -17,30 +17,16 @@ import { serve } from "@hono/node-server";
 import { config } from "@/config";
 import { requestLogger } from "@/middlewares";
 
-const CORS_ALLOWED_ORIGINS = (
-  process.env.CORS_ALLOWED_ORIGINS ??
-  [
-    "https://gridzo.tech",
-    "https://www.gridzo.tech",
-    "https://gridzo.pixolotechnologies.com",
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-  ].join(",")
-)
-  .split(",")
-  .map((origin) => origin.trim())
-  .filter(Boolean);
+const PRODUCTION_CORS_ALLOWED_ORIGINS = [
+  "https://gridzo.tech",
+  "https://www.gridzo.tech",
+  "https://gridzo.pixolotechnologies.com",
+];
 
-/**
- * Resolves the request origin for CORS.
- * Returns empty string when origin is not allowed.
- */
-const getCorsOriginService = (requestOrigin?: string): string | undefined => {
-  if (!requestOrigin) return undefined;
-  return CORS_ALLOWED_ORIGINS.includes(requestOrigin)
-    ? requestOrigin
-    : undefined;
-};
+const DEVELOPMENT_CORS_ALLOWED_ORIGINS = [
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+];
 
 /**
  * Global middlewares
@@ -51,7 +37,10 @@ app.use("*", requestLogger);
 app.use(
   "*",
   cors({
-    origin: (requestOrigin) => getCorsOriginService(requestOrigin),
+    origin:
+      config.nodeEnv === "production"
+        ? PRODUCTION_CORS_ALLOWED_ORIGINS
+        : DEVELOPMENT_CORS_ALLOWED_ORIGINS,
     credentials: true,
     allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowHeaders: ["Authorization", "Content-Type"],
