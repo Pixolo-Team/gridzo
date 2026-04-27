@@ -17,17 +17,6 @@ import { serve } from "@hono/node-server";
 import { config } from "@/config";
 import { requestLogger } from "@/middlewares";
 
-const PRODUCTION_CORS_ALLOWED_ORIGINS = [
-  "https://gridzo.tech",
-  "https://www.gridzo.tech",
-  "https://gridzo.pixolotechnologies.com",
-];
-
-const DEVELOPMENT_CORS_ALLOWED_ORIGINS = [
-  "http://localhost:3000",
-  "http://127.0.0.1:3000",
-];
-
 /**
  * Global middlewares
  */
@@ -37,10 +26,13 @@ app.use("*", requestLogger);
 app.use(
   "*",
   cors({
-    origin:
-      config.nodeEnv === "production"
-        ? PRODUCTION_CORS_ALLOWED_ORIGINS
-        : DEVELOPMENT_CORS_ALLOWED_ORIGINS,
+    origin: [
+      "https://gridzo.tech",
+      "https://www.gridzo.tech",
+      "https://gridzo.pixolotechnologies.com",
+      "http://localhost:3000",
+      "http://127.0.0.1:3000",
+    ],
     credentials: true,
     allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowHeaders: ["Authorization", "Content-Type"],
