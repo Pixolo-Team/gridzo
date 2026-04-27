@@ -32,49 +32,14 @@ const CORS_ALLOWED_ORIGINS = (
   .filter(Boolean);
 
 /**
- * Checks whether an origin belongs to an allowed deployed domain.
- */
-const checkIsAllowedOriginService = (requestOrigin: string): boolean => {
-  if (!requestOrigin) {
-    return false;
-  }
-
-  if (CORS_ALLOWED_ORIGINS.includes(requestOrigin)) {
-    return true;
-  }
-
-  try {
-    const requestUrlData = new URL(requestOrigin);
-    const requestHostnameData = requestUrlData.hostname;
-
-    if (
-      requestHostnameData === "gridzo.tech" ||
-      requestHostnameData === "www.gridzo.tech" ||
-      requestHostnameData.endsWith(".pixolotechnologies.com")
-    ) {
-      return true;
-    }
-
-    return false;
-  } catch {
-    return false;
-  }
-};
-
-/**
  * Resolves the request origin for CORS.
  * Returns empty string when origin is not allowed.
  */
-const getCorsOriginService = (requestOrigin?: string): string => {
-  if (!requestOrigin) {
-    return "";
-  }
-
-  if (checkIsAllowedOriginService(requestOrigin)) {
-    return requestOrigin;
-  }
-
-  return "";
+const getCorsOriginService = (requestOrigin?: string): string | undefined => {
+  if (!requestOrigin) return undefined;
+  return CORS_ALLOWED_ORIGINS.includes(requestOrigin)
+    ? requestOrigin
+    : undefined;
 };
 
 /**
